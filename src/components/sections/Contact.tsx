@@ -365,16 +365,25 @@ export default function Contact() {
                     >
                       <AlertCircle className="w-5 h-5 text-red-400" aria-hidden="true" />
                       <p className="text-red-400 text-sm">
-                        Something went wrong. Please try again.
+                        Something went wrong. Please try again or email directly.
                       </p>
                     </motion.div>
                   )}
                 </form>
 
-                {/* Note about form */}
-                <p className="mt-4 text-dark-500 text-xs text-center">
-                  This form is frontend-only. Integrate with your preferred email service.
-                </p>
+                {/* Direct email option */}
+                <div className="mt-6 pt-6 border-t border-dark-700">
+                  <p className="text-dark-400 text-sm text-center mb-3">
+                    Prefer email? Reach me directly at:
+                  </p>
+                  <a 
+                    href="mailto:denuelinambao@gmail.com?subject=Portfolio%20Contact" 
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-dark-800/50 border border-dark-700 rounded-lg text-primary-400 hover:bg-dark-700/50 hover:border-primary-500/50 transition-all"
+                  >
+                    <Mail className="w-5 h-5" />
+                    denuelinambao@gmail.com
+                  </a>
+                </div>
               </div>
             </motion.div>
           </div>

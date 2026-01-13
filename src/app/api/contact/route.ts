@@ -33,44 +33,77 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Send email via Web3Forms
+    let emailSent = false
+
+    // Try Web3Forms first
     const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
     
-    if (WEB3FORMS_KEY) {
-      const web3Response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          name,
-          email,
-          subject: subject || 'New Portfolio Contact',
-          message,
-          from_name: 'Portfolio Contact Form',
-        }),
-      })
-
-      const result = await web3Response.json()
-
-      if (result.success) {
-        return NextResponse.json({ 
-          success: true, 
-          message: 'Message sent successfully! I will get back to you soon.' 
+    if (WEB3FORMS_KEY && !emailSent) {
+      try {
+        const web3Response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            name,
+            email,
+            subject: subject || 'New Portfolio Contact',
+            message,
+            from_name: 'Portfolio Contact Form',
+          }),
         })
-      } else {
-        console.error('Web3Forms error:', result)
-        // Don't fail - still acknowledge the message
+
+        if (web3Response.ok) {
+          const result = await web3Response.json()
+          if (result.success) {
+            emailSent = true
+          }
+        }
+      } catch (e) {
+        console.error('Web3Forms failed:', e)
       }
     }
 
-    // If Web3Forms fails or not configured, still return success
-    // The message details are logged above
+    // Try Formspree as backup
+    const FORMSPREE_ID = process.env.FORMSPREE_ID
+    
+    if (FORMSPREE_ID && !emailSent) {
+      try {
+        const formspreeResponse = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            subject: subject || 'New Portfolio Contact',
+            message,
+            _subject: `Portfolio Contact: ${subject || 'New Message'}`,
+          }),
+        })
+
+        if (formspreeResponse.ok) {
+          emailSent = true
+        }
+      } catch (e) {
+        console.error('Formspree failed:', e)
+      }
+    }
+
+    // Log the submission regardless of email status
+    console.log('Contact form submission:', { name, email, subject, message: message.substring(0, 100), timestamp: new Date().toISOString(), emailSent })
+
+    // Always return success to user (we've received their message)
     return NextResponse.json({ 
       success: true, 
-      message: 'Message received! Thank you for reaching out.' 
+      message: emailSent 
+        ? 'Message sent successfully! I will get back to you soon.' 
+        : 'Message received! Thank you for reaching out. I will get back to you soon.' 
     })
 
   } catch (error) {
