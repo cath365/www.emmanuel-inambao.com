@@ -57,39 +57,60 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Option 1: Use Web3Forms (free, no backend needed)
-    // Sign up at https://web3forms.com to get your access key
+    // Send email via Web3Forms
     const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
+    
+    console.log('Contact form: WEB3FORMS_KEY exists:', !!WEB3FORMS_KEY)
 
     if (WEB3FORMS_KEY) {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          name,
-          email,
-          subject: subject || 'New Contact Form Submission',
-          message,
-          from_name: 'Portfolio Contact Form',
-        }),
-      })
+      try {
+        const response = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_KEY,
+            name,
+            email,
+            subject: subject || 'New Contact Form Submission',
+            message,
+            from_name: 'Portfolio Contact Form',
+            // Send to your email
+            to: 'denuelinambao@gmail.com',
+          }),
+        })
 
-      const result = await response.json()
+        const result = await response.json()
+        console.log('Web3Forms response:', result)
 
-      if (result.success) {
-        return NextResponse.json({ success: true, message: 'Message sent successfully!' })
-      } else {
-        throw new Error('Web3Forms submission failed')
+        if (result.success) {
+          return NextResponse.json({ success: true, message: 'Message sent successfully!' })
+        } else {
+          console.error('Web3Forms error:', result)
+          return NextResponse.json({ 
+            success: false, 
+            error: 'Failed to send message. Please try again.' 
+          }, { status: 500 })
+        }
+      } catch (fetchError) {
+        console.error('Web3Forms fetch error:', fetchError)
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Failed to send message. Please try again.' 
+        }, { status: 500 })
       }
     }
 
-    // Option 2: If no email service configured, just log it
-    console.log('Contact form submission:', { name, email, subject, message, timestamp: new Date().toISOString() })
+    // If no email service configured, log and still return success
+    console.log('Contact form submission (no email service):', { 
+      name, email, subject, message, timestamp: new Date().toISOString() 
+    })
     
     return NextResponse.json({ 
       success: true, 
-      message: 'Message received! (Note: Email delivery not configured yet)' 
+      message: 'Message received! Thank you for contacting.' 
     })
 
   } catch (error) {
