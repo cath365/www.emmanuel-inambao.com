@@ -15,6 +15,11 @@ export interface Project {
   featured: boolean
   githubUrl?: string
   liveUrl?: string
+  appStoreUrl?: string
+  playStoreUrl?: string
+  websiteUrl?: string
+  docsUrl?: string
+  videoUrl?: string
 }
 
 // Default projects data

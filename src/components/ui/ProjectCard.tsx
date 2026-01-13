@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { ExternalLink, Github, ChevronRight } from 'lucide-react'
+import { ExternalLink, Github, ChevronRight, Globe, Smartphone, FileText, Play } from 'lucide-react'
 
 // Project data type definition
 export interface Project {
@@ -17,6 +17,11 @@ export interface Project {
   featured?: boolean
   githubUrl?: string
   liveUrl?: string
+  appStoreUrl?: string
+  playStoreUrl?: string
+  websiteUrl?: string
+  docsUrl?: string
+  videoUrl?: string
 }
 
 interface ProjectCardProps {
@@ -126,7 +131,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           {project.githubUrl && (
             <a
               href={project.githubUrl}
@@ -136,7 +141,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               aria-label={`View ${project.title} on GitHub`}
             >
               <Github className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Source Code</span>
+              <span className="text-sm font-medium">Code</span>
             </a>
           )}
           {project.liveUrl && (
@@ -148,7 +153,67 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               aria-label={`View ${project.title} live demo`}
             >
               <ExternalLink className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Live Demo</span>
+              <span className="text-sm font-medium">Demo</span>
+            </a>
+          )}
+          {project.websiteUrl && (
+            <a
+              href={project.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
+              aria-label={`Visit ${project.title} website`}
+            >
+              <Globe className="w-5 h-5" aria-hidden="true" />
+              <span className="text-sm font-medium">Website</span>
+            </a>
+          )}
+          {project.appStoreUrl && (
+            <a
+              href={project.appStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+              aria-label={`Download ${project.title} on App Store`}
+            >
+              <Smartphone className="w-5 h-5" aria-hidden="true" />
+              <span className="text-sm font-medium">App Store</span>
+            </a>
+          )}
+          {project.playStoreUrl && (
+            <a
+              href={project.playStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
+              aria-label={`Download ${project.title} on Play Store`}
+            >
+              <Smartphone className="w-5 h-5" aria-hidden="true" />
+              <span className="text-sm font-medium">Play Store</span>
+            </a>
+          )}
+          {project.docsUrl && (
+            <a
+              href={project.docsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors"
+              aria-label={`View ${project.title} documentation`}
+            >
+              <FileText className="w-5 h-5" aria-hidden="true" />
+              <span className="text-sm font-medium">Docs</span>
+            </a>
+          )}
+          {project.videoUrl && (
+            <a
+              href={project.videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
+              aria-label={`Watch ${project.title} video`}
+            >
+              <Play className="w-5 h-5" aria-hidden="true" />
+              <span className="text-sm font-medium">Video</span>
             </a>
           )}
           <button 

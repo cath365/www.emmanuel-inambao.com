@@ -118,9 +118,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type based on upload type
-    const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-    const videoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
-    const audioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/x-m4a']
+    const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/bmp', 'image/tiff']
+    const videoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/3gpp', 'video/x-ms-wmv']
+    const audioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/x-m4a', 'audio/aac', 'audio/flac']
     const documentTypes = [
       'application/pdf', 
       'application/msword', 
@@ -130,23 +130,42 @@ export async function POST(request: NextRequest) {
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       'application/zip',
-      'application/x-zip-compressed'
+      'application/x-zip-compressed',
+      'application/x-rar-compressed',
+      'application/x-7z-compressed',
+      'application/gzip',
+      'application/json',
+      'text/plain',
+      'text/csv',
+      'text/html',
+      'text/css',
+      'text/javascript',
+      'application/javascript',
+      'application/xml',
+      'application/epub+zip',
+      'application/x-photoshop',
+      'application/postscript',
+      'application/illustrator'
     ]
     
     const isCV = type === 'cv'
-    const isVideo = type === 'video' || type === 'testimonial-video'
+    const isVideo = type === 'video' || type === 'testimonial-video' || type === 'testimonials'
     const isAudio = type === 'audio'
     const isResource = type === 'resource'
+    const isGallery = type === 'gallery'
     
     let validTypes: string[]
     if (isCV) {
       validTypes = [...documentTypes, ...imageTypes]
     } else if (isVideo) {
-      validTypes = videoTypes
+      validTypes = [...videoTypes, ...imageTypes] // Allow images for thumbnails too
     } else if (isAudio) {
       validTypes = audioTypes
     } else if (isResource) {
-      validTypes = [...documentTypes, ...imageTypes]
+      // Resources can be ANY file type
+      validTypes = [...documentTypes, ...imageTypes, ...videoTypes, ...audioTypes]
+    } else if (isGallery) {
+      validTypes = [...imageTypes, ...videoTypes]
     } else {
       // Default: images and videos
       validTypes = [...imageTypes, ...videoTypes]
@@ -172,15 +191,14 @@ export async function POST(request: NextRequest) {
         )
       }
       if (isResource) {
+        // For resources, allow the upload anyway - let Cloudinary handle it
+        console.log('Resource upload - allowing file type:', file.type)
+      } else {
         return NextResponse.json(
-          { error: 'Invalid file type. Use PDF, DOC, XLSX, PPT, ZIP, or images' },
+          { error: 'Invalid file type. Use JPG, PNG, WebP, or GIF' },
           { status: 400 }
         )
       }
-      return NextResponse.json(
-        { error: 'Invalid file type. Use JPG, PNG, WebP, or GIF' },
-        { status: 400 }
-      )
     }
 
     // Validate file size (max 100MB for videos, 50MB for resources, 10MB for audio/CV, 5MB for images)
@@ -247,13 +265,15 @@ export async function POST(request: NextRequest) {
 
     // Determine resource type based on file
     const isPDF = file.type === 'application/pdf'
-    const isDocument = file.type.includes('document') || file.type.includes('msword') || file.type.includes('spreadsheet') || file.type.includes('presentation') || file.type.includes('zip')
+    const isDocument = file.type.includes('document') || file.type.includes('msword') || file.type.includes('spreadsheet') || file.type.includes('presentation') || file.type.includes('zip') || file.type.includes('rar') || file.type.includes('7z') || file.type.includes('gzip')
     const isVideoFile = videoTypes.includes(file.type)
     const isAudioFile = audioTypes.includes(file.type)
+    const isText = file.type.startsWith('text/') || file.type === 'application/json' || file.type === 'application/xml' || file.type === 'application/javascript'
+    const isUnknown = !imageTypes.includes(file.type) && !videoTypes.includes(file.type) && !audioTypes.includes(file.type) && !documentTypes.includes(file.type)
     
-    let resourceType: 'image' | 'video' | 'raw' = 'image'
-    if (isPDF || isDocument) {
-      resourceType = 'raw'
+    let resourceType: 'image' | 'video' | 'raw' | 'auto' = 'image'
+    if (isPDF || isDocument || isText || isUnknown) {
+      resourceType = 'raw' // Use raw for documents and unknown types
     } else if (isVideoFile) {
       resourceType = 'video'
     } else if (isAudioFile) {

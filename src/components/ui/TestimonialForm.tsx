@@ -79,9 +79,29 @@ export default function TestimonialForm() {
     if (!streamRef.current) return
     
     chunksRef.current = []
-    const mediaRecorder = new MediaRecorder(streamRef.current, {
-      mimeType: 'video/webm;codecs=vp9,opus'
-    })
+    
+    // Find supported mimeType
+    const mimeTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm',
+      'video/mp4',
+    ]
+    
+    let selectedMimeType = ''
+    for (const mimeType of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(mimeType)) {
+        selectedMimeType = mimeType
+        break
+      }
+    }
+    
+    const options: MediaRecorderOptions = {}
+    if (selectedMimeType) {
+      options.mimeType = selectedMimeType
+    }
+    
+    const mediaRecorder = new MediaRecorder(streamRef.current, options)
     
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
@@ -90,7 +110,8 @@ export default function TestimonialForm() {
     }
     
     mediaRecorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+      const mimeType = selectedMimeType || 'video/webm'
+      const blob = new Blob(chunksRef.current, { type: mimeType })
       setRecordedBlob(blob)
       const url = URL.createObjectURL(blob)
       setRecordedUrl(url)
@@ -146,12 +167,16 @@ export default function TestimonialForm() {
       formData.append('file', recordedBlob, 'testimonial.webm')
       formData.append('type', 'testimonials')
       
-      const response = await fetch('/api/upload', {
+      // Use public upload endpoint (no auth required)
+      const response = await fetch('/api/upload/public', {
         method: 'POST',
         body: formData,
       })
       
-      if (!response.ok) throw new Error('Upload failed')
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Upload failed')
+      }
       
       const result = await response.json()
       setUploadProgress(100)

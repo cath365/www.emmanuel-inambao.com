@@ -14,13 +14,29 @@ const typeIcons: Record<string, string> = {
   template: '📦',
   guide: '📘',
   checklist: '✅',
+  video: '🎥',
+  audio: '🎵',
+  code: '💻',
+  design: '🎨',
+  spreadsheet: '📊',
+  presentation: '📽️',
+  archive: '📁',
+  other: '📎',
 }
 
-const typeColors = {
+const typeColors: Record<string, string> = {
   pdf: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   template: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   guide: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   checklist: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  video: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+  audio: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+  code: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
+  design: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  spreadsheet: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  presentation: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  archive: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400',
+  other: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
 }
 
 export default function ResourcesEditor() {
@@ -450,10 +466,18 @@ export default function ResourcesEditor() {
                     })}
                     className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
                   >
-                    <option value="pdf">PDF Document</option>
-                    <option value="guide">Guide</option>
-                    <option value="template">Template</option>
-                    <option value="checklist">Checklist</option>
+                    <option value="pdf">📄 PDF Document</option>
+                    <option value="guide">📘 Guide</option>
+                    <option value="template">📦 Template</option>
+                    <option value="checklist">✅ Checklist</option>
+                    <option value="video">🎥 Video</option>
+                    <option value="audio">🎵 Audio</option>
+                    <option value="code">💻 Code / Source</option>
+                    <option value="design">🎨 Design File</option>
+                    <option value="spreadsheet">📊 Spreadsheet</option>
+                    <option value="presentation">📽️ Presentation</option>
+                    <option value="archive">📁 Archive (ZIP/RAR)</option>
+                    <option value="other">📎 Other</option>
                   </select>
                 </div>
 
@@ -485,13 +509,13 @@ export default function ResourcesEditor() {
                       <p className="text-dark-400 text-sm">
                         {uploadingResource ? 'Uploading...' : 'Click to upload file'}
                       </p>
-                      <p className="text-dark-500 text-xs mt-1">PDF, ZIP, XLSX (max 50MB)</p>
+                      <p className="text-dark-500 text-xs mt-1">Any file type (max 50MB)</p>
                     </div>
                   )}
                   <input
                     ref={resourceInputRef}
                     type="file"
-                    accept=".pdf,.zip,.xlsx,.doc,.docx,.ppt,.pptx"
+                    accept="*/*"
                     onChange={handleResourceFileUpload}
                     className="hidden"
                   />

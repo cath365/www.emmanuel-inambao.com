@@ -7,7 +7,8 @@ import {
   Plus, Edit2, Trash2, LogOut, Save, X, Cpu, 
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
-  Quote, Award, Settings, Video, FileText, GalleryHorizontal
+  Quote, Award, Settings, Video, FileText, GalleryHorizontal,
+  Globe, Smartphone, Play
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -98,7 +99,12 @@ export default function AdminDashboard() {
       outcome: '',
       featured: false,
       githubUrl: '',
-      liveUrl: ''
+      liveUrl: '',
+      appStoreUrl: '',
+      playStoreUrl: '',
+      websiteUrl: '',
+      docsUrl: '',
+      videoUrl: ''
     }
     setEditingProject(newProject)
     setIsCreating(true)
@@ -374,7 +380,7 @@ export default function AdminDashboard() {
                           </div>
 
                           {/* Links */}
-                          <div className="flex items-center gap-4 mt-4">
+                          <div className="flex flex-wrap items-center gap-3 mt-4">
                             {project.githubUrl && (
                               <a
                                 href={project.githubUrl}
@@ -395,6 +401,61 @@ export default function AdminDashboard() {
                               >
                                 <ExternalLink className="w-4 h-4" />
                                 Demo
+                              </a>
+                            )}
+                            {project.websiteUrl && (
+                              <a
+                                href={project.websiteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-dark-400 hover:text-green-400 text-sm transition-colors"
+                              >
+                                <Globe className="w-4 h-4" />
+                                Website
+                              </a>
+                            )}
+                            {project.appStoreUrl && (
+                              <a
+                                href={project.appStoreUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-dark-400 hover:text-blue-400 text-sm transition-colors"
+                              >
+                                <Smartphone className="w-4 h-4" />
+                                App Store
+                              </a>
+                            )}
+                            {project.playStoreUrl && (
+                              <a
+                                href={project.playStoreUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-dark-400 hover:text-green-400 text-sm transition-colors"
+                              >
+                                <Smartphone className="w-4 h-4" />
+                                Play Store
+                              </a>
+                            )}
+                            {project.docsUrl && (
+                              <a
+                                href={project.docsUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-dark-400 hover:text-yellow-400 text-sm transition-colors"
+                              >
+                                <FileText className="w-4 h-4" />
+                                Docs
+                              </a>
+                            )}
+                            {project.videoUrl && (
+                              <a
+                                href={project.videoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-dark-400 hover:text-red-400 text-sm transition-colors"
+                              >
+                                <Play className="w-4 h-4" />
+                                Video
                               </a>
                             )}
                           </div>
@@ -1201,30 +1262,108 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             )}
           </div>
 
-          {/* Links */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
-                GitHub URL
-              </label>
-              <input
-                type="url"
-                value={formData.githubUrl || ''}
-                onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="https://github.com/..."
-              />
+          {/* Links Section */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-dark-300 flex items-center gap-2">
+              <ExternalLink className="w-4 h-4" />
+              Project Links
+            </h4>
+            
+            {/* Row 1: GitHub & Live Demo */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-dark-400 mb-2">
+                  <Github className="w-4 h-4 inline mr-1" /> GitHub URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.githubUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  placeholder="https://github.com/..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dark-400 mb-2">
+                  <ExternalLink className="w-4 h-4 inline mr-1" /> Live Demo URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.liveUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  placeholder="https://demo.example.com"
+                />
+              </div>
             </div>
+
+            {/* Row 2: Website & Documentation */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-dark-400 mb-2">
+                  <Globe className="w-4 h-4 inline mr-1" /> Website URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.websiteUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  placeholder="https://www.example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dark-400 mb-2">
+                  <FileText className="w-4 h-4 inline mr-1" /> Documentation URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.docsUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, docsUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  placeholder="https://docs.example.com"
+                />
+              </div>
+            </div>
+
+            {/* Row 3: App Store & Play Store */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-dark-400 mb-2">
+                  <Smartphone className="w-4 h-4 inline mr-1" /> App Store URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.appStoreUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, appStoreUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  placeholder="https://apps.apple.com/..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-dark-400 mb-2">
+                  <Smartphone className="w-4 h-4 inline mr-1" /> Play Store URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.playStoreUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, playStoreUrl: e.target.value })}
+                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                  placeholder="https://play.google.com/store/apps/..."
+                />
+              </div>
+            </div>
+
+            {/* Row 4: Video */}
             <div>
-              <label className="block text-sm font-medium text-dark-300 mb-2">
-                Live URL
+              <label className="block text-sm font-medium text-dark-400 mb-2">
+                <Play className="w-4 h-4 inline mr-1" /> Video URL (YouTube, Vimeo, etc.)
               </label>
               <input
                 type="url"
-                value={formData.liveUrl || ''}
-                onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
+                value={formData.videoUrl || ''}
+                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="https://..."
+                placeholder="https://youtube.com/watch?v=..."
               />
             </div>
           </div>
