@@ -4,16 +4,13 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Quote, Star, Play, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTestimonials } from '@/lib/testimonials'
+import TestimonialForm from '@/components/ui/TestimonialForm'
 import Image from 'next/image'
 
 export default function Testimonials() {
   const { testimonials } = useTestimonials()
   const [activeVideo, setActiveVideo] = useState<string | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
-
-  if (testimonials.length === 0) {
-    return null
-  }
 
   const featuredTestimonials = testimonials.filter(t => t.featured)
   const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : testimonials
@@ -24,6 +21,31 @@ export default function Testimonials() {
 
   const prevTestimonial = () => {
     setCurrentIndex((prev) => (prev - 1 + displayTestimonials.length) % displayTestimonials.length)
+  }
+
+  // Show section even with no testimonials so visitors can submit theirs
+  if (testimonials.length === 0) {
+    return (
+      <section id="testimonials" className="py-20 bg-dark-950">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Client <span className="text-primary-500">Testimonials</span>
+            </h2>
+            <p className="text-dark-300 max-w-2xl mx-auto mb-8">
+              Have you worked with me? Share your experience!
+            </p>
+            <TestimonialForm />
+          </motion.div>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -39,9 +61,10 @@ export default function Testimonials() {
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Client <span className="text-primary-500">Testimonials</span>
           </h2>
-          <p className="text-dark-300 max-w-2xl mx-auto">
+          <p className="text-dark-300 max-w-2xl mx-auto mb-6">
             What clients and colleagues say about working with me
           </p>
+          <TestimonialForm />
         </motion.div>
 
         {/* Featured Testimonial Carousel */}
