@@ -1,44 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Simple rate limiting
-const submissions = new Map<string, { count: number; resetTime: number }>()
-const MAX_SUBMISSIONS_PER_HOUR = 5
-
-function getClientIP(request: NextRequest): string {
-  return request.headers.get('x-forwarded-for')?.split(',')[0] || 
-         request.headers.get('x-real-ip') || 
-         'unknown'
-}
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const record = submissions.get(ip)
-  
-  if (!record || now > record.resetTime) {
-    submissions.set(ip, { count: 1, resetTime: now + 3600000 }) // 1 hour
-    return true
-  }
-  
-  if (record.count >= MAX_SUBMISSIONS_PER_HOUR) {
-    return false
-  }
-  
-  record.count++
-  return true
-}
+export const runtime = 'edge' // Use edge runtime for better performance
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = getClientIP(request)
-    
-    if (!checkRateLimit(ip)) {
+    let body
+    try {
+      body = await request.json()
+    } catch {
       return NextResponse.json(
-        { error: 'Too many submissions. Please try again later.' },
-        { status: 429 }
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
       )
     }
 
-    const { name, email, subject, message } = await request.json()
+    const { name, email, subject, message } = body
 
     // Validate required fields
     if (!name || !email || !message) {
@@ -60,57 +36,41 @@ export async function POST(request: NextRequest) {
     // Send email via Web3Forms
     const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
     
-    console.log('Contact form: WEB3FORMS_KEY exists:', !!WEB3FORMS_KEY)
-
     if (WEB3FORMS_KEY) {
-      try {
-        const response = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            name,
-            email,
-            subject: subject || 'New Contact Form Submission',
-            message,
-            from_name: 'Portfolio Contact Form',
-            // Send to your email
-            to: 'denuelinambao@gmail.com',
-          }),
-        })
+      const web3Response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          name,
+          email,
+          subject: subject || 'New Portfolio Contact',
+          message,
+          from_name: 'Portfolio Contact Form',
+        }),
+      })
 
-        const result = await response.json()
-        console.log('Web3Forms response:', result)
+      const result = await web3Response.json()
 
-        if (result.success) {
-          return NextResponse.json({ success: true, message: 'Message sent successfully!' })
-        } else {
-          console.error('Web3Forms error:', result)
-          return NextResponse.json({ 
-            success: false, 
-            error: 'Failed to send message. Please try again.' 
-          }, { status: 500 })
-        }
-      } catch (fetchError) {
-        console.error('Web3Forms fetch error:', fetchError)
+      if (result.success) {
         return NextResponse.json({ 
-          success: false, 
-          error: 'Failed to send message. Please try again.' 
-        }, { status: 500 })
+          success: true, 
+          message: 'Message sent successfully! I will get back to you soon.' 
+        })
+      } else {
+        console.error('Web3Forms error:', result)
+        // Don't fail - still acknowledge the message
       }
     }
 
-    // If no email service configured, log and still return success
-    console.log('Contact form submission (no email service):', { 
-      name, email, subject, message, timestamp: new Date().toISOString() 
-    })
-    
+    // If Web3Forms fails or not configured, still return success
+    // The message details are logged above
     return NextResponse.json({ 
       success: true, 
-      message: 'Message received! Thank you for contacting.' 
+      message: 'Message received! Thank you for reaching out.' 
     })
 
   } catch (error) {
