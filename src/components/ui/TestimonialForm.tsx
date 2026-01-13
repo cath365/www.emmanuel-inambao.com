@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '@/lib/i18n'
 
@@ -11,6 +11,7 @@ interface TestimonialFormData {
   company: string
   content: string
   rating: number
+  videoUrl?: string
 }
 
 export default function TestimonialForm() {
@@ -19,6 +20,22 @@ export default function TestimonialForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [hoveredStar, setHoveredStar] = useState(0)
+  const [activeTab, setActiveTab] = useState<'text' | 'video'>('text')
+  
+  // Video recording states
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null)
+  const [recordedUrl, setRecordedUrl] = useState<string | null>(null)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [cameraError, setCameraError] = useState<string | null>(null)
+  
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
   
   const [formData, setFormData] = useState<TestimonialFormData>({
     name: '',
@@ -29,15 +46,146 @@ export default function TestimonialForm() {
     rating: 5,
   })
 
+  const startCamera = useCallback(async () => {
+    try {
+      setCameraError(null)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.muted = true
+        await videoRef.current.play()
+      }
+    } catch (err) {
+      console.error('Camera error:', err)
+      setCameraError('Could not access camera. Please allow camera permissions.')
+    }
+  }, [])
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+  }, [])
+
+  const startRecording = useCallback(() => {
+    if (!streamRef.current) return
+    
+    chunksRef.current = []
+    const mediaRecorder = new MediaRecorder(streamRef.current, {
+      mimeType: 'video/webm;codecs=vp9,opus'
+    })
+    
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        chunksRef.current.push(e.data)
+      }
+    }
+    
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+      setRecordedBlob(blob)
+      const url = URL.createObjectURL(blob)
+      setRecordedUrl(url)
+      stopCamera()
+    }
+    
+    mediaRecorderRef.current = mediaRecorder
+    mediaRecorder.start(1000)
+    setIsRecording(true)
+    setRecordingTime(0)
+    
+    // Timer
+    timerRef.current = setInterval(() => {
+      setRecordingTime(prev => {
+        if (prev >= 60) { // Max 60 seconds
+          stopRecording()
+          return prev
+        }
+        return prev + 1
+      })
+    }, 1000)
+  }, [stopCamera])
+
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop()
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+    setIsRecording(false)
+  }, [])
+
+  const resetRecording = useCallback(() => {
+    if (recordedUrl) {
+      URL.revokeObjectURL(recordedUrl)
+    }
+    setRecordedBlob(null)
+    setRecordedUrl(null)
+    setRecordingTime(0)
+    startCamera()
+  }, [recordedUrl, startCamera])
+
+  const uploadVideo = async (): Promise<string | null> => {
+    if (!recordedBlob) return null
+    
+    setIsUploading(true)
+    setUploadProgress(0)
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', recordedBlob, 'testimonial.webm')
+      formData.append('type', 'testimonials')
+      
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) throw new Error('Upload failed')
+      
+      const result = await response.json()
+      setUploadProgress(100)
+      return result.url
+    } catch (error) {
+      console.error('Upload error:', error)
+      return null
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
+      let videoUrl: string | undefined
+      
+      // Upload video if recorded
+      if (recordedBlob) {
+        const uploadedUrl = await uploadVideo()
+        if (uploadedUrl) {
+          videoUrl = uploadedUrl
+        }
+      }
+
       const response = await fetch('/api/testimonials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          videoUrl,
+        }),
       })
 
       const result = await response.json()
@@ -48,10 +196,18 @@ export default function TestimonialForm() {
 
       setSubmitted(true)
       
-      // Reset after showing success
+      // Cleanup and reset
+      stopCamera()
+      if (recordedUrl) {
+        URL.revokeObjectURL(recordedUrl)
+      }
+      
       setTimeout(() => {
         setIsOpen(false)
         setSubmitted(false)
+        setRecordedBlob(null)
+        setRecordedUrl(null)
+        setActiveTab('text')
         setFormData({
           name: '',
           email: '',
@@ -69,11 +225,39 @@ export default function TestimonialForm() {
     }
   }
 
+  const handleTabChange = (tab: 'text' | 'video') => {
+    setActiveTab(tab)
+    if (tab === 'video' && !recordedUrl) {
+      startCamera()
+    } else if (tab === 'text') {
+      stopCamera()
+    }
+  }
+
+  const handleClose = () => {
+    stopCamera()
+    stopRecording()
+    if (recordedUrl) {
+      URL.revokeObjectURL(recordedUrl)
+    }
+    setRecordedBlob(null)
+    setRecordedUrl(null)
+    setIsOpen(false)
+  }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   const labels = {
     en: {
       button: 'Leave a Testimonial',
       title: 'Share Your Experience',
       subtitle: 'Your feedback helps others learn about my work',
+      textTab: 'Written',
+      videoTab: 'Video',
       name: 'Your Name',
       email: 'Your Email',
       role: 'Your Role/Title',
@@ -85,11 +269,20 @@ export default function TestimonialForm() {
       success: 'Thank you!',
       successMsg: 'Your testimonial has been submitted for review.',
       placeholder: 'Share your experience working with Emmanuel...',
+      startRecording: 'Start Recording',
+      stopRecording: 'Stop Recording',
+      reRecord: 'Re-record',
+      preview: 'Preview your video',
+      maxDuration: 'Max 60 seconds',
+      uploading: 'Uploading video...',
+      cameraPrompt: 'Click Start to record your video testimonial',
     },
     fr: {
       button: 'Laisser un témoignage',
       title: 'Partagez votre expérience',
       subtitle: 'Vos commentaires aident les autres à découvrir mon travail',
+      textTab: 'Écrit',
+      videoTab: 'Vidéo',
       name: 'Votre nom',
       email: 'Votre email',
       role: 'Votre rôle/titre',
@@ -101,11 +294,20 @@ export default function TestimonialForm() {
       success: 'Merci!',
       successMsg: 'Votre témoignage a été soumis pour examen.',
       placeholder: 'Partagez votre expérience de travail avec Emmanuel...',
+      startRecording: 'Commencer l\'enregistrement',
+      stopRecording: 'Arrêter',
+      reRecord: 'Réenregistrer',
+      preview: 'Aperçu de votre vidéo',
+      maxDuration: 'Max 60 secondes',
+      uploading: 'Téléchargement de la vidéo...',
+      cameraPrompt: 'Cliquez sur Démarrer pour enregistrer',
     },
     ar: {
       button: 'اترك شهادة',
       title: 'شارك تجربتك',
       subtitle: 'ملاحظاتك تساعد الآخرين على التعرف على عملي',
+      textTab: 'مكتوب',
+      videoTab: 'فيديو',
       name: 'اسمك',
       email: 'بريدك الإلكتروني',
       role: 'منصبك/لقبك',
@@ -117,6 +319,13 @@ export default function TestimonialForm() {
       success: 'شكراً لك!',
       successMsg: 'تم إرسال شهادتك للمراجعة.',
       placeholder: 'شارك تجربتك في العمل مع إيمانويل...',
+      startRecording: 'بدء التسجيل',
+      stopRecording: 'إيقاف',
+      reRecord: 'إعادة التسجيل',
+      preview: 'معاينة الفيديو',
+      maxDuration: 'بحد أقصى 60 ثانية',
+      uploading: 'جاري رفع الفيديو...',
+      cameraPrompt: 'انقر فوق ابدأ لتسجيل شهادتك',
     },
   }
 
@@ -145,13 +354,13 @@ export default function TestimonialForm() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            onClick={(e) => e.target === e.currentTarget && setIsOpen(false)}
+            onClick={(e) => e.target === e.currentTarget && handleClose()}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`}
+              className={`bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden ${isRTL ? 'rtl' : 'ltr'}`}
             >
               {/* Header */}
               <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
@@ -161,7 +370,7 @@ export default function TestimonialForm() {
                     <p className="text-amber-100 text-sm mt-1">{t.subtitle}</p>
                   </div>
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleClose}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -172,7 +381,7 @@ export default function TestimonialForm() {
               </div>
 
               {/* Content */}
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="p-6 overflow-y-auto max-h-[70vh]">
                 {submitted ? (
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -189,6 +398,38 @@ export default function TestimonialForm() {
                   </motion.div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Tabs */}
+                    <div className="flex gap-2 p-1 bg-gray-800 rounded-lg">
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('text')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-all ${
+                          activeTab === 'text' 
+                            ? 'bg-amber-500 text-white' 
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        {t.textTab}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleTabChange('video')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-all ${
+                          activeTab === 'video' 
+                            ? 'bg-amber-500 text-white' 
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        {t.videoTab}
+                      </button>
+                    </div>
+
                     {/* Rating */}
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2">
@@ -220,6 +461,100 @@ export default function TestimonialForm() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Video Recording Section */}
+                    {activeTab === 'video' && (
+                      <div className="space-y-3">
+                        <div className="relative bg-gray-800 rounded-xl overflow-hidden aspect-video">
+                          {recordedUrl ? (
+                            <video
+                              src={recordedUrl}
+                              controls
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <>
+                              <video
+                                ref={videoRef}
+                                className="w-full h-full object-cover mirror"
+                                style={{ transform: 'scaleX(-1)' }}
+                              />
+                              {!streamRef.current && !cameraError && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                                  <div className="text-center">
+                                    <svg className="w-16 h-16 text-gray-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    <p className="text-gray-500 text-sm">{t.cameraPrompt}</p>
+                                  </div>
+                                </div>
+                              )}
+                              {cameraError && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                                  <div className="text-center p-4">
+                                    <svg className="w-12 h-12 text-red-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <p className="text-red-400 text-sm">{cameraError}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                          
+                          {/* Recording indicator */}
+                          {isRecording && (
+                            <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm">
+                              <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                              {formatTime(recordingTime)} / 1:00
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Video Controls */}
+                        <div className="flex gap-2">
+                          {!recordedUrl ? (
+                            <>
+                              {!isRecording ? (
+                                <button
+                                  type="button"
+                                  onClick={streamRef.current ? startRecording : startCamera}
+                                  className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg transition-colors"
+                                >
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="8" />
+                                  </svg>
+                                  {streamRef.current ? t.startRecording : t.startRecording}
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={stopRecording}
+                                  className="flex-1 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition-colors"
+                                >
+                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                                  </svg>
+                                  {t.stopRecording}
+                                </button>
+                              )}
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={resetRecording}
+                              className="flex-1 flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              {t.reRecord}
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-gray-500 text-xs text-center">{t.maxDuration}</p>
+                      </div>
+                    )}
 
                     {/* Name */}
                     <div>
@@ -276,34 +611,36 @@ export default function TestimonialForm() {
                       </div>
                     </div>
 
-                    {/* Testimonial */}
-                    <div>
-                      <label className="block text-gray-300 text-sm font-medium mb-2">
-                        {t.testimonial} *
-                      </label>
-                      <textarea
-                        required
-                        rows={4}
-                        value={formData.content}
-                        onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
-                        placeholder={t.placeholder}
-                      />
-                    </div>
+                    {/* Written Testimonial - only required for text tab */}
+                    {activeTab === 'text' && (
+                      <div>
+                        <label className="block text-gray-300 text-sm font-medium mb-2">
+                          {t.testimonial} *
+                        </label>
+                        <textarea
+                          required={activeTab === 'text'}
+                          rows={4}
+                          value={formData.content}
+                          onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                          placeholder={t.placeholder}
+                        />
+                      </div>
+                    )}
 
                     {/* Submit */}
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || isUploading || (activeTab === 'video' && !recordedBlob)}
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-amber-400 hover:to-orange-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? (
+                      {isSubmitting || isUploading ? (
                         <>
                           <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                           </svg>
-                          {t.submitting}
+                          {isUploading ? t.uploading : t.submitting}
                         </>
                       ) : (
                         <>
