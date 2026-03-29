@@ -52,7 +52,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                           {!isAdminPage && <Navbar />}
 
                           {/* Main content */}
-                          <main id="main-content">
+                          <main id="main-content" className="overflow-x-hidden">
                             {children}
                           </main>
 

@@ -87,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`scroll-smooth dark ${inter.variable} ${notoArabic.variable} ${notoSC.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`scroll-smooth dark overflow-x-hidden ${inter.variable} ${notoArabic.variable} ${notoSC.variable}`} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6366f1" />

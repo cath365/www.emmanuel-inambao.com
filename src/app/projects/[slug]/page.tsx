@@ -32,7 +32,7 @@ export default function ProjectDetailPage() {
   const otherProjects = projects.filter((p) => p.id !== slug).slice(0, 3)
 
   return (
-    <main className="min-h-screen bg-dark-950 pt-24 pb-16">
+    <main className="min-h-screen bg-dark-950 pt-20 sm:pt-24 pb-12 sm:pb-16 overflow-x-hidden">
       <div className="section-container max-w-5xl">
         {/* Back link */}
         <motion.div
@@ -60,10 +60,10 @@ export default function ProjectDetailPage() {
               Featured Project
             </span>
           )}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
             {project.title}
           </h1>
-          <p className="text-xl text-primary-400 font-medium mb-6">
+          <p className="text-base sm:text-lg md:text-xl text-primary-400 font-medium mb-4 sm:mb-6">
             {project.purpose}
           </p>
         </motion.div>
@@ -73,7 +73,7 @@ export default function ProjectDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="relative aspect-video rounded-2xl overflow-hidden bg-dark-800 border border-dark-700 mb-12"
+          className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-dark-800 border border-dark-700 mb-8 sm:mb-12"
         >
           {project.image && project.image !== '' ? (
             <Image
@@ -112,16 +112,16 @@ export default function ProjectDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12"
         >
-          <h2 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-4">
+          <h2 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-3 sm:mb-4">
             Technology Stack
           </h2>
           <div className="flex flex-wrap gap-2">
             {project.techStack.map((tech) => (
               <span
                 key={tech}
-                className="px-4 py-2 bg-dark-800 text-dark-200 rounded-lg border border-dark-700 text-sm font-medium"
+                className="px-3 py-1.5 sm:px-4 sm:py-2 bg-dark-800 text-dark-200 rounded-lg border border-dark-700 text-xs sm:text-sm font-medium"
               >
                 {tech}
               </span>
@@ -130,20 +130,20 @@ export default function ProjectDetailPage() {
         </motion.div>
 
         {/* Detail sections */}
-        <div className="grid lg:grid-cols-1 gap-8 mb-12">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:gap-8 mb-8 sm:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="bg-dark-900/50 border border-dark-800 rounded-2xl p-8"
+            className="bg-dark-900/50 border border-dark-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <span className="text-red-400 text-lg font-bold">?</span>
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-400 text-base sm:text-lg font-bold">?</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">The Problem</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">The Problem</h2>
             </div>
-            <p className="text-dark-300 leading-relaxed text-lg">
+            <p className="text-dark-300 leading-relaxed text-sm sm:text-base md:text-lg">
               {project.problemSolved}
             </p>
           </motion.div>
@@ -152,15 +152,15 @@ export default function ProjectDetailPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="bg-dark-900/50 border border-dark-800 rounded-2xl p-8"
+            className="bg-dark-900/50 border border-dark-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <span className="text-blue-400 text-lg font-bold">&lt;/&gt;</span>
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-blue-400 text-base sm:text-lg font-bold">&lt;/&gt;</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">How It Works</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">How It Works</h2>
             </div>
-            <p className="text-dark-300 leading-relaxed text-lg">
+            <p className="text-dark-300 leading-relaxed text-sm sm:text-base md:text-lg">
               {project.systemLogic}
             </p>
           </motion.div>
@@ -169,15 +169,15 @@ export default function ProjectDetailPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="bg-dark-900/50 border border-dark-800 rounded-2xl p-8"
+            className="bg-dark-900/50 border border-dark-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <span className="text-green-400 text-lg font-bold">+</span>
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-green-400 text-base sm:text-lg font-bold">+</span>
               </div>
-              <h2 className="text-2xl font-bold text-white">Outcome & Impact</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Outcome & Impact</h2>
             </div>
-            <p className="text-dark-300 leading-relaxed text-lg">
+            <p className="text-dark-300 leading-relaxed text-sm sm:text-base md:text-lg">
               {project.outcome}
             </p>
           </motion.div>
@@ -188,41 +188,41 @@ export default function ProjectDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="flex flex-wrap gap-4 mb-16"
+          className="flex flex-wrap gap-2 sm:gap-3 mb-10 sm:mb-16"
         >
           {project.githubUrl && (
-            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              <Github className="w-5 h-5" /> View Source Code
+            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm sm:text-base">
+              <Github className="w-4 h-4 sm:w-5 sm:h-5" /> Code
             </a>
           )}
           {project.liveUrl && (
-            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
-              <ExternalLink className="w-5 h-5" /> Live Demo
+            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-primary text-sm sm:text-base">
+              <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" /> Live Demo
             </a>
           )}
           {project.websiteUrl && (
-            <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              <Globe className="w-5 h-5" /> Website
+            <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm sm:text-base">
+              <Globe className="w-4 h-4 sm:w-5 sm:h-5" /> Website
             </a>
           )}
           {project.appStoreUrl && (
-            <a href={project.appStoreUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              <Smartphone className="w-5 h-5" /> App Store
+            <a href={project.appStoreUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm sm:text-base">
+              <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" /> App Store
             </a>
           )}
           {project.playStoreUrl && (
-            <a href={project.playStoreUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              <Smartphone className="w-5 h-5" /> Play Store
+            <a href={project.playStoreUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm sm:text-base">
+              <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" /> Play Store
             </a>
           )}
           {project.docsUrl && (
-            <a href={project.docsUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-              <FileText className="w-5 h-5" /> Documentation
+            <a href={project.docsUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm sm:text-base">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" /> Docs
             </a>
           )}
           {project.videoUrl && (
-            <a href={project.videoUrl} target="_blank" rel="noopener noreferrer" className="btn-accent">
-              <Play className="w-5 h-5" /> Watch Video
+            <a href={project.videoUrl} target="_blank" rel="noopener noreferrer" className="btn-accent text-sm sm:text-base">
+              <Play className="w-4 h-4 sm:w-5 sm:h-5" /> Watch Video
             </a>
           )}
         </motion.div>
@@ -234,13 +234,13 @@ export default function ProjectDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
-            <h2 className="text-2xl font-bold text-white mb-8">Other Projects</h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8">Other Projects</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
               {otherProjects.map((p) => (
                 <Link
                   key={p.id}
                   href={`/projects/${p.id}`}
-                  className="group bg-dark-900/50 border border-dark-800 rounded-xl p-6 hover:border-primary-500/50 transition-all duration-300"
+                  className="group bg-dark-900/50 border border-dark-800 rounded-xl p-4 sm:p-6 hover:border-primary-500/50 transition-all duration-300"
                 >
                   <h3 className="text-lg font-bold text-white group-hover:text-primary-400 transition-colors mb-2">
                     {p.title}

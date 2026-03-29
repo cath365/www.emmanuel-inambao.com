@@ -43,7 +43,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
       }`}
     >
       {/* Project Image */}
-      <div className={`relative ${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
+      <div className={`relative overflow-hidden ${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
         <div className="relative aspect-video rounded-xl overflow-hidden bg-dark-800 border border-dark-700 group">
           {project.image && project.image !== '' ? (
             <>
@@ -85,7 +85,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
         {/* Featured badge */}
         {project.featured && (
-          <div className="absolute -top-3 -right-3 bg-accent-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full">
+          <div className="absolute top-2 right-2 bg-accent-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full z-10">
             Featured
           </div>
         )}
@@ -141,7 +141,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {project.githubUrl && (
             <a
               href={project.githubUrl}
