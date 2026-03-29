@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock
+  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -23,7 +23,7 @@ import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery' | 'leads'
+type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -271,6 +271,17 @@ export default function AdminDashboard() {
             >
               <Bell className="w-5 h-5" />
               Leads
+            </button>
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                activeTab === 'bookings'
+                  ? 'text-primary-400 border-primary-500'
+                  : 'text-dark-400 border-transparent hover:text-white'
+              }`}
+            >
+              <Calendar className="w-5 h-5" />
+              Bookings
             </button>
           </div>
         </div>
@@ -612,6 +623,15 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, x: -20 }}
             >
               <ServiceLeadsPanel />
+            </motion.div>
+          ) : activeTab === 'bookings' ? (
+            <motion.div
+              key="bookings"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <BookingsPanel />
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -1644,6 +1664,170 @@ function ServiceLeadsPanel() {
                     onClick={() => deleteLead(lead.id)}
                     className="text-dark-600 hover:text-red-400 transition-colors"
                   >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Bookings Panel Component
+interface Booking {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  date: string
+  time: string
+  timezone: string
+  duration: number
+  topic: string
+  submittedAt: string
+  status: 'pending' | 'confirmed' | 'cancelled'
+  source: 'chatbot' | 'scheduler'
+}
+
+function BookingsPanel() {
+  const [bookings, setBookings] = useState<Booking[]>([])
+
+  useEffect(() => {
+    const stored = localStorage.getItem('portfolio_bookings')
+    if (stored) {
+      try {
+        setBookings(JSON.parse(stored))
+      } catch {
+        // ignore
+      }
+    }
+  }, [])
+
+  const updateStatus = (id: string, status: Booking['status']) => {
+    const updated = bookings.map(b => b.id === id ? { ...b, status } : b)
+    setBookings(updated)
+    localStorage.setItem('portfolio_bookings', JSON.stringify(updated))
+  }
+
+  const deleteBooking = (id: string) => {
+    const updated = bookings.filter(b => b.id !== id)
+    setBookings(updated)
+    localStorage.setItem('portfolio_bookings', JSON.stringify(updated))
+  }
+
+  const pending = bookings.filter(b => b.status === 'pending')
+  const confirmed = bookings.filter(b => b.status === 'confirmed')
+  const cancelled = bookings.filter(b => b.status === 'cancelled')
+
+  if (bookings.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <Calendar className="w-16 h-16 text-dark-600 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-white mb-2">No Bookings Yet</h3>
+        <p className="text-dark-400">When visitors book a meeting via the AI chatbot or booking form, they will appear here.</p>
+      </div>
+    )
+  }
+
+  const BookingCard = ({ booking }: { booking: Booking }) => (
+    <div className={`bg-dark-900/50 border rounded-xl p-4 sm:p-5 ${
+      booking.status === 'pending' ? 'border-yellow-500/40' :
+      booking.status === 'confirmed' ? 'border-green-500/40' : 'border-dark-700'
+    }`}>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <p className="font-semibold text-white">{booking.name}</p>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              booking.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+              booking.status === 'confirmed' ? 'bg-green-500/20 text-green-400' :
+              'bg-dark-700 text-dark-400'
+            }`}>
+              {booking.status.toUpperCase()}
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-dark-800 text-dark-400">
+              via {booking.source}
+            </span>
+          </div>
+          <div className="space-y-1 text-sm text-dark-300">
+            <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-dark-500 flex-shrink-0" />{booking.email}</p>
+            {booking.phone && <p className="flex items-center gap-2"><Bell className="w-3.5 h-3.5 text-dark-500 flex-shrink-0" />{booking.phone}</p>}
+            <p className="flex items-center gap-2"><Calendar className="w-3.5 h-3.5 text-dark-500 flex-shrink-0" />{booking.date} at {booking.time} · {booking.duration} min · {booking.timezone}</p>
+            {booking.topic && <p className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-dark-500 flex-shrink-0" />{booking.topic}</p>}
+            <p className="text-dark-500 text-xs">Received: {new Date(booking.submittedAt).toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={`mailto:${booking.email}?subject=Your booking on ${booking.date} at ${booking.time}&body=Hi ${booking.name},%0A%0AThank you for booking a meeting!`}
+            className="px-3 py-1.5 bg-primary-600/20 text-primary-400 rounded-lg text-sm hover:bg-primary-600/30 transition-colors flex items-center gap-1"
+          >
+            <Mail className="w-3.5 h-3.5" /> Reply
+          </a>
+          {booking.status === 'pending' && (
+            <button
+              onClick={() => updateStatus(booking.id, 'confirmed')}
+              className="px-3 py-1.5 bg-green-600/20 text-green-400 rounded-lg text-sm hover:bg-green-600/30 transition-colors"
+            >
+              Confirm
+            </button>
+          )}
+          {booking.status !== 'cancelled' && (
+            <button
+              onClick={() => updateStatus(booking.id, 'cancelled')}
+              className="px-3 py-1.5 bg-dark-700 text-dark-400 rounded-lg text-sm hover:bg-dark-600 transition-colors"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            onClick={() => deleteBooking(booking.id)}
+            className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg text-sm hover:bg-red-600/30 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-white">Meeting Bookings</h2>
+        <span className="text-sm text-dark-400">{bookings.length} total · {pending.length} pending</span>
+      </div>
+
+      {pending.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-yellow-400 mb-4">Pending ({pending.length})</h3>
+          <div className="space-y-3">
+            {pending.map(b => <BookingCard key={b.id} booking={b} />)}
+          </div>
+        </div>
+      )}
+
+      {confirmed.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-green-400 mb-4">Confirmed ({confirmed.length})</h3>
+          <div className="space-y-3">
+            {confirmed.map(b => <BookingCard key={b.id} booking={b} />)}
+          </div>
+        </div>
+      )}
+
+      {cancelled.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-dark-500 mb-4">Cancelled ({cancelled.length})</h3>
+          <div className="space-y-2">
+            {cancelled.map(b => (
+              <div key={b.id} className="bg-dark-800/30 border border-dark-800 rounded-lg p-3 opacity-60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <p className="text-dark-400 text-sm">{b.name} — {b.date} at {b.time} · {new Date(b.submittedAt).toLocaleDateString()}</p>
+                  <button onClick={() => deleteBooking(b.id)} className="text-dark-600 hover:text-red-400 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
