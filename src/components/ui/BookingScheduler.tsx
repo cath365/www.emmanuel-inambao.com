@@ -121,24 +121,6 @@ export default function BookingScheduler() {
         throw new Error(result.error || 'Booking failed')
       }
 
-      // Save to localStorage so admin dashboard can show it
-      const booking = {
-        id: `booking-${Date.now()}`,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        date: formData.date,
-        time: formData.time,
-        timezone: formData.timezone,
-        duration: formData.duration,
-        topic: formData.topic,
-        submittedAt: new Date().toISOString(),
-        status: 'pending',
-        source: 'scheduler',
-      }
-      const existing = JSON.parse(localStorage.getItem('portfolio_bookings') || '[]')
-      localStorage.setItem('portfolio_bookings', JSON.stringify([booking, ...existing]))
-
       setSubmitted(true)
     } catch (error) {
       console.error('Booking error:', error)
