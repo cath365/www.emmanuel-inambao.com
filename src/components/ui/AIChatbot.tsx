@@ -215,8 +215,24 @@ export default function AIChatbot() {
     }
   }
 
-  // Submit booking to API
+  // Submit booking to API and save to localStorage for admin dashboard
   const submitBooking = async () => {
+    const newBooking = {
+      id: `booking-${Date.now()}`,
+      name: booking.data.name,
+      email: booking.data.email,
+      phone: booking.data.phone,
+      date: booking.data.date,
+      time: booking.data.time,
+      timezone: 'Africa/Lusaka',
+      duration: 30,
+      topic: booking.data.topic,
+      notificationMethod: booking.data.notificationMethod,
+      submittedAt: new Date().toISOString(),
+      status: 'pending' as const,
+    }
+
+    // Save server-side via API (stores in Vercel Blob + sends email)
     try {
       await fetch('/api/booking', {
         method: 'POST',
@@ -231,6 +247,7 @@ export default function AIChatbot() {
           duration: 30,
           topic: booking.data.topic,
           whatsappConsent: booking.data.notificationMethod === 'whatsapp' || booking.data.notificationMethod === 'both',
+          source: 'chatbot',
         }),
       })
     } catch (error) {
@@ -308,17 +325,7 @@ export default function AIChatbot() {
       status: 'new',
     }
 
-    // Save to localStorage for admin dashboard
-    try {
-      const existing = localStorage.getItem('portfolio_service_leads')
-      const leads: ServiceLead[] = existing ? JSON.parse(existing) : []
-      leads.unshift(newLead)
-      localStorage.setItem('portfolio_service_leads', JSON.stringify(leads))
-    } catch (error) {
-      console.error('Failed to save lead to localStorage:', error)
-    }
-
-    // Send email notification via API
+    // Save server-side via API (stores in Vercel Blob + sends email)
     try {
       await fetch('/api/service-inquiry', {
         method: 'POST',

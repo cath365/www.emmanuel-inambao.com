@@ -1526,33 +1526,45 @@ interface ServiceLead {
 
 function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const stored = localStorage.getItem('portfolio_service_leads')
-    if (stored) {
-      try {
-        setLeads(JSON.parse(stored))
-      } catch {
-        // ignore
-      }
-    }
+    fetch('/api/service-inquiry')
+      .then(r => r.json())
+      .then(data => setLeads(data.leads || []))
+      .catch(() => setLeads([]))
+      .finally(() => setLoading(false))
   }, [])
 
-  const updateLeadStatus = (id: string, status: ServiceLead['status']) => {
-    const updated = leads.map(l => l.id === id ? { ...l, status } : l)
-    setLeads(updated)
-    localStorage.setItem('portfolio_service_leads', JSON.stringify(updated))
+  const updateLeadStatus = async (id: string, status: ServiceLead['status']) => {
+    await fetch('/api/service-inquiry', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    })
+    setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l))
   }
 
-  const deleteLead = (id: string) => {
-    const updated = leads.filter(l => l.id !== id)
-    setLeads(updated)
-    localStorage.setItem('portfolio_service_leads', JSON.stringify(updated))
+  const deleteLead = async (id: string) => {
+    await fetch('/api/service-inquiry', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    setLeads(prev => prev.filter(l => l.id !== id))
   }
 
   const newLeads = leads.filter(l => l.status === 'new')
   const contactedLeads = leads.filter(l => l.status === 'contacted')
   const closedLeads = leads.filter(l => l.status === 'closed')
+
+  if (loading) {
+    return (
+      <div className="text-center py-16">
+        <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto" />
+      </div>
+    )
+  }
 
   if (leads.length === 0) {
     return (
