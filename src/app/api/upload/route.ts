@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type based on upload type
-    const imageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/bmp', 'image/tiff']
+    const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'image/avif']
     const videoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/3gpp', 'video/x-ms-wmv']
     const audioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/x-m4a', 'audio/aac', 'audio/flac']
     const documentTypes = [
@@ -171,7 +171,15 @@ export async function POST(request: NextRequest) {
       validTypes = [...imageTypes, ...videoTypes]
     }
     
-    if (!validTypes.includes(file.type)) {
+    // Also check by file extension as fallback (browsers sometimes report wrong MIME)
+    const fileName = file.name.toLowerCase()
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.bmp', '.tiff', '.heic', '.heif', '.avif']
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.3gp', '.wmv']
+    const hasImageExt = imageExtensions.some(ext => fileName.endsWith(ext))
+    const hasVideoExt = videoExtensions.some(ext => fileName.endsWith(ext))
+    const fileTypeValid = validTypes.includes(file.type) || hasImageExt || hasVideoExt
+
+    if (!fileTypeValid) {
       if (isCV) {
         return NextResponse.json(
           { error: 'Invalid file type. Use PDF, DOC, DOCX, or image files' },
