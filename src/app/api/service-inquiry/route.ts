@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
+import { put, list, download } from '@vercel/blob'
 
 const LEADS_BLOB_PATH = 'data/leads.json'
 
@@ -17,9 +17,9 @@ async function readLeads(): Promise<ServiceLead[]> {
   try {
     const { blobs } = await list({ prefix: LEADS_BLOB_PATH })
     if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, { cache: 'no-store' })
-    if (!res.ok) return []
-    return await res.json()
+    const { body } = await download(blobs[0].url)
+    const text = await new Response(body).text()
+    return JSON.parse(text)
   } catch (e) {
     console.error('readLeads error:', e)
     return []
@@ -28,7 +28,7 @@ async function readLeads(): Promise<ServiceLead[]> {
 
 async function writeLeads(leads: ServiceLead[]) {
   await put(LEADS_BLOB_PATH, JSON.stringify(leads), {
-    access: 'public',
+    access: 'private',
     addRandomSuffix: false,
   })
 }

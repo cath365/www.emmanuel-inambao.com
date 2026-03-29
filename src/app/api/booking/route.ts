@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
+import { put, list, download } from '@vercel/blob'
 
 const ADMIN_EMAIL = 'denuelinambao@gmail.com'
 const BOOKINGS_BLOB_PATH = 'data/bookings.json'
@@ -24,9 +24,9 @@ async function readBookings(): Promise<BookingData[]> {
   try {
     const { blobs } = await list({ prefix: BOOKINGS_BLOB_PATH })
     if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, { cache: 'no-store' })
-    if (!res.ok) return []
-    return await res.json()
+    const { body } = await download(blobs[0].url)
+    const text = await new Response(body).text()
+    return JSON.parse(text)
   } catch (e) {
     console.error('readBookings error:', e)
     return []
@@ -35,7 +35,7 @@ async function readBookings(): Promise<BookingData[]> {
 
 async function writeBookings(bookings: BookingData[]) {
   await put(BOOKINGS_BLOB_PATH, JSON.stringify(bookings), {
-    access: 'public',
+    access: 'private',
     addRandomSuffix: false,
   })
 }

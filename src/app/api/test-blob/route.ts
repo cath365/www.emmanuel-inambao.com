@@ -11,7 +11,7 @@ export async function GET() {
   // Try writing
   try {
     await put('data/test.json', JSON.stringify({ test: true, time: new Date().toISOString() }), {
-      access: 'public',
+      access: 'private',
       addRandomSuffix: false,
     })
     results.writeSuccess = true
