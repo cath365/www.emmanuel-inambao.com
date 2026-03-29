@@ -654,8 +654,10 @@ interface ProfileEditorProps {
 function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
   const [formData, setFormData] = useState<Profile>(profile)
   const [uploading, setUploading] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
   const [uploadingCV, setUploadingCV] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const coverInputRef = useRef<HTMLInputElement>(null)
   const cvInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -688,6 +690,35 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       alert('Upload failed. Check console for details.')
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingCover(true)
+    const form = new FormData()
+    form.append('file', file)
+    form.append('type', 'profile')
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: form,
+        credentials: 'include',
+      })
+      const data = await res.json()
+      if (data.success) {
+        setFormData({ ...formData, coverImage: data.url })
+      } else {
+        alert(data.error || 'Cover upload failed')
+      }
+    } catch (err) {
+      console.error('Cover upload error:', err)
+      alert('Cover upload failed.')
+    } finally {
+      setUploadingCover(false)
     }
   }
 
@@ -782,6 +813,57 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
               <p className="text-dark-500 text-sm">Max file size: 5MB (JPG, PNG, WebP)</p>
             </div>
           </div>
+        </div>
+
+        {/* Cover Image Section */}
+        <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">Cover Banner</h2>
+          <div className="relative w-full h-32 sm:h-40 rounded-xl overflow-hidden bg-dark-700 border border-dark-600 mb-4">
+            {formData.coverImage ? (
+              <Image
+                src={formData.coverImage}
+                alt="Cover"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950 flex items-center justify-center">
+                <p className="text-dark-400 text-sm">No cover image — a gradient will be shown</p>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => coverInputRef.current?.click()}
+              disabled={uploadingCover}
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              {uploadingCover ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+              Upload Cover
+            </button>
+            {formData.coverImage && (
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, coverImage: '' })}
+                className="px-4 py-2 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors"
+              >
+                Remove
+              </button>
+            )}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleCoverUpload}
+              className="hidden"
+            />
+          </div>
+          <p className="text-dark-500 text-sm mt-2">Recommended: 1400x400px (landscape). Appears at top of your portfolio like LinkedIn.</p>
         </div>
 
         {/* Basic Info */}

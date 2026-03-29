@@ -11,6 +11,7 @@ export interface Profile {
   email: string
   phone: string
   image: string
+  coverImage?: string
   cv?: string
   status: string
   socialLinks: {
@@ -30,6 +31,7 @@ const defaultProfile: Profile = {
   email: 'denuelinambao@gmail.com',
   phone: '+260 XXX XXX XXX',
   image: '/images/profile/profile.jpg',
+  coverImage: '',
   cv: '',
   status: 'Available for Engineering Projects',
   socialLinks: {
