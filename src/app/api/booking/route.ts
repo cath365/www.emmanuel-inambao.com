@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Save to Vercel Blob
+    // Save to Vercel Blob (non-critical — don't fail the booking if blob errors)
     const newBooking: BookingData = {
       id: `booking-${Date.now()}`,
       name: data.name,
@@ -108,8 +108,12 @@ export async function POST(request: NextRequest) {
       source: data.source || 'scheduler',
     }
 
-    const existing = await readBookings()
-    await writeBookings([newBooking, ...existing])
+    try {
+      const existing = await readBookings()
+      await writeBookings([newBooking, ...existing])
+    } catch (blobError) {
+      console.error('Blob write failed (non-critical):', blobError)
+    }
 
     // Send email notification via Web3Forms
     const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY

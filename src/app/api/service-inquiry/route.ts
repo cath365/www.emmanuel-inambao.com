@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Save to Vercel Blob
+    // Save to Vercel Blob (non-critical — don't fail the inquiry if blob errors)
     const newLead: ServiceLead = {
       id: data.id || `lead-${Date.now()}`,
       name: data.name,
@@ -95,8 +95,12 @@ export async function POST(request: NextRequest) {
       status: 'new',
     }
 
-    const existing = await readLeads()
-    await writeLeads([newLead, ...existing])
+    try {
+      const existing = await readLeads()
+      await writeLeads([newLead, ...existing])
+    } catch (blobError) {
+      console.error('Blob write failed (non-critical):', blobError)
+    }
 
     // Send email notification
     const inquiryDetails = `🔔 NEW SERVICE INQUIRY\n\n👤 Name: ${data.name}\n📧 Email: ${data.email}\n🔧 Service: ${data.service}\n📝 Details: ${data.details || 'Not provided'}\n\n📅 Submitted: ${new Date(data.submittedAt || '').toLocaleString()}\n\nReply to ${data.email} to follow up.`
