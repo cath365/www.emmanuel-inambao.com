@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { useResources } from '@/lib/resources'
+import { useResources, Resource } from '@/lib/resources'
 
 const typeColors = {
   pdf: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
