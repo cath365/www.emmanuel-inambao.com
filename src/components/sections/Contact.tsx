@@ -150,7 +150,7 @@ export default function Contact() {
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
             {/* Contact Information */}
             <motion.div variants={itemVariants}>
               <h3 className="text-xl font-bold text-white mb-6">
@@ -193,7 +193,7 @@ export default function Contact() {
               <h3 className="text-xl font-bold text-white mb-4">
                 Connect Online
               </h3>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-3">
                 {socialLinks.map((social) => {
                   const Icon = social.icon
                   return (
@@ -202,7 +202,7 @@ export default function Contact() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-3 px-4 py-3 bg-dark-800/50 border border-dark-700 rounded-xl hover:border-primary-500/50 transition-all duration-300 group"
+                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-dark-800/50 border border-dark-700 rounded-xl hover:border-primary-500/50 transition-all duration-300 group"
                       aria-label={`${social.label}: ${social.username}`}
                     >
                       <Icon className="w-5 h-5 text-dark-400 group-hover:text-primary-400 transition-colors" aria-hidden="true" />

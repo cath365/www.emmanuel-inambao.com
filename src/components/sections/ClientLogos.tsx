@@ -45,7 +45,7 @@ export default function ClientLogos() {
         </motion.div>
 
         {/* Client Logo Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-16">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-12 sm:mb-16">
           {clients.map((client, index) => (
             <motion.div
               key={client.name}

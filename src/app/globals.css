@@ -9,7 +9,7 @@
   }
   
   body {
-    @apply bg-dark-950 text-dark-100 antialiased;
+    @apply bg-dark-950 text-dark-100 antialiased overflow-x-hidden;
   }
 
   /* Light mode body styles */
@@ -90,7 +90,7 @@
 
   /* Section heading */
   .section-heading {
-    @apply text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4;
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4;
   }
 
   /* Light mode section heading */
@@ -100,12 +100,12 @@
 
   /* Section subheading */
   .section-subheading {
-    @apply text-lg text-dark-400 max-w-2xl;
+    @apply text-base sm:text-lg text-dark-400 max-w-2xl;
   }
 
   /* Card base style */
   .card {
-    @apply bg-dark-800/50 border border-dark-700 rounded-xl p-6
+    @apply bg-dark-800/50 border border-dark-700 rounded-xl p-4 sm:p-6
            hover:border-primary-500/50 transition-all duration-300;
   }
 

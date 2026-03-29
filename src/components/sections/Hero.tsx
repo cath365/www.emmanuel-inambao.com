@@ -142,7 +142,7 @@ export default function Hero() {
           {/* Name and title */}
           <motion.h1
             variants={itemVariants}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 tracking-tight"
+            className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 tracking-tight"
           >
             {firstName}{' '}
             <span className="gradient-text">{lastName}</span>
@@ -150,7 +150,7 @@ export default function Hero() {
 
           <motion.p
             variants={itemVariants}
-            className="text-xl sm:text-2xl md:text-3xl text-dark-300 font-medium mb-6"
+            className="text-lg sm:text-2xl md:text-3xl text-dark-300 font-medium mb-6"
           >
             <TypeWriter 
               words={[
@@ -167,7 +167,7 @@ export default function Hero() {
           {/* Mission statement */}
           <motion.p
             variants={itemVariants}
-            className="text-lg sm:text-xl text-dark-400 max-w-3xl mx-auto mb-10 leading-relaxed text-balance"
+            className="text-base sm:text-lg md:text-xl text-dark-400 max-w-3xl mx-auto mb-8 sm:mb-10 leading-relaxed text-balance"
           >
             {profile.bio}
           </motion.p>

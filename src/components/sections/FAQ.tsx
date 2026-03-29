@@ -46,7 +46,7 @@ function FAQItem({ faq, index, isInView }: { faq: typeof faqs[0]; index: number;
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-start gap-4 p-5 text-left bg-dark-800/30 border border-dark-700/50
+        className="w-full flex items-start gap-3 sm:gap-4 p-3 sm:p-5 text-left bg-dark-800/30 border border-dark-700/50
                    rounded-xl hover:border-primary-500/30 transition-all duration-300"
         aria-expanded={isOpen}
       >

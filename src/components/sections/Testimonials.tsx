@@ -78,9 +78,9 @@ export default function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.5 }}
-              className="bg-dark-800/50 border border-dark-700 rounded-2xl p-8 md:p-12"
+              className="bg-dark-800/50 border border-dark-700 rounded-2xl p-4 sm:p-8 md:p-12"
             >
-              <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="flex flex-col md:flex-row gap-4 sm:gap-8 items-center">
                 {/* Video or Image */}
                 <div className="w-full md:w-1/3 flex-shrink-0">
                   {displayTestimonials[currentIndex].video ? (

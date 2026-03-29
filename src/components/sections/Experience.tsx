@@ -34,7 +34,7 @@ export default function Experience() {
 
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute left-0 md:left-1/2 transform md:-translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-primary-500 via-primary-600 to-primary-700" />
+          <div className="absolute left-2 md:left-1/2 transform md:-translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-primary-500 via-primary-600 to-primary-700" />
 
           {experiences.map((exp, index) => (
             <motion.div
@@ -48,11 +48,11 @@ export default function Experience() {
               }`}
             >
               {/* Timeline dot */}
-              <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary-500 rounded-full border-4 border-dark-900 z-10" />
+              <div className="absolute left-2 md:left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary-500 rounded-full border-4 border-dark-900 z-10" />
 
               {/* Content card */}
-              <div className={`ml-8 md:ml-0 md:w-1/2 ${index % 2 === 0 ? 'md:pr-12' : 'md:pl-12'}`}>
-                <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-6 hover:border-primary-500/50 transition-all duration-300">
+              <div className={`ml-6 sm:ml-8 md:ml-0 md:w-1/2 ${index % 2 === 0 ? 'md:pr-12' : 'md:pl-12'}`}>
+                <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-4 sm:p-6 hover:border-primary-500/50 transition-all duration-300">
                   <div className="flex items-start gap-4">
                     {exp.logo ? (
                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-dark-700 flex-shrink-0">

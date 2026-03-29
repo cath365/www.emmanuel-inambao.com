@@ -38,7 +38,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
-      className={`grid lg:grid-cols-2 gap-8 lg:gap-12 items-center ${
+      className={`grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center ${
         isEven ? '' : 'lg:flex-row-reverse'
       }`}
     >
