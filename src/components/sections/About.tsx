@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { Target, Lightbulb, Wrench, Users } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 // Core values/pillars data
 const pillars = [
@@ -32,6 +33,7 @@ const pillars = [
 export default function About() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const { t } = useLanguage()
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -72,11 +74,10 @@ export default function About() {
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
             <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-              About Me
+              {t('about.title')}
             </span>
             <h2 id="about-heading" className="section-heading mt-2">
-              Engineering That{' '}
-              <span className="gradient-text">Solves Problems</span>
+              {t('about.heading')}
             </h2>
           </motion.div>
 

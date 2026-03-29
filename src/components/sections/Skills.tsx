@@ -1,7 +1,18 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { useLanguage } from '@/lib/i18n'
+
+const SkillGlobe = dynamic(() => import('@/components/ui/SkillGlobe'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[500px] flex items-center justify-center">
+      <div className="text-dark-500 text-sm">Loading 3D Globe...</div>
+    </div>
+  ),
+})
 import { 
   Cpu, 
   Globe, 
@@ -149,6 +160,8 @@ function SkillCard({
 export default function Skills() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const { t } = useLanguage()
+  const [showGlobe, setShowGlobe] = useState(false)
 
   return (
     <section
@@ -166,15 +179,13 @@ export default function Skills() {
           className="text-center mb-16"
         >
           <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-            Technical Expertise
+            {t('skills.title')}
           </span>
           <h2 id="skills-heading" className="section-heading mt-2">
-            Skills &{' '}
-            <span className="gradient-text">Technologies</span>
+            {t('skills.heading')}
           </h2>
           <p className="section-subheading mx-auto mt-4">
-            A comprehensive toolkit spanning hardware design, embedded firmware, 
-            IoT connectivity, and full-stack web development.
+            {t('skills.subtitle')}
           </p>
         </motion.div>
 
@@ -184,6 +195,26 @@ export default function Skills() {
             <SkillCard key={category.id} category={category} index={index} />
           ))}
         </div>
+
+        {/* 3D Interactive Globe */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-12 text-center"
+        >
+          {!showGlobe ? (
+            <button
+              onClick={() => setShowGlobe(true)}
+              className="btn-secondary text-sm"
+            >
+              View Interactive 3D Skill Globe
+            </button>
+          ) : (
+            <SkillGlobe />
+          )}
+        </motion.div>
 
         {/* Additional tools section */}
         <motion.div

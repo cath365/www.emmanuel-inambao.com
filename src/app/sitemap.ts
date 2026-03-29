@@ -16,6 +16,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/#gallery', priority: 0.7, changeFrequency: 'weekly' as const },
     { path: '/#education', priority: 0.6, changeFrequency: 'monthly' as const },
     { path: '/blog', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/case-studies', priority: 0.8, changeFrequency: 'monthly' as const },
+    { path: '/resume', priority: 0.7, changeFrequency: 'monthly' as const },
+    { path: '/changelog', priority: 0.5, changeFrequency: 'monthly' as const },
   ]
 
   // Generate sitemap entries with alternates for each page

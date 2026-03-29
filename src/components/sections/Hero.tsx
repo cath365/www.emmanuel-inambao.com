@@ -5,11 +5,14 @@ import { ArrowRight, Download, Mail, ChevronDown, Cpu, Zap, Globe } from 'lucide
 import Link from 'next/link'
 import Image from 'next/image'
 import { useProfile } from '@/lib/profile'
+import { useLanguage } from '@/lib/i18n'
 import TypeWriter from '@/components/ui/TypeWriter'
 import AudioIntroduction from '@/components/ui/AudioIntroduction'
+import StatsCounter from '@/components/ui/StatsCounter'
 
 export default function Hero() {
   const { profile, isLoading } = useProfile()
+  const { t } = useLanguage()
 
   // Animation variants for staggered entrance
   const containerVariants = {
@@ -54,7 +57,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-[80vh] md:min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden pb-20 sm:pb-40"
       aria-label="Introduction"
     >
       {/* Background gradient effects */}
@@ -175,7 +178,7 @@ export default function Hero() {
             className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-4"
           >
             <Link href="#projects" className="btn-primary group">
-              View Projects
+              {t('hero.cta.projects')}
               <ArrowRight 
                 className="w-4 h-4 group-hover:translate-x-1 transition-transform" 
                 aria-hidden="true" 
@@ -189,12 +192,12 @@ export default function Hero() {
                 className="btn-secondary group"
               >
                 <Download className="w-4 h-4" aria-hidden="true" />
-                Download CV
+                {t('hero.cta.cv')}
               </a>
             )}
             <Link href="#contact" className="btn-accent">
               <Mail className="w-4 h-4" aria-hidden="true" />
-              Contact Me
+              {t('hero.cta.contact')}
             </Link>
           </motion.div>
 
@@ -216,12 +219,26 @@ export default function Hero() {
         </motion.div>
       </div>
 
+      {/* Stats counters */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.8 }}
+        className="absolute bottom-20 sm:bottom-28 left-0 right-0 z-10 hidden sm:block"
+      >
+        <div className="section-container">
+          <div className="border-t border-dark-800 pt-6 sm:pt-8">
+            <StatsCounter />
+          </div>
+        </div>
+      </motion.div>
+
       {/* Scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2"
       >
         <Link
           href="#about"

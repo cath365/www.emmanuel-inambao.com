@@ -2,24 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Cpu } from 'lucide-react'
+import { Menu, X, Cpu, Search } from 'lucide-react'
 import Link from 'next/link'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import { LanguageSwitcher } from '@/lib/i18n'
+import { LanguageSwitcher, useLanguage } from '@/lib/i18n'
 
 // Navigation links configuration
 const navLinks = [
-  { href: '#about', label: 'About' },
-  { href: '#skills', label: 'Skills' },
-  { href: '#projects', label: 'Projects' },
-  { href: '/case-studies', label: 'Case Studies' },
-  { href: '/blog', label: 'Blog' },
-  { href: '#contact', label: 'Contact' },
+  { href: '#about', labelKey: 'nav.about' },
+  { href: '#skills', labelKey: 'nav.skills' },
+  { href: '#projects', labelKey: 'nav.projects' },
+  { href: '/case-studies', labelKey: 'nav.caseStudies' },
+  { href: '/blog', labelKey: 'nav.blog' },
+  { href: '#contact', labelKey: 'nav.contact' },
 ]
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const { t } = useLanguage()
 
   // Handle scroll effect for navbar background
   useEffect(() => {
@@ -33,6 +34,11 @@ export default function Navbar() {
   // Close mobile menu when clicking a link
   const handleLinkClick = () => {
     setIsOpen(false)
+  }
+
+  // Open command palette
+  const openCommandPalette = () => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
   }
 
   return (
@@ -56,20 +62,32 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 transition-colors duration-200 font-medium"
+                className="text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 transition-colors duration-200 font-medium text-sm"
               >
-                {link.label}
+                {t(link.labelKey)}
               </Link>
             ))}
+
+            {/* Command Palette Trigger */}
+            <button
+              onClick={openCommandPalette}
+              className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-xs text-dark-400 bg-dark-800/50
+                         border border-dark-700 rounded-lg hover:border-dark-600 hover:text-dark-300 transition-all"
+              aria-label="Search (Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <kbd className="text-[10px] text-dark-500 font-mono">Ctrl K</kbd>
+            </button>
+
             <LanguageSwitcher />
             <ThemeToggle />
             <Link href="#contact" className="btn-primary text-sm">
-              Get In Touch
+              {t('hero.cta.contact')}
             </Link>
           </div>
 
@@ -111,10 +129,10 @@ export default function Navbar() {
                     <Link
                       href={link.href}
                       onClick={handleLinkClick}
-                      className="block py-3 px-4 text-center text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 hover:bg-dark-800/50 light:hover:bg-slate-100 
+                      className="block py-3 px-4 text-center text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 hover:bg-dark-800/50 light:hover:bg-slate-100
                                  rounded-lg transition-all duration-200 font-medium"
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </Link>
                   </motion.div>
                 ))}
@@ -129,7 +147,7 @@ export default function Navbar() {
                     onClick={handleLinkClick}
                     className="btn-primary w-full text-center"
                   >
-                    Get In Touch
+                    {t('hero.cta.contact')}
                   </Link>
                 </motion.div>
               </div>

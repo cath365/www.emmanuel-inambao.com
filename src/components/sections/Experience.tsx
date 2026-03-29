@@ -3,10 +3,12 @@
 import { motion } from 'framer-motion'
 import { Briefcase, MapPin, Calendar, ChevronRight } from 'lucide-react'
 import { useExperience } from '@/lib/experience'
+import { useLanguage } from '@/lib/i18n'
 import Image from 'next/image'
 
 export default function Experience() {
   const { experiences } = useExperience()
+  const { t } = useLanguage()
 
   if (experiences.length === 0) {
     return null
@@ -23,10 +25,10 @@ export default function Experience() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Work <span className="text-primary-500">Experience</span>
+            {t('experience.title')}
           </h2>
           <p className="text-dark-300 max-w-2xl mx-auto">
-            My professional journey and career milestones
+            {t('experience.subtitle')}
           </p>
         </motion.div>
 

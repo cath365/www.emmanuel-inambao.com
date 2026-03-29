@@ -13,6 +13,7 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react'
+import { useLanguage } from '@/lib/i18n'
 
 // Contact information
 const contactInfo = [
@@ -55,6 +56,7 @@ const socialLinks = [
 export default function Contact() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const { t } = useLanguage()
   
   // Form state
   const [formData, setFormData] = useState({
@@ -138,15 +140,13 @@ export default function Contact() {
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
             <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-              Get In Touch
+              {t('contact.title')}
             </span>
             <h2 id="contact-heading" className="section-heading mt-2">
-              Let's Build{' '}
-              <span className="gradient-text">Something Great</span>
+              {t('contact.subtitle')}
             </h2>
             <p className="section-subheading mx-auto mt-4">
-              Have a project idea, need technical consultation, or want to discuss 
-              a partnership? I'm always open to new engineering challenges.
+              {t('contact.description')}
             </p>
           </motion.div>
 
@@ -245,7 +245,7 @@ export default function Contact() {
                       htmlFor="name" 
                       className="block text-sm font-medium text-dark-300 mb-2"
                     >
-                      Your Name *
+                      {t('contact.name')} *
                     </label>
                     <input
                       type="text"
@@ -265,7 +265,7 @@ export default function Contact() {
                       htmlFor="email" 
                       className="block text-sm font-medium text-dark-300 mb-2"
                     >
-                      Email Address *
+                      {t('contact.email')} *
                     </label>
                     <input
                       type="email"
@@ -310,7 +310,7 @@ export default function Contact() {
                       htmlFor="message" 
                       className="block text-sm font-medium text-dark-300 mb-2"
                     >
-                      Message *
+                      {t('contact.message')} *
                     </label>
                     <textarea
                       id="message"
@@ -338,7 +338,7 @@ export default function Contact() {
                     ) : (
                       <>
                         <Send className="w-5 h-5" aria-hidden="true" />
-                        Send Message
+                        {t('contact.send')}
                       </>
                     )}
                   </button>

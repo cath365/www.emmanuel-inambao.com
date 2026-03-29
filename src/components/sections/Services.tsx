@@ -7,6 +7,7 @@ import {
   CheckCircle2, LucideIcon
 } from 'lucide-react'
 import { useServices } from '@/lib/services'
+import { useLanguage } from '@/lib/i18n'
 import Image from 'next/image'
 
 const iconMap: Record<string, LucideIcon> = {
@@ -26,6 +27,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function Services() {
   const { services } = useServices()
+  const { t } = useLanguage()
 
   if (services.length === 0) {
     return null
@@ -45,10 +47,10 @@ export default function Services() {
           className="text-center mb-16"
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            My <span className="text-primary-500">Services</span>
+            {t('services.title')}
           </h2>
           <p className="text-dark-300 max-w-2xl mx-auto">
-            Professional services I offer to help bring your ideas to life
+            {t('services.subtitle')}
           </p>
         </motion.div>
 

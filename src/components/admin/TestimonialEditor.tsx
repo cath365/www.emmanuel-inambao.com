@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function TestimonialEditor({ onNotify }: Props) {
-  const { testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useTestimonials()
+  const { testimonials, pendingTestimonials, addTestimonial, updateTestimonial, deleteTestimonial, approveTestimonial, rejectTestimonial } = useTestimonials()
   const [editing, setEditing] = useState<Testimonial | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -29,18 +29,31 @@ export default function TestimonialEditor({ onNotify }: Props) {
       image: '',
       video: '',
       rating: 5,
-      featured: false
+      featured: false,
+      status: 'approved',
     }
     setEditing(newTestimonial)
     setIsCreating(true)
   }
 
+  const handleApprove = (id: string) => {
+    approveTestimonial(id)
+    onNotify('success', 'Testimonial approved and now visible!')
+  }
+
+  const handleReject = (id: string) => {
+    rejectTestimonial(id)
+    onNotify('success', 'Testimonial rejected')
+  }
+
   const handleSave = (t: Testimonial) => {
+    // Ensure status is set
+    const withStatus = { ...t, status: t.status || ('approved' as const) }
     if (isCreating) {
-      addTestimonial(t)
+      addTestimonial(withStatus)
       onNotify('success', 'Testimonial added!')
     } else {
-      updateTestimonial(t.id, t)
+      updateTestimonial(t.id, withStatus)
       onNotify('success', 'Testimonial updated!')
     }
     setEditing(null)
@@ -69,10 +82,70 @@ export default function TestimonialEditor({ onNotify }: Props) {
         </button>
       </div>
 
-      {/* Testimonials List */}
+      {/* Pending Testimonials (from public submissions) */}
+      {pendingTestimonials.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-amber-400 mb-4 flex items-center gap-2">
+            <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+            Pending Review ({pendingTestimonials.length})
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {pendingTestimonials.map((t) => (
+              <div key={t.id} className="bg-amber-500/5 border border-amber-500/30 rounded-xl p-6">
+                <div className="flex items-start gap-4">
+                  {t.image ? (
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-dark-700 flex-shrink-0">
+                      <Image src={t.image} alt={t.name} width={48} height={48} className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-amber-600/20 flex items-center justify-center flex-shrink-0">
+                      <User className="w-6 h-6 text-amber-500" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-white">{t.name}</h3>
+                    <p className="text-dark-400 text-sm">{t.position} at {t.company}</p>
+                    <div className="flex gap-1 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`w-3 h-3 ${i < t.rating ? 'text-yellow-500 fill-yellow-500' : 'text-dark-600'}`} />
+                      ))}
+                    </div>
+                    {t.video && (
+                      <a href={t.video} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-xs text-primary-400 hover:text-primary-300">
+                        <Play className="w-3 h-3" /> Watch Video
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <p className="mt-3 text-dark-300 text-sm">{t.content}</p>
+                {t.submittedAt && (
+                  <p className="text-dark-500 text-xs mt-2">Submitted: {new Date(t.submittedAt).toLocaleDateString()}</p>
+                )}
+                <div className="flex gap-2 mt-4">
+                  <button onClick={() => handleApprove(t.id)}
+                    className="flex-1 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors">
+                    Approve
+                  </button>
+                  <button onClick={() => handleReject(t.id)}
+                    className="flex-1 py-2 bg-dark-700 hover:bg-dark-600 text-dark-300 rounded-lg text-sm font-medium transition-colors">
+                    Reject
+                  </button>
+                  <button onClick={() => { setEditing({...t}); setIsCreating(false) }}
+                    className="py-2 px-3 bg-dark-700 hover:bg-dark-600 text-dark-300 rounded-lg text-sm transition-colors">
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Testimonials List */}
+      <h2 className="text-lg font-semibold text-white mb-4">All Testimonials ({testimonials.filter(t => t.status !== 'pending').length})</h2>
       <div className="grid md:grid-cols-2 gap-4">
-        {testimonials.map((t) => (
-          <div key={t.id} className="bg-dark-800/50 border border-dark-700 rounded-xl p-6">
+        {testimonials.filter(t => t.status !== 'pending').map((t) => (
+          <div key={t.id} className={`bg-dark-800/50 border rounded-xl p-6 ${t.status === 'rejected' ? 'border-red-500/20 opacity-60' : 'border-dark-700'}`}>
             <div className="flex items-start gap-4">
               {t.image ? (
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-dark-700 flex-shrink-0">
@@ -84,11 +157,17 @@ export default function TestimonialEditor({ onNotify }: Props) {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-semibold text-white">{t.name || 'Unnamed'}</h3>
                   {t.video && <Video className="w-4 h-4 text-primary-400" />}
                   {t.featured && (
                     <span className="px-2 py-0.5 bg-accent-500/20 text-accent-400 text-xs rounded">Featured</span>
+                  )}
+                  {t.status === 'rejected' && (
+                    <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">Rejected</span>
+                  )}
+                  {t.status === 'approved' && (
+                    <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded">Live</span>
                   )}
                 </div>
                 <p className="text-dark-400 text-sm">{t.position} at {t.company}</p>

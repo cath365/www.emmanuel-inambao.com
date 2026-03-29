@@ -45,34 +45,44 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
       {/* Project Image */}
       <div className={`relative ${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
         <div className="relative aspect-video rounded-xl overflow-hidden bg-dark-800 border border-dark-700 group">
-          {/* Placeholder gradient for image */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-dark-800 to-accent-900/30" />
-          
-          {/* Grid pattern overlay */}
-          <div 
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`,
-            }}
-            aria-hidden="true"
-          />
-          
-          {/* Project title overlay */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center p-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-600/20 flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary-400">
-                  {project.title.charAt(0)}
-                </span>
+          {project.image && project.image !== '' ? (
+            <>
+              {/* Actual project image */}
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              {/* Subtle overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </>
+          ) : (
+            <>
+              {/* Placeholder gradient when no image */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-dark-800 to-accent-900/30" />
+              <div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+                aria-hidden="true"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-600/20 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-primary-400">
+                      {project.title.charAt(0)}
+                    </span>
+                  </div>
+                  <p className="text-dark-400 text-sm">{project.title}</p>
+                </div>
               </div>
-              <p className="text-dark-400 text-sm">Project Image Placeholder</p>
-            </div>
-          </div>
-          
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-primary-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </>
+          )}
         </div>
-        
+
         {/* Featured badge */}
         {project.featured && (
           <div className="absolute -top-3 -right-3 bg-accent-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full">

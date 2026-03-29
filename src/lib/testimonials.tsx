@@ -12,13 +12,19 @@ export interface Testimonial {
   video?: string
   rating: number
   featured: boolean
+  status: 'pending' | 'approved' | 'rejected'
+  submittedAt?: string
 }
 
 interface TestimonialContextType {
   testimonials: Testimonial[]
+  approvedTestimonials: Testimonial[]
+  pendingTestimonials: Testimonial[]
   addTestimonial: (testimonial: Testimonial) => void
   updateTestimonial: (id: string, testimonial: Partial<Testimonial>) => void
   deleteTestimonial: (id: string) => void
+  approveTestimonial: (id: string) => void
+  rejectTestimonial: (id: string) => void
 }
 
 const TestimonialContext = createContext<TestimonialContextType | undefined>(undefined)
@@ -33,7 +39,13 @@ export function TestimonialProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('portfolio-testimonials')
     if (saved) {
       try {
-        setTestimonials(JSON.parse(saved))
+        const parsed = JSON.parse(saved)
+        // Migrate old testimonials that don't have status
+        const migrated = parsed.map((t: Testimonial) => ({
+          ...t,
+          status: t.status || 'approved',
+        }))
+        setTestimonials(migrated)
       } catch (e) {
         console.error('Failed to parse testimonials:', e)
       }
@@ -59,8 +71,29 @@ export function TestimonialProvider({ children }: { children: ReactNode }) {
     setTestimonials(prev => prev.filter(t => t.id !== id))
   }
 
+  const approveTestimonial = (id: string) => {
+    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: 'approved' as const } : t))
+  }
+
+  const rejectTestimonial = (id: string) => {
+    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: 'rejected' as const } : t))
+  }
+
+  // Only show approved testimonials publicly
+  const approvedTestimonials = testimonials.filter(t => t.status === 'approved')
+  const pendingTestimonials = testimonials.filter(t => t.status === 'pending')
+
   return (
-    <TestimonialContext.Provider value={{ testimonials, addTestimonial, updateTestimonial, deleteTestimonial }}>
+    <TestimonialContext.Provider value={{
+      testimonials,
+      approvedTestimonials,
+      pendingTestimonials,
+      addTestimonial,
+      updateTestimonial,
+      deleteTestimonial,
+      approveTestimonial,
+      rejectTestimonial,
+    }}>
       {children}
     </TestimonialContext.Provider>
   )

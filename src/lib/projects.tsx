@@ -99,43 +99,45 @@ const ProjectsContext = createContext<ProjectsContextType | undefined>(undefined
 
 export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>(defaultProjects)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   // Load projects from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('portfolio_projects')
     if (stored) {
       try {
-        setProjects(JSON.parse(stored))
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProjects(parsed)
+        }
       } catch {
-        setProjects(defaultProjects)
+        // Keep defaults if parse fails
       }
     }
+    setIsLoaded(true)
   }, [])
 
-  // Save projects to localStorage when changed
-  const saveProjects = (newProjects: Project[]) => {
-    localStorage.setItem('portfolio_projects', JSON.stringify(newProjects))
-    setProjects(newProjects)
-  }
+  // Save projects to localStorage whenever they change (but only after initial load)
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('portfolio_projects', JSON.stringify(projects))
+    }
+  }, [projects, isLoaded])
 
   const addProject = (project: Omit<Project, 'id'>) => {
     const newProject: Project = {
       ...project,
       id: `project-${Date.now()}`,
     }
-    saveProjects([...projects, newProject])
+    setProjects(prev => [...prev, newProject])
   }
 
   const updateProject = (id: string, updates: Partial<Project>) => {
-    const newProjects = projects.map((p) =>
-      p.id === id ? { ...p, ...updates } : p
-    )
-    saveProjects(newProjects)
+    setProjects(prev => prev.map((p) => p.id === id ? { ...p, ...updates } : p))
   }
 
   const deleteProject = (id: string) => {
-    const newProjects = projects.filter((p) => p.id !== id)
-    saveProjects(newProjects)
+    setProjects(prev => prev.filter((p) => p.id !== id))
   }
 
   const getProject = (id: string) => {

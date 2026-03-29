@@ -4,11 +4,13 @@ import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import ProjectCard from '@/components/ui/ProjectCard'
 import { useProjects } from '@/lib/projects'
+import { useLanguage } from '@/lib/i18n'
 
 export default function Projects() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { projects } = useProjects()
+  const { t } = useLanguage()
 
   return (
     <section
@@ -26,15 +28,13 @@ export default function Projects() {
           className="text-center mb-16"
         >
           <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-            Portfolio
+            {t('projects.title')}
           </span>
           <h2 id="projects-heading" className="section-heading mt-2">
-            Featured{' '}
-            <span className="gradient-text">Projects</span>
+            {t('projects.heading')}
           </h2>
           <p className="section-subheading mx-auto mt-4">
-            Real-world engineering solutions that combine embedded hardware, 
-            IoT connectivity, and intuitive interfaces to solve tangible problems.
+            {t('projects.subtitle')}
           </p>
         </motion.div>
 

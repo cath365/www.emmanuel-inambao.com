@@ -8,12 +8,14 @@ import TestimonialForm from '@/components/ui/TestimonialForm'
 import Image from 'next/image'
 
 export default function Testimonials() {
-  const { testimonials } = useTestimonials()
+  const { approvedTestimonials, testimonials } = useTestimonials()
   const [activeVideo, setActiveVideo] = useState<string | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const featuredTestimonials = testimonials.filter(t => t.featured)
-  const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : testimonials
+  // Use approved testimonials for display, fall back to all testimonials for backward compat
+  const allVisible = approvedTestimonials.length > 0 ? approvedTestimonials : testimonials.filter(t => !('status' in t) || t.status !== 'rejected')
+  const featuredTestimonials = allVisible.filter(t => t.featured)
+  const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : allVisible
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev + 1) % displayTestimonials.length)
@@ -24,7 +26,7 @@ export default function Testimonials() {
   }
 
   // Show section even with no testimonials so visitors can submit theirs
-  if (testimonials.length === 0) {
+  if (allVisible.length === 0) {
     return (
       <section id="testimonials" className="py-20 bg-dark-950">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">

@@ -26,6 +26,7 @@ const translations: Translations = {
   'nav.contact': { en: 'Contact', fr: 'Contact', pt: 'Contato', es: 'Contacto', de: 'Kontakt', ar: 'اتصل بي', zh: '联系方式' },
   'nav.services': { en: 'Services', fr: 'Services', pt: 'Serviços', es: 'Servicios', de: 'Dienstleistungen', ar: 'الخدمات', zh: '服务' },
   'nav.blog': { en: 'Blog', fr: 'Blog', pt: 'Blog', es: 'Blog', de: 'Blog', ar: 'المدونة', zh: '博客' },
+  'nav.caseStudies': { en: 'Case Studies', fr: 'Études de cas', pt: 'Estudos de Caso', es: 'Casos de Estudio', de: 'Fallstudien', ar: 'دراسات الحالة', zh: '案例研究' },
   'nav.gallery': { en: 'Gallery', fr: 'Galerie', pt: 'Galeria', es: 'Galería', de: 'Galerie', ar: 'معرض الصور', zh: '画廊' },
   'nav.education': { en: 'Education', fr: 'Formation', pt: 'Educação', es: 'Educación', de: 'Bildung', ar: 'التعليم', zh: '教育' },
   
@@ -38,15 +39,18 @@ const translations: Translations = {
   
   // About Section
   'about.title': { en: 'About Me', fr: 'À propos de moi', pt: 'Sobre Mim', es: 'Sobre Mí', de: 'Über mich', ar: 'عني', zh: '关于我' },
+  'about.heading': { en: 'Engineering That Solves Problems', fr: 'Ingénierie qui résout les problèmes', pt: 'Engenharia que resolve problemas', es: 'Ingeniería que resuelve problemas', de: 'Technik, die Probleme löst', ar: 'هندسة تحل المشاكل', zh: '解决问题的工程' },
   'about.description': { en: 'I am a passionate engineer dedicated to building innovative solutions', fr: 'Je suis un ingénieur passionné dédié à la création de solutions innovantes', pt: 'Sou um engenheiro apaixonado dedicado a construir soluções inovadoras', es: 'Soy un ingeniero apasionado dedicado a crear soluciones innovadoras', de: 'Ich bin ein leidenschaftlicher Ingenieur, der innovative Lösungen entwickelt', ar: 'أنا مهندس شغوف مكرس لبناء حلول مبتكرة', zh: '我是一位充满激情的工程师，致力于构建创新解决方案' },
   
   // Skills Section
   'skills.title': { en: 'Skills & Technologies', fr: 'Compétences & Technologies', pt: 'Habilidades & Tecnologias', es: 'Habilidades y Tecnologías', de: 'Fähigkeiten & Technologien', ar: 'المهارات والتقنيات', zh: '技能与技术' },
-  'skills.subtitle': { en: 'Technologies I work with', fr: 'Technologies avec lesquelles je travaille', pt: 'Tecnologias com as quais trabalho', es: 'Tecnologías con las que trabajo', de: 'Technologien, mit denen ich arbeite', ar: 'التقنيات التي أعمل بها', zh: '我使用的技术' },
+  'skills.heading': { en: 'Skills & Technologies', fr: 'Compétences & Technologies', pt: 'Habilidades & Tecnologias', es: 'Habilidades & Tecnologías', de: 'Fähigkeiten & Technologien', ar: 'المهارات والتقنيات', zh: '技能与技术' },
+  'skills.subtitle': { en: 'A comprehensive toolkit spanning hardware design, embedded firmware, IoT connectivity, and full-stack web development.', fr: 'Une boîte à outils complète couvrant la conception matérielle, le firmware embarqué, la connectivité IoT et le développement web full-stack.', pt: 'Um kit de ferramentas abrangente cobrindo design de hardware, firmware embarcado, conectividade IoT e desenvolvimento web full-stack.', es: 'Un conjunto completo de herramientas que abarca diseño de hardware, firmware embebido, conectividad IoT y desarrollo web full-stack.', de: 'Ein umfassendes Toolkit, das Hardware-Design, eingebettete Firmware, IoT-Konnektivität und Full-Stack-Webentwicklung umfasst.', ar: 'مجموعة أدوات شاملة تغطي تصميم الأجهزة والبرمجيات المضمنة واتصال إنترنت الأشياء وتطوير الويب الكامل.', zh: '涵盖硬件设计、嵌入式固件、物联网连接和全栈Web开发的综合工具包。' },
   
   // Projects Section
   'projects.title': { en: 'Featured Projects', fr: 'Projets en vedette', pt: 'Projetos em Destaque', es: 'Proyectos Destacados', de: 'Ausgewählte Projekte', ar: 'مشاريع مميزة', zh: '精选项目' },
-  'projects.subtitle': { en: 'Some of my recent work', fr: 'Quelques-uns de mes travaux récents', pt: 'Alguns dos meus trabalhos recentes', es: 'Algunos de mis trabajos recientes', de: 'Einige meiner aktuellen Arbeiten', ar: 'بعض أعمالي الأخيرة', zh: '我最近的一些工作' },
+  'projects.heading': { en: 'Featured Projects', fr: 'Projets en Vedette', pt: 'Projetos em Destaque', es: 'Proyectos Destacados', de: 'Ausgewählte Projekte', ar: 'مشاريع مميزة', zh: '精选项目' },
+  'projects.subtitle': { en: 'Real-world engineering solutions that combine embedded hardware, IoT connectivity, and intuitive interfaces to solve tangible problems.', fr: 'Solutions d\'ingénierie réelles combinant matériel embarqué, connectivité IoT et interfaces intuitives pour résoudre des problèmes concrets.', pt: 'Soluções de engenharia do mundo real que combinam hardware embarcado, conectividade IoT e interfaces intuitivas para resolver problemas tangíveis.', es: 'Soluciones de ingeniería del mundo real que combinan hardware embebido, conectividad IoT e interfaces intuitivas para resolver problemas tangibles.', de: 'Reale Engineering-Lösungen, die eingebettete Hardware, IoT-Konnektivität und intuitive Schnittstellen kombinieren, um greifbare Probleme zu lösen.', ar: 'حلول هندسية واقعية تجمع بين الأجهزة المضمنة واتصال إنترنت الأشياء والواجهات البديهية لحل المشاكل الملموسة.', zh: '结合嵌入式硬件、物联网连接和直观界面来解决实际问题的真实工程解决方案。' },
   'projects.viewAll': { en: 'View All Projects', fr: 'Voir tous les projets', pt: 'Ver Todos os Projetos', es: 'Ver Todos los Proyectos', de: 'Alle Projekte ansehen', ar: 'عرض جميع المشاريع', zh: '查看所有项目' },
   'projects.viewProject': { en: 'View Project', fr: 'Voir le projet', pt: 'Ver Projeto', es: 'Ver Proyecto', de: 'Projekt ansehen', ar: 'عرض المشروع', zh: '查看项目' },
   'projects.viewCode': { en: 'View Code', fr: 'Voir le code', pt: 'Ver Código', es: 'Ver Código', de: 'Code ansehen', ar: 'عرض الكود', zh: '查看代码' },
@@ -58,6 +62,7 @@ const translations: Translations = {
   // Contact Section
   'contact.title': { en: 'Get In Touch', fr: 'Contactez-moi', pt: 'Entre em Contato', es: 'Contáctame', de: 'Kontakt aufnehmen', ar: 'تواصل معي', zh: '联系我' },
   'contact.subtitle': { en: "Let's work together", fr: 'Travaillons ensemble', pt: 'Vamos trabalhar juntos', es: 'Trabajemos juntos', de: 'Lassen Sie uns zusammenarbeiten', ar: 'لنعمل معاً', zh: '让我们一起工作' },
+  'contact.description': { en: "Have a project idea, need technical consultation, or want to discuss a partnership? I'm always open to new engineering challenges.", fr: "Vous avez une idée de projet, besoin d'une consultation technique ou vous souhaitez discuter d'un partenariat? Je suis toujours ouvert aux nouveaux défis.", pt: 'Tem uma ideia de projeto, precisa de consultoria técnica ou quer discutir uma parceria? Estou sempre aberto a novos desafios de engenharia.', es: '¿Tienes una idea de proyecto, necesitas consultoría técnica o quieres discutir una asociación? Siempre estoy abierto a nuevos desafíos de ingeniería.', de: 'Haben Sie eine Projektidee, brauchen Sie technische Beratung oder möchten Sie über eine Partnerschaft sprechen? Ich bin immer offen für neue technische Herausforderungen.', ar: 'هل لديك فكرة مشروع، تحتاج استشارة تقنية، أو تريد مناقشة شراكة؟ أنا دائماً منفتح على تحديات هندسية جديدة.', zh: '有项目想法、需要技术咨询或想讨论合作伙伴关系？我始终欢迎新的工程挑战。' },
   'contact.name': { en: 'Your Name', fr: 'Votre nom', pt: 'Seu Nome', es: 'Tu Nombre', de: 'Ihr Name', ar: 'اسمك', zh: '您的姓名' },
   'contact.email': { en: 'Your Email', fr: 'Votre email', pt: 'Seu Email', es: 'Tu Email', de: 'Ihre E-Mail', ar: 'بريدك الإلكتروني', zh: '您的邮箱' },
   'contact.message': { en: 'Your Message', fr: 'Votre message', pt: 'Sua Mensagem', es: 'Tu Mensaje', de: 'Ihre Nachricht', ar: 'رسالتك', zh: '您的留言' },
@@ -86,6 +91,7 @@ const translations: Translations = {
   
   // Footer
   'footer.rights': { en: 'All rights reserved', fr: 'Tous droits réservés', pt: 'Todos os direitos reservados', es: 'Todos los derechos reservados', de: 'Alle Rechte vorbehalten', ar: 'جميع الحقوق محفوظة', zh: '版权所有' },
+  'footer.quickLinks': { en: 'Quick Links', fr: 'Liens Rapides', pt: 'Links Rápidos', es: 'Enlaces Rápidos', de: 'Schnelllinks', ar: 'روابط سريعة', zh: '快速链接' },
   'footer.built': { en: 'Built with ❤️ using Next.js', fr: 'Construit avec ❤️ en utilisant Next.js', pt: 'Construído com ❤️ usando Next.js', es: 'Hecho con ❤️ usando Next.js', de: 'Erstellt mit ❤️ mit Next.js', ar: 'مبني بـ ❤️ باستخدام Next.js', zh: '使用 Next.js 用 ❤️ 构建' },
   
   // Newsletter

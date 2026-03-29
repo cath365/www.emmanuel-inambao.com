@@ -23,6 +23,27 @@ interface BookingState {
   }
 }
 
+interface LeadState {
+  active: boolean
+  step: 'name' | 'email' | 'service' | 'details' | 'confirm' | null
+  data: {
+    name: string
+    email: string
+    service: string
+    details: string
+  }
+}
+
+export interface ServiceLead {
+  id: string
+  name: string
+  email: string
+  service: string
+  details: string
+  submittedAt: string
+  status: 'new' | 'contacted' | 'closed'
+}
+
 // Knowledge base about Emmanuel
 const knowledgeBase = {
   name: "Emmanuel Inambao",
@@ -77,6 +98,11 @@ export default function AIChatbot() {
     active: false,
     step: null,
     data: { name: '', email: '', phone: '', date: '', time: '', topic: '', notificationMethod: null }
+  })
+  const [lead, setLead] = useState<LeadState>({
+    active: false,
+    step: null,
+    data: { name: '', email: '', service: '', details: '' }
   })
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -212,10 +238,113 @@ export default function AIChatbot() {
     }
   }
 
+  // Process lead capture steps
+  const processLeadStep = (userInput: string): { response: string; options?: string[]; nextStep: LeadState['step'] } => {
+    switch (lead.step) {
+      case 'name':
+        setLead(prev => ({ ...prev, data: { ...prev.data, name: userInput } }))
+        return {
+          response: `Nice to meet you, ${userInput}! 📧\n\nWhat's your email address so Emmanuel can reach you?`,
+          nextStep: 'email'
+        }
+
+      case 'email':
+        if (!userInput.includes('@')) {
+          return { response: "That doesn't look like a valid email. Please enter your email:", nextStep: 'email' }
+        }
+        setLead(prev => ({ ...prev, data: { ...prev.data, email: userInput } }))
+        return {
+          response: `Which service are you interested in?`,
+          options: ['IoT Development', 'Robotics Solutions', 'Full-Stack Development', 'PCB Design', 'Embedded Systems', 'AI/ML Integration', 'Other'],
+          nextStep: 'service'
+        }
+
+      case 'service':
+        setLead(prev => ({ ...prev, data: { ...prev.data, service: userInput } }))
+        return {
+          response: `Tell me briefly about your project or what you need help with:`,
+          nextStep: 'details'
+        }
+
+      case 'details':
+        setLead(prev => ({ ...prev, data: { ...prev.data, details: userInput } }))
+        return {
+          response: `Here's a summary of your inquiry:\n\n👤 Name: ${lead.data.name}\n📧 Email: ${lead.data.email}\n🔧 Service: ${lead.data.service}\n📝 Details: ${userInput}\n\nShall I send this to Emmanuel?`,
+          options: ['✅ Yes, send it', '❌ Cancel'],
+          nextStep: 'confirm'
+        }
+
+      case 'confirm':
+        if (userInput.toLowerCase().includes('yes') || userInput.includes('✅')) {
+          submitLead()
+          return {
+            response: `🎉 Your inquiry has been sent!\n\nEmmanuel has been notified via email and will get back to you soon at ${lead.data.email}.\n\nIs there anything else I can help with?`,
+            options: ['Book a meeting', 'View skills', 'See projects'],
+            nextStep: null
+          }
+        } else {
+          setLead({ active: false, step: null, data: { name: '', email: '', service: '', details: '' } })
+          return {
+            response: `No problem! Your inquiry has been cancelled.\n\nAnything else I can help with?`,
+            options: ['Book a meeting', 'View skills', 'See projects'],
+            nextStep: null
+          }
+        }
+
+      default:
+        return { response: '', nextStep: null }
+    }
+  }
+
+  // Submit lead to API and save to localStorage for admin dashboard
+  const submitLead = async () => {
+    const newLead: ServiceLead = {
+      id: `lead-${Date.now()}`,
+      name: lead.data.name,
+      email: lead.data.email,
+      service: lead.data.service,
+      details: lead.data.details,
+      submittedAt: new Date().toISOString(),
+      status: 'new',
+    }
+
+    // Save to localStorage for admin dashboard
+    try {
+      const existing = localStorage.getItem('portfolio_service_leads')
+      const leads: ServiceLead[] = existing ? JSON.parse(existing) : []
+      leads.unshift(newLead)
+      localStorage.setItem('portfolio_service_leads', JSON.stringify(leads))
+    } catch (error) {
+      console.error('Failed to save lead to localStorage:', error)
+    }
+
+    // Send email notification via API
+    try {
+      await fetch('/api/service-inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLead),
+      })
+    } catch (error) {
+      console.error('Lead submission error:', error)
+    }
+  }
+
   // Generate response based on query
   function generateResponse(query: string): { response: string; options?: string[] } {
     const lowerQuery = query.toLowerCase()
     
+    // Check if lead capture flow is active
+    if (lead.active && lead.step) {
+      const result = processLeadStep(query)
+      if (result.nextStep === null) {
+        setLead(prev => ({ ...prev, active: false, step: null }))
+      } else {
+        setLead(prev => ({ ...prev, step: result.nextStep }))
+      }
+      return { response: result.response, options: result.options }
+    }
+
     // Check if booking flow is active
     if (booking.active && booking.step) {
       const result = processBookingStep(query)
@@ -226,7 +355,7 @@ export default function AIChatbot() {
       }
       return { response: result.response, options: result.options }
     }
-    
+
     // Start booking flow
     if (lowerQuery.includes('book') || lowerQuery.includes('meeting') || lowerQuery.includes('schedule') || lowerQuery.includes('appointment')) {
       setBooking(prev => ({ ...prev, active: true, step: 'name' }))
@@ -259,11 +388,19 @@ export default function AIChatbot() {
       }
     }
     
-    // Services
-    if (lowerQuery.includes('service') || lowerQuery.includes('offer') || lowerQuery.includes('hire') || lowerQuery.includes('help')) {
+    // Services / Hire / Need help - trigger lead capture
+    if (lowerQuery.includes('service') || lowerQuery.includes('offer') || lowerQuery.includes('hire') || lowerQuery.includes('help') || lowerQuery.includes('need') || lowerQuery.includes('interested') || lowerQuery.includes('quote') || lowerQuery.includes('price') || lowerQuery.includes('cost')) {
       return {
-        response: `Emmanuel offers:\n\n⚡ IoT Development\n🤖 Robotics Solutions\n💻 Full-Stack Development\n🔧 PCB Design\n🧠 AI/ML Integration\n\nWant to book a consultation?`,
-        options: ['Book a meeting', 'See projects', 'Contact info']
+        response: `Emmanuel offers:\n\n⚡ IoT Development\n🤖 Robotics Solutions\n💻 Full-Stack Development\n🔧 PCB Design\n🧠 AI/ML Integration\n📐 Embedded Systems\n\nWould you like to send an inquiry? Emmanuel will get back to you personally!`,
+        options: ['📩 Send inquiry', 'Book a meeting', 'See projects']
+      }
+    }
+
+    // Start lead capture flow
+    if (lowerQuery.includes('inquiry') || lowerQuery.includes('send inquiry') || lowerQuery.includes('get started') || lowerQuery.includes('interested in')) {
+      setLead(prev => ({ ...prev, active: true, step: 'name' }))
+      return {
+        response: "Great! Let's get your inquiry to Emmanuel. 📩\n\nFirst, what's your name?"
       }
     }
     
@@ -310,7 +447,7 @@ export default function AIChatbot() {
       {/* Chat Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         aria-label="Open AI Chat"
@@ -351,7 +488,7 @@ export default function AIChatbot() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="fixed bottom-[4.5rem] right-6 z-50 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+          className="fixed bottom-[3.5rem] right-4 sm:bottom-[4.5rem] sm:right-6 z-50 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
         >
           1
         </motion.div>
@@ -364,7 +501,7 @@ export default function AIChatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-48px)] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
+            className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 z-50 w-[calc(100vw-16px)] sm:w-[360px] max-w-[400px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
@@ -382,7 +519,7 @@ export default function AIChatbot() {
             </div>
 
             {/* Messages */}
-            <div className="h-[350px] overflow-y-auto p-4 space-y-4">
+            <div className="h-[300px] sm:h-[350px] overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
               {messages.map((message, index) => (
                 <motion.div
                   key={index}

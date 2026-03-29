@@ -126,6 +126,68 @@
   }
 }
 
+@layer components {
+  /* Micro-interaction: Card hover lift effect */
+  .card-hover-lift {
+    @apply transition-all duration-300;
+  }
+  .card-hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.08);
+  }
+
+  /* Micro-interaction: Subtle glow on hover */
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 60px rgba(59, 130, 246, 0.05);
+  }
+
+  /* Micro-interaction: Link underline animation */
+  .link-underline {
+    @apply relative;
+  }
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-[2px] bg-primary-400 transition-all duration-300;
+  }
+  .link-underline:hover::after {
+    @apply w-full;
+  }
+
+  /* Micro-interaction: Scale on tap for mobile */
+  .tap-scale {
+    @apply transition-transform duration-150;
+  }
+  .tap-scale:active {
+    transform: scale(0.97);
+  }
+
+  /* Gradient border animation */
+  .gradient-border {
+    @apply relative overflow-hidden rounded-xl;
+  }
+  .gradient-border::before {
+    content: '';
+    @apply absolute inset-0 rounded-xl;
+    padding: 1px;
+    background: linear-gradient(135deg, #3b82f6, #fbbf24, #3b82f6);
+    background-size: 200% 200%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: gradientShift 3s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
+
 @layer utilities {
   /* Text balance for better readability */
   .text-balance {

@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Plus, Edit2, Trash2, LogOut, Save, X, Cpu, 
+  Plus, Edit2, Trash2, LogOut, Save, X, Cpu,
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play
+  Globe, Smartphone, Play, Bell, Mail, Clock
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -23,7 +23,7 @@ import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery'
+type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery' | 'leads'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -260,6 +260,17 @@ export default function AdminDashboard() {
             >
               <GalleryHorizontal className="w-5 h-5" />
               Gallery
+            </button>
+            <button
+              onClick={() => setActiveTab('leads')}
+              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                activeTab === 'leads'
+                  ? 'text-primary-400 border-primary-500'
+                  : 'text-dark-400 border-transparent hover:text-white'
+              }`}
+            >
+              <Bell className="w-5 h-5" />
+              Leads
             </button>
           </div>
         </div>
@@ -592,6 +603,15 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, x: -20 }}
             >
               <GalleryEditor />
+            </motion.div>
+          ) : activeTab === 'leads' ? (
+            <motion.div
+              key="leads"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <ServiceLeadsPanel />
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -1388,5 +1408,168 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
         </form>
       </motion.div>
     </motion.div>
+  )
+}
+
+// Service Leads Panel Component
+interface ServiceLead {
+  id: string
+  name: string
+  email: string
+  service: string
+  details: string
+  submittedAt: string
+  status: 'new' | 'contacted' | 'closed'
+}
+
+function ServiceLeadsPanel() {
+  const [leads, setLeads] = useState<ServiceLead[]>([])
+
+  useEffect(() => {
+    const stored = localStorage.getItem('portfolio_service_leads')
+    if (stored) {
+      try {
+        setLeads(JSON.parse(stored))
+      } catch {
+        // ignore
+      }
+    }
+  }, [])
+
+  const updateLeadStatus = (id: string, status: ServiceLead['status']) => {
+    const updated = leads.map(l => l.id === id ? { ...l, status } : l)
+    setLeads(updated)
+    localStorage.setItem('portfolio_service_leads', JSON.stringify(updated))
+  }
+
+  const deleteLead = (id: string) => {
+    const updated = leads.filter(l => l.id !== id)
+    setLeads(updated)
+    localStorage.setItem('portfolio_service_leads', JSON.stringify(updated))
+  }
+
+  const newLeads = leads.filter(l => l.status === 'new')
+  const contactedLeads = leads.filter(l => l.status === 'contacted')
+  const closedLeads = leads.filter(l => l.status === 'closed')
+
+  if (leads.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <Bell className="w-16 h-16 text-dark-600 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-white mb-2">No Service Inquiries Yet</h3>
+        <p className="text-dark-400">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-white">Service Inquiries</h2>
+        {newLeads.length > 0 && (
+          <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+            {newLeads.length} New
+          </span>
+        )}
+      </div>
+
+      {/* New Leads */}
+      {newLeads.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center gap-2">
+            <Bell className="w-5 h-5" /> New Inquiries
+          </h3>
+          <div className="space-y-4">
+            {newLeads.map(lead => (
+              <div key={lead.id} className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="text-lg font-semibold text-white">{lead.name}</h4>
+                      <span className="text-xs bg-yellow-500 text-dark-900 px-2 py-0.5 rounded-full font-bold">NEW</span>
+                    </div>
+                    <div className="flex flex-wrap gap-4 text-sm text-dark-300 mb-3">
+                      <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {lead.email}</span>
+                      <span className="flex items-center gap-1"><Settings className="w-4 h-4" /> {lead.service}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {new Date(lead.submittedAt).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-dark-300">{lead.details}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
+                      className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
+                    >
+                      <Mail className="w-4 h-4" /> Reply
+                    </a>
+                    <button
+                      onClick={() => updateLeadStatus(lead.id, 'contacted')}
+                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
+                    >
+                      <Check className="w-4 h-4" /> Contacted
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Contacted Leads */}
+      {contactedLeads.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-green-400 mb-4">Contacted ({contactedLeads.length})</h3>
+          <div className="space-y-3">
+            {contactedLeads.map(lead => (
+              <div key={lead.id} className="bg-dark-800/50 border border-dark-700 rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-white font-medium">{lead.name} — <span className="text-dark-400">{lead.service}</span></p>
+                    <p className="text-dark-400 text-sm">{lead.email} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updateLeadStatus(lead.id, 'closed')}
+                      className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => deleteLead(lead.id)}
+                      className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg text-sm hover:bg-red-600/30 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Closed Leads */}
+      {closedLeads.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-dark-500 mb-4">Closed ({closedLeads.length})</h3>
+          <div className="space-y-2">
+            {closedLeads.map(lead => (
+              <div key={lead.id} className="bg-dark-800/30 border border-dark-800 rounded-lg p-3 opacity-60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <p className="text-dark-400 text-sm">{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
+                  <button
+                    onClick={() => deleteLead(lead.id)}
+                    className="text-dark-600 hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
