@@ -15,12 +15,13 @@ interface ServiceLead {
 
 async function readLeads(): Promise<ServiceLead[]> {
   try {
-    const { blobs } = await list({ prefix: LEADS_BLOB_PATH, token: process.env.BLOB_READ_WRITE_TOKEN })
+    const { blobs } = await list({ prefix: LEADS_BLOB_PATH })
     if (blobs.length === 0) return []
     const res = await fetch(blobs[0].url, { cache: 'no-store' })
     if (!res.ok) return []
     return await res.json()
-  } catch {
+  } catch (e) {
+    console.error('readLeads error:', e)
     return []
   }
 }
@@ -29,7 +30,6 @@ async function writeLeads(leads: ServiceLead[]) {
   await put(LEADS_BLOB_PATH, JSON.stringify(leads), {
     access: 'public',
     addRandomSuffix: false,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
   })
 }
 
@@ -37,10 +37,10 @@ async function writeLeads(leads: ServiceLead[]) {
 export async function GET() {
   try {
     const leads = await readLeads()
-    return NextResponse.json({ leads })
+    return NextResponse.json({ leads, count: leads.length })
   } catch (error) {
     console.error('Failed to read leads:', error)
-    return NextResponse.json({ leads: [] })
+    return NextResponse.json({ leads: [], error: String(error) })
   }
 }
 

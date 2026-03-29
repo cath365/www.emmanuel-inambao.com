@@ -22,12 +22,13 @@ interface BookingData {
 
 async function readBookings(): Promise<BookingData[]> {
   try {
-    const { blobs } = await list({ prefix: BOOKINGS_BLOB_PATH, token: process.env.BLOB_READ_WRITE_TOKEN })
+    const { blobs } = await list({ prefix: BOOKINGS_BLOB_PATH })
     if (blobs.length === 0) return []
     const res = await fetch(blobs[0].url, { cache: 'no-store' })
     if (!res.ok) return []
     return await res.json()
-  } catch {
+  } catch (e) {
+    console.error('readBookings error:', e)
     return []
   }
 }
@@ -36,7 +37,6 @@ async function writeBookings(bookings: BookingData[]) {
   await put(BOOKINGS_BLOB_PATH, JSON.stringify(bookings), {
     access: 'public',
     addRandomSuffix: false,
-    token: process.env.BLOB_READ_WRITE_TOKEN,
   })
 }
 
