@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar
+  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -23,7 +23,7 @@ import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings'
+type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -282,6 +282,17 @@ export default function AdminDashboard() {
             >
               <Calendar className="w-5 h-5" />
               Bookings
+            </button>
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                activeTab === 'analytics'
+                  ? 'text-primary-400 border-primary-500'
+                  : 'text-dark-400 border-transparent hover:text-white'
+              }`}
+            >
+              <BarChart2 className="w-5 h-5" />
+              Analytics
             </button>
           </div>
         </div>
@@ -632,6 +643,15 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, x: -20 }}
             >
               <BookingsPanel />
+            </motion.div>
+          ) : activeTab === 'analytics' ? (
+            <motion.div
+              key="analytics"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <AnalyticsPanel />
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -1877,6 +1897,243 @@ function BookingsPanel() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Analytics Panel ────────────────────────────────────────────────────────
+
+interface Visit {
+  id: string
+  timestamp: string
+  page: string
+  referrer: string
+  country: string
+  city: string
+  device: 'mobile' | 'desktop' | 'tablet'
+  browser: string
+  sessionId: string
+}
+
+function AnalyticsPanel() {
+  const [visits, setVisits] = useState<Visit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [days, setDays] = useState(7)
+
+  const load = (d: number) => {
+    setLoading(true)
+    fetch(`/api/analytics?days=${d}`)
+      .then(r => r.json())
+      .then(data => setVisits(data.visits || []))
+      .catch(() => setVisits([]))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load(days) }, [days])
+
+  const uniqueSessions = new Set(visits.map(v => v.sessionId)).size
+  const today = new Date().toISOString().split('T')[0]
+  const todayVisits = visits.filter(v => v.timestamp.startsWith(today)).length
+
+  const dailyMap: Record<string, number> = {}
+  for (let i = 0; i < days; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i)
+    dailyMap[d.toISOString().split('T')[0]] = 0
+  }
+  visits.forEach(v => {
+    const day = v.timestamp.split('T')[0]
+    if (day in dailyMap) dailyMap[day] = (dailyMap[day] || 0) + 1
+  })
+  const dailyData = Object.entries(dailyMap).sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({ date, count }))
+  const maxDaily = Math.max(...dailyData.map(d => d.count), 1)
+
+  function topN(field: keyof Visit, n = 5) {
+    const counts: Record<string, number> = {}
+    visits.forEach(v => { const val = v[field] as string; counts[val] = (counts[val] || 0) + 1 })
+    return Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, n)
+  }
+
+  const topPages = topN('page')
+  const topCountries = topN('country')
+  const topReferrers = topN('referrer')
+  const deviceCounts = topN('device')
+  const deviceIcons: Record<string, string> = { desktop: '🖥️', mobile: '📱', tablet: '📟' }
+  const countryFlags: Record<string, string> = {
+    ZM: '🇿🇲', US: '🇺🇸', GB: '🇬🇧', ZA: '🇿🇦', NG: '🇳🇬', IN: '🇮🇳',
+    DE: '🇩🇪', FR: '🇫🇷', KE: '🇰🇪', CA: '🇨🇦', AU: '🇦🇺', Unknown: '🌍',
+  }
+
+  if (loading) return (
+    <div className="text-center py-20">
+      <div className="animate-spin w-10 h-10 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-4" />
+      <p className="text-dark-400">Loading analytics...</p>
+    </div>
+  )
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-white">Visitor Analytics</h2>
+          <p className="text-dark-400 text-sm mt-1">Who is visiting your portfolio</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {[7, 14, 30].map(d => (
+            <button key={d} onClick={() => setDays(d)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === d ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-300 hover:text-white'}`}>
+              {d}d
+            </button>
+          ))}
+          <button onClick={() => load(days)} className="ml-2 p-1.5 bg-dark-800 text-dark-300 rounded-lg hover:text-white transition-colors">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Total Visits', value: visits.length, sub: `Last ${days} days`, icon: '👁️' },
+          { label: 'Today', value: todayVisits, sub: 'Visits today', icon: '📅' },
+          { label: 'Unique Visitors', value: uniqueSessions, sub: 'By session', icon: '👤' },
+          { label: 'Countries', value: new Set(visits.map(v => v.country)).size, sub: 'Reached', icon: '🌍' },
+        ].map(card => (
+          <div key={card.label} className="bg-dark-900/60 border border-dark-700 rounded-xl p-4">
+            <div className="text-2xl mb-1">{card.icon}</div>
+            <div className="text-2xl font-bold text-white">{card.value}</div>
+            <div className="text-sm font-medium text-dark-200">{card.label}</div>
+            <div className="text-xs text-dark-500">{card.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-6 mb-8">
+        <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <BarChart2 className="w-5 h-5 text-primary-400" /> Visits Per Day
+        </h3>
+        <div className="flex items-end gap-1 h-32">
+          {dailyData.map(({ date, count }) => (
+            <div key={date} className="flex-1 flex flex-col items-center gap-1 group">
+              <div className="text-xs text-dark-500 opacity-0 group-hover:opacity-100 transition-opacity">{count}</div>
+              <div className="w-full bg-primary-600/80 hover:bg-primary-500 rounded-t transition-colors cursor-default"
+                style={{ height: `${Math.max((count / maxDaily) * 100, 4)}%` }} />
+              <div className="text-dark-600" style={{ fontSize: '9px' }}>{date.slice(5)}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
+          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-400" /> Top Pages</h3>
+          <div className="space-y-3">
+            {topPages.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
+            {topPages.map(([key, count]) => (
+              <div key={key} className="flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-dark-200 truncate">{key || '/'}</div>
+                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-white shrink-0">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
+          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Globe className="w-4 h-4 text-green-400" /> Top Countries</h3>
+          <div className="space-y-3">
+            {topCountries.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
+            {topCountries.map(([key, count]) => (
+              <div key={key} className="flex items-center gap-3">
+                <span className="text-base shrink-0">{countryFlags[key] || '🌍'}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-dark-200 truncate">{key}</div>
+                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
+                    <div className="h-full bg-green-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-white shrink-0">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
+          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><ExternalLink className="w-4 h-4 text-yellow-400" /> Traffic Sources</h3>
+          <div className="space-y-3">
+            {topReferrers.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
+            {topReferrers.map(([key, count]) => (
+              <div key={key} className="flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-dark-200 truncate">{key}</div>
+                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
+                    <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-white shrink-0">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
+          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Monitor className="w-4 h-4 text-purple-400" /> Devices</h3>
+          <div className="space-y-3">
+            {deviceCounts.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
+            {deviceCounts.map(([key, count]) => (
+              <div key={key} className="flex items-center gap-3">
+                <span className="text-base shrink-0">{deviceIcons[key] || '💻'}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-dark-200 capitalize">{key}</div>
+                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
+                    <div className="h-full bg-purple-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-white shrink-0">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
+        <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-primary-400" /> Recent Visitors
+          <span className="ml-auto text-xs text-dark-500">Latest 30</span>
+        </h3>
+        {visits.length === 0 ? (
+          <p className="text-dark-500 text-sm text-center py-6">No visits recorded yet. They will appear here as visitors arrive.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-dark-500 border-b border-dark-700 text-xs">
+                  <th className="text-left py-2 pr-4 font-medium">Time</th>
+                  <th className="text-left py-2 pr-4 font-medium">Page</th>
+                  <th className="text-left py-2 pr-4 font-medium">Country</th>
+                  <th className="text-left py-2 pr-4 font-medium">Device</th>
+                  <th className="text-left py-2 font-medium">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visits.slice(0, 30).map(v => (
+                  <tr key={v.id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
+                    <td className="py-2 pr-4 text-dark-400 whitespace-nowrap text-xs">
+                      {new Date(v.timestamp).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </td>
+                    <td className="py-2 pr-4 text-dark-200 max-w-xs truncate text-xs">{v.page || '/'}</td>
+                    <td className="py-2 pr-4 text-dark-200 text-xs"><span className="mr-1">{countryFlags[v.country] || '🌍'}</span>{v.country}</td>
+                    <td className="py-2 pr-4 text-dark-300 text-xs">{deviceIcons[v.device] || '💻'} <span className="capitalize">{v.device}</span></td>
+                    <td className="py-2 text-dark-400 text-xs">{v.referrer}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

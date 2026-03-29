@@ -80,6 +80,7 @@ export const metadata: Metadata = {
 }
 
 import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
+import VisitorTracker from '@/components/ui/VisitorTracker'
 
 export default function RootLayout({
   children,
@@ -113,6 +114,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-dark-950 text-dark-100 light:bg-slate-50 light:text-slate-900`}>
         <Providers>
           {children}
+          <VisitorTracker />
         </Providers>
         <Analytics />
       </body>
