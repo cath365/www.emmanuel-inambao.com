@@ -2,9 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-// Storage key for audio URL
-const AUDIO_STORAGE_KEY = 'portfolio_audio_intro'
+import { useResources } from '@/lib/resources'
 
 export default function AudioIntroduction() {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -12,18 +10,8 @@ export default function AudioIntroduction() {
   const [duration, setDuration] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
-  const [audioUrl, setAudioUrl] = useState<string>('')
   const audioRef = useRef<HTMLAudioElement>(null)
-
-  // Load audio URL from localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUrl = localStorage.getItem(AUDIO_STORAGE_KEY)
-      if (storedUrl) {
-        setAudioUrl(storedUrl)
-      }
-    }
-  }, [])
+  const { audioIntroUrl: audioUrl } = useResources()
 
   useEffect(() => {
     const audio = audioRef.current

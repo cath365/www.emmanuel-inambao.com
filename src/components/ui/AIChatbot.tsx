@@ -215,7 +215,7 @@ export default function AIChatbot() {
     }
   }
 
-  // Submit booking to API and save to localStorage for admin dashboard
+  // Submit booking to API (saves to Vercel Blob + sends email)
   const submitBooking = async () => {
     const newBooking = {
       id: `booking-${Date.now()}`,
@@ -313,7 +313,7 @@ export default function AIChatbot() {
     }
   }
 
-  // Submit lead to API and save to localStorage for admin dashboard
+  // Submit lead to API (saves to Vercel Blob + sends email)
   const submitLead = async () => {
     const newLead: ServiceLead = {
       id: `lead-${Date.now()}`,

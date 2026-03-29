@@ -1,53 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
-
-interface Resource {
-  id: string
-  title: string
-  description: string
-  type: 'pdf' | 'template' | 'guide' | 'checklist'
-  fileUrl: string
-  fileSize: string
-  downloads: number
-  icon: string
-}
-
-const STORAGE_KEY = 'portfolio_resources'
-
-const defaultResources: Resource[] = [
-  {
-    id: '1',
-    title: 'IoT Project Starter Guide',
-    description: 'Complete guide to starting your first IoT project, from hardware selection to cloud deployment.',
-    type: 'guide',
-    fileUrl: '/resources/iot-starter-guide.pdf',
-    fileSize: '2.4 MB',
-    downloads: 1250,
-    icon: '📘',
-  },
-  {
-    id: '2',
-    title: 'PCB Design Checklist',
-    description: 'Essential checklist for PCB design review before manufacturing. Avoid common mistakes.',
-    type: 'checklist',
-    fileUrl: '/resources/pcb-design-checklist.pdf',
-    fileSize: '850 KB',
-    downloads: 890,
-    icon: '✅',
-  },
-  {
-    id: '3',
-    title: 'ESP32 Project Template',
-    description: 'Ready-to-use ESP32 project template with WiFi, MQTT, and OTA updates pre-configured.',
-    type: 'template',
-    fileUrl: '/resources/esp32-template.zip',
-    fileSize: '1.2 MB',
-    downloads: 2100,
-    icon: '📦',
-  },
-]
+import { useState } from 'react'
+import { useResources } from '@/lib/resources'
 
 const typeColors = {
   pdf: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
@@ -57,23 +12,9 @@ const typeColors = {
 }
 
 export default function DownloadableResources() {
-  const [filter, setFilter] = useState<'all' | Resource['type']>('all')
+  const [filter, setFilter] = useState<'all' | 'pdf' | 'template' | 'guide' | 'checklist'>('all')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
-  const [resources, setResources] = useState<Resource[]>(defaultResources)
-
-  // Load resources from localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        try {
-          setResources(JSON.parse(stored))
-        } catch (e) {
-          console.error('Failed to parse resources:', e)
-        }
-      }
-    }
-  }, [])
+  const { resources } = useResources()
 
   const filteredResources = filter === 'all' 
     ? resources 
