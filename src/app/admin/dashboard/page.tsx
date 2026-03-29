@@ -1527,14 +1527,24 @@ interface ServiceLead {
 function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
   const [loading, setLoading] = useState(true)
+  const [apiError, setApiError] = useState<string | null>(null)
+  const [apiDebug, setApiDebug] = useState<string | null>(null)
 
-  useEffect(() => {
+  const loadLeads = () => {
+    setLoading(true)
+    setApiError(null)
     fetch('/api/service-inquiry')
       .then(r => r.json())
-      .then(data => setLeads(data.leads || []))
-      .catch(() => setLeads([]))
+      .then(data => {
+        setApiDebug(JSON.stringify({ count: data.count, hasLeads: !!data.leads, error: data.error }))
+        if (data.error) setApiError(data.error)
+        setLeads(data.leads || [])
+      })
+      .catch(e => { setApiError(String(e)); setLeads([]) })
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadLeads() }, [])
 
   const updateLeadStatus = async (id: string, status: ServiceLead['status']) => {
     await fetch('/api/service-inquiry', {
@@ -1571,7 +1581,12 @@ function ServiceLeadsPanel() {
       <div className="text-center py-16">
         <Bell className="w-16 h-16 text-dark-600 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">No Service Inquiries Yet</h3>
-        <p className="text-dark-400">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
+        <p className="text-dark-400 mb-4">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
+        <button onClick={loadLeads} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+          Refresh
+        </button>
+        {apiError && <p className="text-red-400 text-xs mt-4 font-mono break-all">Error: {apiError}</p>}
+        {apiDebug && <p className="text-dark-500 text-xs mt-2 font-mono">Debug: {apiDebug}</p>}
       </div>
     )
   }
@@ -1580,11 +1595,16 @@ function ServiceLeadsPanel() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Service Inquiries</h2>
-        {newLeads.length > 0 && (
-          <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-            {newLeads.length} New
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <button onClick={loadLeads} className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg hover:text-white transition-colors text-sm">
+            Refresh
+          </button>
+          {newLeads.length > 0 && (
+            <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+              {newLeads.length} New
+            </span>
+          )}
+        </div>
       </div>
 
       {/* New Leads */}
