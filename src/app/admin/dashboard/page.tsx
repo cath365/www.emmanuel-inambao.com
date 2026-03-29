@@ -1527,46 +1527,14 @@ interface ServiceLead {
 function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
   const [loading, setLoading] = useState(true)
-  const [apiError, setApiError] = useState<string | null>(null)
-  const [apiDebug, setApiDebug] = useState<string | null>(null)
-  const [testResult, setTestResult] = useState<string | null>(null)
 
   const loadLeads = () => {
     setLoading(true)
-    setApiError(null)
     fetch('/api/service-inquiry')
       .then(r => r.json())
-      .then(data => {
-        setApiDebug(JSON.stringify({ count: data.count, hasLeads: !!data.leads, error: data.error }))
-        if (data.error) setApiError(data.error)
-        setLeads(data.leads || [])
-      })
-      .catch(e => { setApiError(String(e)); setLeads([]) })
+      .then(data => setLeads(data.leads || []))
+      .catch(() => setLeads([]))
       .finally(() => setLoading(false))
-  }
-
-  const sendTestLead = async () => {
-    setTestResult('Sending...')
-    try {
-      const res = await fetch('/api/service-inquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: `lead-test-${Date.now()}`,
-          name: 'Test Visitor',
-          email: 'test@example.com',
-          service: 'IoT Development',
-          details: 'Test inquiry from admin panel',
-          submittedAt: new Date().toISOString(),
-          status: 'new',
-        }),
-      })
-      const data = await res.json()
-      setTestResult(JSON.stringify(data))
-      if (data.success) loadLeads()
-    } catch (e) {
-      setTestResult('Error: ' + String(e))
-    }
   }
 
   useEffect(() => { loadLeads() }, [])
@@ -1607,17 +1575,9 @@ function ServiceLeadsPanel() {
         <Bell className="w-16 h-16 text-dark-600 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">No Service Inquiries Yet</h3>
         <p className="text-dark-400 mb-4">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
-        <div className="flex flex-col items-center gap-3">
-          <button onClick={loadLeads} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
-            Refresh
-          </button>
-          <button onClick={sendTestLead} className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm">
-            Send Test Lead
-          </button>
-        </div>
-        {testResult && <p className="text-xs font-mono mt-3 text-yellow-400 break-all px-4">{testResult}</p>}
-        {apiError && <p className="text-red-400 text-xs mt-4 font-mono break-all">Error: {apiError}</p>}
-        {apiDebug && <p className="text-dark-500 text-xs mt-2 font-mono">Debug: {apiDebug}</p>}
+        <button onClick={loadLeads} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+          Refresh
+        </button>
       </div>
     )
   }
@@ -1758,45 +1718,14 @@ interface Booking {
 function BookingsPanel() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
-  const [apiDebug, setApiDebug] = useState<string | null>(null)
-  const [testResult, setTestResult] = useState<string | null>(null)
 
   const loadBookings = () => {
     setLoading(true)
     fetch('/api/booking')
       .then(r => r.json())
-      .then(data => {
-        setApiDebug(JSON.stringify({ bookingCount: data.bookings?.length ?? 'N/A', keys: Object.keys(data) }))
-        setBookings(data.bookings || [])
-      })
-      .catch(e => { setApiDebug('Fetch error: ' + String(e)); setBookings([]) })
+      .then(data => setBookings(data.bookings || []))
+      .catch(() => setBookings([]))
       .finally(() => setLoading(false))
-  }
-
-  const sendTestBooking = async () => {
-    setTestResult('Sending...')
-    try {
-      const res = await fetch('/api/booking', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'Test User',
-          email: 'test@example.com',
-          phone: '+260 000 000 000',
-          date: '2026-04-01',
-          time: '10:00',
-          timezone: 'Africa/Lusaka',
-          duration: 30,
-          topic: 'Test booking from admin panel',
-          source: 'admin-test',
-        }),
-      })
-      const data = await res.json()
-      setTestResult(JSON.stringify(data))
-      if (data.success) loadBookings()
-    } catch (e) {
-      setTestResult('Error: ' + String(e))
-    }
   }
 
   useEffect(() => { loadBookings() }, [])
@@ -1837,16 +1766,9 @@ function BookingsPanel() {
         <Calendar className="w-16 h-16 text-dark-600 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">No Bookings Yet</h3>
         <p className="text-dark-400 mb-4">When visitors book a meeting via the AI chatbot or booking form, they will appear here.</p>
-        <div className="flex flex-col items-center gap-3">
-          <button onClick={loadBookings} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
-            Refresh
-          </button>
-          <button onClick={sendTestBooking} className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm">
-            Send Test Booking
-          </button>
-        </div>
-        {testResult && <p className="text-xs font-mono mt-3 text-yellow-400 break-all px-4">{testResult}</p>}
-        {apiDebug && <p className="text-xs font-mono mt-2 text-dark-500 break-all px-4">Debug: {apiDebug}</p>}
+        <button onClick={loadBookings} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+          Refresh
+        </button>
       </div>
     )
   }
