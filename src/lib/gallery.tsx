@@ -87,47 +87,69 @@ const defaultItems: GalleryItem[] = [
   },
 ]
 
+function saveToServer(data: GalleryItem[]) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'gallery', data }),
+  }).catch(e => console.error('Failed to save gallery:', e))
+}
+
 export function GalleryProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<GalleryItem[]>(defaultItems)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load from localStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        try {
-          setItems(JSON.parse(stored))
-        } catch (e) {
-          console.error('Failed to parse gallery:', e)
+    fetch('/api/portfolio-data?key=gallery')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setItems(data)
+        } else {
+          const stored = localStorage.getItem(STORAGE_KEY)
+          if (stored) {
+            try { setItems(JSON.parse(stored)) } catch {}
+          }
         }
-      }
-      setIsLoaded(true)
-    }
+      })
+      .catch(() => {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          try { setItems(JSON.parse(stored)) } catch {}
+        }
+      })
+      .finally(() => setIsLoaded(true))
   }, [])
 
-  // Save to localStorage whenever items change
   useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
+    if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
     }
   }, [items, isLoaded])
 
   const addItem = (item: Omit<GalleryItem, 'id' | 'createdAt'>) => {
-    const newItem: GalleryItem = {
-      ...item,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    }
-    setItems(prev => [newItem, ...prev])
+    const newItem: GalleryItem = { ...item, id: Date.now().toString(), createdAt: new Date().toISOString() }
+    setItems(prev => {
+      const updated = [newItem, ...prev]
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const updateItem = (id: string, updates: Partial<GalleryItem>) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item))
+    setItems(prev => {
+      const updated = prev.map(item => item.id === id ? { ...item, ...updates } : item)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const deleteItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id))
+    setItems(prev => {
+      const updated = prev.filter(item => item.id !== id)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   return (

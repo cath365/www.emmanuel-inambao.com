@@ -22,22 +22,38 @@ interface ServiceContextType {
 
 const ServiceContext = createContext<ServiceContextType | undefined>(undefined)
 
-const defaultServices: Service[] = []
+function saveToServer(data: Service[]) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'services', data }),
+  }).catch(e => console.error('Failed to save services:', e))
+}
 
 export function ServiceProvider({ children }: { children: ReactNode }) {
-  const [services, setServices] = useState<Service[]>(defaultServices)
+  const [services, setServices] = useState<Service[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('portfolio-services')
-    if (saved) {
-      try {
-        setServices(JSON.parse(saved))
-      } catch (e) {
-        console.error('Failed to parse services:', e)
-      }
-    }
-    setIsLoaded(true)
+    fetch('/api/portfolio-data?key=services')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setServices(data)
+        } else {
+          const saved = localStorage.getItem('portfolio-services')
+          if (saved) {
+            try { setServices(JSON.parse(saved)) } catch {}
+          }
+        }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('portfolio-services')
+        if (saved) {
+          try { setServices(JSON.parse(saved)) } catch {}
+        }
+      })
+      .finally(() => setIsLoaded(true))
   }, [])
 
   useEffect(() => {
@@ -47,15 +63,27 @@ export function ServiceProvider({ children }: { children: ReactNode }) {
   }, [services, isLoaded])
 
   const addService = (service: Service) => {
-    setServices(prev => [service, ...prev])
+    setServices(prev => {
+      const updated = [service, ...prev]
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const updateService = (id: string, updates: Partial<Service>) => {
-    setServices(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s))
+    setServices(prev => {
+      const updated = prev.map(s => s.id === id ? { ...s, ...updates } : s)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const deleteService = (id: string) => {
-    setServices(prev => prev.filter(s => s.id !== id))
+    setServices(prev => {
+      const updated = prev.filter(s => s.id !== id)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   return (

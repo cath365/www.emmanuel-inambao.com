@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
-// Project type definition
 export interface Project {
   id: string
   title: string
@@ -22,7 +21,6 @@ export interface Project {
   videoUrl?: string
 }
 
-// Default projects data
 const defaultProjects: Project[] = [
   {
     id: 'smart-irrigation',
@@ -97,27 +95,46 @@ interface ProjectsContextType {
 
 const ProjectsContext = createContext<ProjectsContextType | undefined>(undefined)
 
+function saveToServer(data: Project[]) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'projects', data }),
+  }).catch(e => console.error('Failed to save projects:', e))
+}
+
 export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>(defaultProjects)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load projects from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('portfolio_projects')
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setProjects(parsed)
+    fetch('/api/portfolio-data?key=projects')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProjects(data)
+        } else {
+          const stored = localStorage.getItem('portfolio_projects')
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored)
+              if (Array.isArray(parsed) && parsed.length > 0) setProjects(parsed)
+            } catch {}
+          }
         }
-      } catch {
-        // Keep defaults if parse fails
-      }
-    }
-    setIsLoaded(true)
+      })
+      .catch(() => {
+        const stored = localStorage.getItem('portfolio_projects')
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored)
+            if (Array.isArray(parsed) && parsed.length > 0) setProjects(parsed)
+          } catch {}
+        }
+      })
+      .finally(() => setIsLoaded(true))
   }, [])
 
-  // Save projects to localStorage whenever they change (but only after initial load)
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('portfolio_projects', JSON.stringify(projects))
@@ -125,29 +142,34 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   }, [projects, isLoaded])
 
   const addProject = (project: Omit<Project, 'id'>) => {
-    const newProject: Project = {
-      ...project,
-      id: `project-${Date.now()}`,
-    }
-    setProjects(prev => [...prev, newProject])
+    const newProject: Project = { ...project, id: `project-${Date.now()}` }
+    setProjects(prev => {
+      const updated = [...prev, newProject]
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const updateProject = (id: string, updates: Partial<Project>) => {
-    setProjects(prev => prev.map((p) => p.id === id ? { ...p, ...updates } : p))
+    setProjects(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const deleteProject = (id: string) => {
-    setProjects(prev => prev.filter((p) => p.id !== id))
+    setProjects(prev => {
+      const updated = prev.filter(p => p.id !== id)
+      saveToServer(updated)
+      return updated
+    })
   }
 
-  const getProject = (id: string) => {
-    return projects.find((p) => p.id === id)
-  }
+  const getProject = (id: string) => projects.find(p => p.id === id)
 
   return (
-    <ProjectsContext.Provider
-      value={{ projects, addProject, updateProject, deleteProject, getProject }}
-    >
+    <ProjectsContext.Provider value={{ projects, addProject, updateProject, deleteProject, getProject }}>
       {children}
     </ProjectsContext.Provider>
   )

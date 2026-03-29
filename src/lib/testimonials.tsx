@@ -29,28 +29,44 @@ interface TestimonialContextType {
 
 const TestimonialContext = createContext<TestimonialContextType | undefined>(undefined)
 
-const defaultTestimonials: Testimonial[] = []
+function saveToServer(data: Testimonial[]) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'testimonials', data }),
+  }).catch(e => console.error('Failed to save testimonials:', e))
+}
 
 export function TestimonialProvider({ children }: { children: ReactNode }) {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(defaultTestimonials)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('portfolio-testimonials')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        // Migrate old testimonials that don't have status
-        const migrated = parsed.map((t: Testimonial) => ({
-          ...t,
-          status: t.status || 'approved',
-        }))
-        setTestimonials(migrated)
-      } catch (e) {
-        console.error('Failed to parse testimonials:', e)
-      }
-    }
-    setIsLoaded(true)
+    fetch('/api/portfolio-data?key=testimonials')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setTestimonials(data.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
+        } else {
+          const saved = localStorage.getItem('portfolio-testimonials')
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved)
+              setTestimonials(parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
+            } catch {}
+          }
+        }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('portfolio-testimonials')
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved)
+            setTestimonials(parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
+          } catch {}
+        }
+      })
+      .finally(() => setIsLoaded(true))
   }, [])
 
   useEffect(() => {
@@ -60,26 +76,45 @@ export function TestimonialProvider({ children }: { children: ReactNode }) {
   }, [testimonials, isLoaded])
 
   const addTestimonial = (testimonial: Testimonial) => {
-    setTestimonials(prev => [testimonial, ...prev])
+    setTestimonials(prev => {
+      const updated = [testimonial, ...prev]
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const updateTestimonial = (id: string, updates: Partial<Testimonial>) => {
-    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
+    setTestimonials(prev => {
+      const updated = prev.map(t => t.id === id ? { ...t, ...updates } : t)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const deleteTestimonial = (id: string) => {
-    setTestimonials(prev => prev.filter(t => t.id !== id))
+    setTestimonials(prev => {
+      const updated = prev.filter(t => t.id !== id)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const approveTestimonial = (id: string) => {
-    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: 'approved' as const } : t))
+    setTestimonials(prev => {
+      const updated = prev.map(t => t.id === id ? { ...t, status: 'approved' as const } : t)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const rejectTestimonial = (id: string) => {
-    setTestimonials(prev => prev.map(t => t.id === id ? { ...t, status: 'rejected' as const } : t))
+    setTestimonials(prev => {
+      const updated = prev.map(t => t.id === id ? { ...t, status: 'rejected' as const } : t)
+      saveToServer(updated)
+      return updated
+    })
   }
 
-  // Only show approved testimonials publicly
   const approvedTestimonials = testimonials.filter(t => t.status === 'approved')
   const pendingTestimonials = testimonials.filter(t => t.status === 'pending')
 

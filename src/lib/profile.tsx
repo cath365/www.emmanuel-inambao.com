@@ -52,25 +52,41 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
 
 const STORAGE_KEY = 'portfolio_profile'
 
+function saveToServer(data: Profile) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'profile', data }),
+  }).catch(e => console.error('Failed to save profile:', e))
+}
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile>(defaultProfile)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load profile from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        setProfile({ ...defaultProfile, ...parsed })
-      } catch {
-        // Keep default
-      }
-    }
-    setIsLoading(false)
+    fetch('/api/portfolio-data?key=profile')
+      .then(r => r.json())
+      .then(data => {
+        if (data && !data.error) {
+          setProfile({ ...defaultProfile, ...data })
+        } else {
+          const stored = localStorage.getItem(STORAGE_KEY)
+          if (stored) {
+            try { setProfile({ ...defaultProfile, ...JSON.parse(stored) }) } catch {}
+          }
+        }
+      })
+      .catch(() => {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          try { setProfile({ ...defaultProfile, ...JSON.parse(stored) }) } catch {}
+        }
+      })
+      .finally(() => setIsLoading(false))
   }, [])
 
-  // Save profile to localStorage whenever it changes
+  // Cache to localStorage for fast subsequent loads
   useEffect(() => {
     if (!isLoading) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
@@ -78,7 +94,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [profile, isLoading])
 
   const updateProfile = (updates: Partial<Profile>) => {
-    setProfile((prev) => ({ ...prev, ...updates }))
+    setProfile(prev => {
+      const updated = { ...prev, ...updates }
+      saveToServer(updated)
+      return updated
+    })
   }
 
   return (

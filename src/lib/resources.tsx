@@ -64,72 +64,100 @@ const defaultResources: Resource[] = [
   },
 ]
 
+function saveResourcesToServer(data: Resource[]) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'resources', data }),
+  }).catch(e => console.error('Failed to save resources:', e))
+}
+
+function saveAudioToServer(url: string) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'audio', data: url }),
+  }).catch(e => console.error('Failed to save audio:', e))
+}
+
 export function ResourcesProvider({ children }: { children: ReactNode }) {
   const [resources, setResources] = useState<Resource[]>(defaultResources)
-  const [audioIntroUrl, setAudioIntroUrl] = useState<string>('')
+  const [audioIntroUrl, setAudioIntroUrlState] = useState<string>('')
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Load from localStorage on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) {
-        try {
-          setResources(JSON.parse(stored))
-        } catch (e) {
-          console.error('Failed to parse resources:', e)
+    Promise.all([
+      fetch('/api/portfolio-data?key=resources').then(r => r.json()).catch(() => null),
+      fetch('/api/portfolio-data?key=audio').then(r => r.json()).catch(() => null),
+    ]).then(([resourcesData, audioData]) => {
+      if (Array.isArray(resourcesData) && resourcesData.length > 0) {
+        setResources(resourcesData)
+      } else {
+        const stored = localStorage.getItem(STORAGE_KEY)
+        if (stored) {
+          try { setResources(JSON.parse(stored)) } catch {}
         }
       }
-      
-      const storedAudio = localStorage.getItem(AUDIO_STORAGE_KEY)
-      if (storedAudio) {
-        setAudioIntroUrl(storedAudio)
+
+      if (typeof audioData === 'string' && audioData) {
+        setAudioIntroUrlState(audioData)
+      } else {
+        const storedAudio = localStorage.getItem(AUDIO_STORAGE_KEY)
+        if (storedAudio) setAudioIntroUrlState(storedAudio)
       }
-      
-      setIsLoaded(true)
-    }
+    }).finally(() => setIsLoaded(true))
   }, [])
 
-  // Save to localStorage whenever resources change
   useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
+    if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(resources))
     }
   }, [resources, isLoaded])
 
-  // Save audio URL to localStorage
   useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
+    if (isLoaded) {
       localStorage.setItem(AUDIO_STORAGE_KEY, audioIntroUrl)
     }
   }, [audioIntroUrl, isLoaded])
 
   const addResource = (resource: Omit<Resource, 'id' | 'downloads' | 'createdAt'>) => {
-    const newResource: Resource = {
-      ...resource,
-      id: Date.now().toString(),
-      downloads: 0,
-      createdAt: new Date().toISOString(),
-    }
-    setResources(prev => [newResource, ...prev])
+    const newResource: Resource = { ...resource, id: Date.now().toString(), downloads: 0, createdAt: new Date().toISOString() }
+    setResources(prev => {
+      const updated = [newResource, ...prev]
+      saveResourcesToServer(updated)
+      return updated
+    })
   }
 
   const updateResource = (id: string, updates: Partial<Resource>) => {
-    setResources(prev => prev.map(r => r.id === id ? { ...r, ...updates } : r))
+    setResources(prev => {
+      const updated = prev.map(r => r.id === id ? { ...r, ...updates } : r)
+      saveResourcesToServer(updated)
+      return updated
+    })
   }
 
   const deleteResource = (id: string) => {
-    setResources(prev => prev.filter(r => r.id !== id))
+    setResources(prev => {
+      const updated = prev.filter(r => r.id !== id)
+      saveResourcesToServer(updated)
+      return updated
+    })
+  }
+
+  const setAudioIntroUrl = (url: string) => {
+    setAudioIntroUrlState(url)
+    saveAudioToServer(url)
   }
 
   return (
-    <ResourcesContext.Provider value={{ 
-      resources, 
-      addResource, 
-      updateResource, 
+    <ResourcesContext.Provider value={{
+      resources,
+      addResource,
+      updateResource,
       deleteResource,
       audioIntroUrl,
-      setAudioIntroUrl
+      setAudioIntroUrl,
     }}>
       {children}
     </ResourcesContext.Provider>

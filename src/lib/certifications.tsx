@@ -23,22 +23,38 @@ interface CertificationContextType {
 
 const CertificationContext = createContext<CertificationContextType | undefined>(undefined)
 
-const defaultCertifications: Certification[] = []
+function saveToServer(data: Certification[]) {
+  fetch('/api/portfolio-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key: 'certifications', data }),
+  }).catch(e => console.error('Failed to save certifications:', e))
+}
 
 export function CertificationProvider({ children }: { children: ReactNode }) {
-  const [certifications, setCertifications] = useState<Certification[]>(defaultCertifications)
+  const [certifications, setCertifications] = useState<Certification[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('portfolio-certifications')
-    if (saved) {
-      try {
-        setCertifications(JSON.parse(saved))
-      } catch (e) {
-        console.error('Failed to parse certifications:', e)
-      }
-    }
-    setIsLoaded(true)
+    fetch('/api/portfolio-data?key=certifications')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCertifications(data)
+        } else {
+          const saved = localStorage.getItem('portfolio-certifications')
+          if (saved) {
+            try { setCertifications(JSON.parse(saved)) } catch {}
+          }
+        }
+      })
+      .catch(() => {
+        const saved = localStorage.getItem('portfolio-certifications')
+        if (saved) {
+          try { setCertifications(JSON.parse(saved)) } catch {}
+        }
+      })
+      .finally(() => setIsLoaded(true))
   }, [])
 
   useEffect(() => {
@@ -48,15 +64,27 @@ export function CertificationProvider({ children }: { children: ReactNode }) {
   }, [certifications, isLoaded])
 
   const addCertification = (certification: Certification) => {
-    setCertifications(prev => [certification, ...prev])
+    setCertifications(prev => {
+      const updated = [certification, ...prev]
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const updateCertification = (id: string, updates: Partial<Certification>) => {
-    setCertifications(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c))
+    setCertifications(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, ...updates } : c)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   const deleteCertification = (id: string) => {
-    setCertifications(prev => prev.filter(c => c.id !== id))
+    setCertifications(prev => {
+      const updated = prev.filter(c => c.id !== id)
+      saveToServer(updated)
+      return updated
+    })
   }
 
   return (
