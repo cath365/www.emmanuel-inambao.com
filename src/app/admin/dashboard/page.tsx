@@ -1694,33 +1694,45 @@ interface Booking {
 
 function BookingsPanel() {
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const stored = localStorage.getItem('portfolio_bookings')
-    if (stored) {
-      try {
-        setBookings(JSON.parse(stored))
-      } catch {
-        // ignore
-      }
-    }
+    fetch('/api/booking')
+      .then(r => r.json())
+      .then(data => setBookings(data.bookings || []))
+      .catch(() => setBookings([]))
+      .finally(() => setLoading(false))
   }, [])
 
-  const updateStatus = (id: string, status: Booking['status']) => {
-    const updated = bookings.map(b => b.id === id ? { ...b, status } : b)
-    setBookings(updated)
-    localStorage.setItem('portfolio_bookings', JSON.stringify(updated))
+  const updateStatus = async (id: string, status: Booking['status']) => {
+    await fetch('/api/booking', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    })
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status } : b))
   }
 
-  const deleteBooking = (id: string) => {
-    const updated = bookings.filter(b => b.id !== id)
-    setBookings(updated)
-    localStorage.setItem('portfolio_bookings', JSON.stringify(updated))
+  const deleteBooking = async (id: string) => {
+    await fetch('/api/booking', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    setBookings(prev => prev.filter(b => b.id !== id))
   }
 
   const pending = bookings.filter(b => b.status === 'pending')
   const confirmed = bookings.filter(b => b.status === 'confirmed')
   const cancelled = bookings.filter(b => b.status === 'cancelled')
+
+  if (loading) {
+    return (
+      <div className="text-center py-16">
+        <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto" />
+      </div>
+    )
+  }
 
   if (bookings.length === 0) {
     return (

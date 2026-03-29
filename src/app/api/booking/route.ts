@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { put, list } from '@vercel/blob'
 
-// Admin contact details
 const ADMIN_EMAIL = 'denuelinambao@gmail.com'
-const ADMIN_WHATSAPP = '+260973914432'
+const BOOKINGS_BLOB_PATH = 'data/bookings.json'
 
 interface BookingData {
+  id: string
   name: string
   email: string
   phone: string
@@ -13,14 +14,76 @@ interface BookingData {
   timezone: string
   duration: number
   topic: string
-  whatsappConsent: boolean
+  whatsappConsent?: boolean
+  submittedAt: string
+  status: 'pending' | 'confirmed' | 'cancelled'
+  source: string
 }
 
+async function readBookings(): Promise<BookingData[]> {
+  try {
+    const { blobs } = await list({ prefix: BOOKINGS_BLOB_PATH, token: process.env.BLOB_READ_WRITE_TOKEN })
+    if (blobs.length === 0) return []
+    const res = await fetch(blobs[0].url, { cache: 'no-store' })
+    if (!res.ok) return []
+    return await res.json()
+  } catch {
+    return []
+  }
+}
+
+async function writeBookings(bookings: BookingData[]) {
+  await put(BOOKINGS_BLOB_PATH, JSON.stringify(bookings), {
+    access: 'public',
+    addRandomSuffix: false,
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  })
+}
+
+// GET - fetch all bookings for admin panel
+export async function GET() {
+  try {
+    const bookings = await readBookings()
+    return NextResponse.json({ bookings })
+  } catch (error) {
+    console.error('Failed to read bookings:', error)
+    return NextResponse.json({ bookings: [] })
+  }
+}
+
+// PATCH - update booking status
+export async function PATCH(request: NextRequest) {
+  try {
+    const { id, status } = await request.json()
+    const bookings = await readBookings()
+    const updated = bookings.map(b => b.id === id ? { ...b, status } : b)
+    await writeBookings(updated)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to update booking:', error)
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 })
+  }
+}
+
+// DELETE - remove a booking
+export async function DELETE(request: NextRequest) {
+  try {
+    const { id } = await request.json()
+    const bookings = await readBookings()
+    const updated = bookings.filter(b => b.id !== id)
+    await writeBookings(updated)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to delete booking:', error)
+    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 })
+  }
+}
+
+// POST - create new booking
 export async function POST(request: NextRequest) {
   try {
-    const data: BookingData = await request.json()
+    const data = await request.json()
 
-    // Validate required fields
     if (!data.name || !data.email || !data.date || !data.time) {
       return NextResponse.json(
         { error: 'Name, email, date, and time are required' },
@@ -28,144 +91,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Format booking details
-    const bookingDetails = `
-📅 NEW BOOKING REQUEST
+    // Save to Vercel Blob
+    const newBooking: BookingData = {
+      id: `booking-${Date.now()}`,
+      name: data.name,
+      email: data.email,
+      phone: data.phone || '',
+      date: data.date,
+      time: data.time,
+      timezone: data.timezone || 'Africa/Lusaka',
+      duration: data.duration || 30,
+      topic: data.topic || '',
+      whatsappConsent: data.whatsappConsent || false,
+      submittedAt: new Date().toISOString(),
+      status: 'pending',
+      source: data.source || 'scheduler',
+    }
 
-👤 Name: ${data.name}
-📧 Email: ${data.email}
-📱 Phone: ${data.phone || 'Not provided'}
+    const existing = await readBookings()
+    await writeBookings([newBooking, ...existing])
 
-📆 Date: ${data.date}
-⏰ Time: ${data.time}
-🌍 Timezone: ${data.timezone}
-⏱️ Duration: ${data.duration} minutes
-
-📝 Topic: ${data.topic || 'Not specified'}
-
-💬 WhatsApp consent: ${data.whatsappConsent ? 'Yes' : 'No'}
-    `.trim()
-
-    // 1. Send email notification to admin via Web3Forms
+    // Send email notification via Web3Forms
     const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
-    
     if (WEB3FORMS_KEY) {
-      // Email to admin
+      const bookingDetails = `📅 NEW BOOKING\n\n👤 ${data.name}\n📧 ${data.email}\n📱 ${data.phone || 'Not provided'}\n\n📆 ${data.date} at ${data.time}\n🌍 ${data.timezone}\n⏱️ ${data.duration} min\n📝 ${data.topic || 'Not specified'}`
+
       await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           access_key: WEB3FORMS_KEY,
-          subject: `🗓️ New Booking: ${data.name} - ${data.date} at ${data.time}`,
+          subject: `🗓️ New Booking: ${data.name} — ${data.date} at ${data.time}`,
           from_name: 'Portfolio Booking System',
           name: data.name,
           email: data.email,
-          phone: data.phone || 'Not provided',
           message: bookingDetails,
         }),
       })
-
-      // Email confirmation to booker
-      await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `✅ Booking Confirmed: Meeting with Prof. Emmanuel Inambao`,
-          from_name: 'Prof. Emmanuel Inambao',
-          to: data.email,
-          replyto: ADMIN_EMAIL,
-          message: `
-Hello ${data.name},
-
-Thank you for booking a meeting with Prof. Emmanuel Inambao!
-
-📅 BOOKING DETAILS:
-• Date: ${data.date}
-• Time: ${data.time} (${data.timezone})
-• Duration: ${data.duration} minutes
-• Topic: ${data.topic || 'General discussion'}
-
-You will receive a calendar invite shortly. If you need to reschedule, please reply to this email.
-
-Best regards,
-Prof. Emmanuel Inambao
-Electronic Engineer | IoT & Robotics Developer
-          `.trim(),
-        }),
-      })
-
-      console.log('✅ Booking emails sent successfully')
     }
-
-    // 2. Send WhatsApp notification to admin via Twilio
-    const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
-    const TWILIO_AUTH = process.env.TWILIO_AUTH_TOKEN
-    const TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM
-
-    if (TWILIO_SID && TWILIO_AUTH && TWILIO_WHATSAPP_FROM) {
-      const whatsappMessage = `🗓️ *New Booking*\n\n👤 ${data.name}\n📧 ${data.email}\n📱 ${data.phone || 'N/A'}\n\n📅 ${data.date} at ${data.time}\n⏱️ ${data.duration} min\n🌍 ${data.timezone}\n\n📝 ${data.topic || 'No topic specified'}`
-
-      // Send to admin
-      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`
-      const auth = Buffer.from(`${TWILIO_SID}:${TWILIO_AUTH}`).toString('base64')
-
-      await fetch(twilioUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          From: TWILIO_WHATSAPP_FROM,
-          To: `whatsapp:${ADMIN_WHATSAPP}`,
-          Body: whatsappMessage,
-        }),
-      })
-
-      console.log('✅ WhatsApp notification sent to admin')
-
-      // Send to booker if they consented and provided phone
-      if (data.whatsappConsent && data.phone) {
-        const bookerMessage = `✅ *Booking Confirmed*\n\nHi ${data.name}!\n\nYour meeting with Prof. Emmanuel Inambao is confirmed:\n\n📅 ${data.date}\n⏰ ${data.time} (${data.timezone})\n⏱️ ${data.duration} minutes\n\nYou'll receive a calendar invite at ${data.email}.\n\nThank you! 🙏`
-
-        // Format phone number (assume Zambia +260 if not provided with country code)
-        let formattedPhone = data.phone.replace(/\s/g, '')
-        if (formattedPhone.startsWith('0')) {
-          formattedPhone = '+260' + formattedPhone.substring(1)
-        } else if (!formattedPhone.startsWith('+')) {
-          formattedPhone = '+260' + formattedPhone
-        }
-
-        await fetch(twilioUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            From: TWILIO_WHATSAPP_FROM,
-            To: `whatsapp:${formattedPhone}`,
-            Body: bookerMessage,
-          }),
-        })
-
-        console.log('✅ WhatsApp confirmation sent to booker')
-      }
-    } else {
-      console.log('⚠️ Twilio not configured - WhatsApp notifications skipped')
-    }
-
-    // Log booking for records
-    console.log('📅 Booking recorded:', {
-      name: data.name,
-      email: data.email,
-      date: data.date,
-      time: data.time,
-      timezone: data.timezone,
-      duration: data.duration,
-      timestamp: new Date().toISOString(),
-    })
 
     return NextResponse.json({
       success: true,
