@@ -40,6 +40,7 @@ async function writeBookings(bookings: BookingData[]) {
   await put(BOOKINGS_BLOB_PATH, JSON.stringify(bookings), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   })
 }
 
