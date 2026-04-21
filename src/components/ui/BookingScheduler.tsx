@@ -35,7 +35,7 @@ const TIMEZONES = [
 
 const DURATIONS = [15, 30, 45, 60]
 
-export default function BookingScheduler() {
+export default function BookingScheduler({ floatingVisible = true }: { floatingVisible?: boolean }) {
   const { t, language, isRTL } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [step, setStep] = useState(1)
@@ -55,6 +55,25 @@ export default function BookingScheduler() {
     topic: '',
     whatsappConsent: false,
   })
+
+  const trackBookingIntent = () => {
+    let sessionId = sessionStorage.getItem('_vsid')
+    if (!sessionId) {
+      sessionId = `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+      sessionStorage.setItem('_vsid', sessionId)
+    }
+
+    fetch('/api/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page: '/intent/booking',
+        referrer: 'booking-scheduler',
+        sessionId,
+        screenWidth: window.innerWidth,
+      }),
+    }).catch(() => {})
+  }
 
   // Generate available dates (next 14 days, excluding weekends)
   const getAvailableDates = () => {
@@ -83,8 +102,8 @@ export default function BookingScheduler() {
       for (let hour = startHour; hour < endHour; hour++) {
         for (let min = 0; min < 60; min += 30) {
           const time = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`
-          // Randomly mark some slots as unavailable for demo
-          const available = Math.random() > 0.3
+          // Mark standard working hours as available (except lunch 12:00-13:00)
+          const available = !(hour === 12)
           slots.push({ time, available })
         }
       }
@@ -121,6 +140,7 @@ export default function BookingScheduler() {
         throw new Error(result.error || 'Booking failed')
       }
 
+      trackBookingIntent()
       setSubmitted(true)
     } catch (error) {
       console.error('Booking error:', error)
@@ -157,6 +177,12 @@ export default function BookingScheduler() {
       day: 'numeric',
     }).format(date)
   }
+
+  useEffect(() => {
+    if (!floatingVisible) setIsOpen(false)
+  }, [floatingVisible])
+
+  if (!floatingVisible) return null
 
   return (
     <>

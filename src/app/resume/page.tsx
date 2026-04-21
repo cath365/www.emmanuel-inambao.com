@@ -64,10 +64,10 @@ const skills = {
 }
 
 const certifications = [
-  'Certified IoT Developer — Cisco Networking Academy',
-  'Arduino Professional Certification',
-  'AWS IoT Core Fundamentals',
-  'PLC Programming — Siemens TIA Portal',
+  'Certified IoT Developer — Cisco Networking Academy (2022)',
+  'Arduino Professional Certification (2022)',
+  'AWS IoT Core Fundamentals (2023)',
+  'PLC Programming — Siemens TIA Portal (2023)',
 ]
 
 const languages = [
@@ -90,7 +90,7 @@ export default function ResumePage() {
             <ChevronRight className="w-4 h-4 rotate-180" /> Back to Portfolio
           </Link>
           <a
-            href="/cv/Emmanuel_Inambao_CV.pdf"
+            href="/cv/emmanuel-inambao-cv.pdf"
             target="_blank"
             className="btn-primary text-sm"
           >

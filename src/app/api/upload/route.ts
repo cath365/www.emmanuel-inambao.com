@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
-import { cookies } from 'next/headers'
-import { AUTH_CONFIG } from '@/lib/auth-config'
+import { isAuthenticated } from '@/lib/auth-helpers'
 
 // Simple rate limiting for uploads
 const uploadAttempts = new Map<string, { count: number; resetTime: number }>()
@@ -30,37 +29,9 @@ function checkRateLimit(ip: string): boolean {
   return true
 }
 
-// Check authentication directly in this route
-async function checkAuth(): Promise<boolean> {
-  try {
-    const cookieStore = await cookies()
-    const sessionCookie = cookieStore.get(AUTH_CONFIG.cookieName)
-
-    if (!sessionCookie) {
-      console.log('Upload auth: No session cookie found')
-      return false
-    }
-
-    const sessionData = JSON.parse(
-      Buffer.from(sessionCookie.value, 'base64').toString()
-    )
-
-    const isValid = sessionData.exp > Date.now()
-    if (!isValid) {
-      console.log('Upload auth: Session expired')
-    }
-    return isValid
-  } catch (error) {
-    console.error('Upload auth error:', error)
-    return false
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const authenticated = await checkAuth()
-    if (!authenticated) {
+    if (!(await isAuthenticated())) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in.' },
         { status: 401 }

@@ -21,13 +21,15 @@ export default function DownloadableResources() {
     : resources.filter(r => r.type === filter)
 
   const handleDownload = async (resource: Resource) => {
+    if (resource.fileUrl === '#coming-soon' || !resource.fileUrl || resource.fileUrl.startsWith('#')) {
+      return
+    }
+
     setDownloadingId(resource.id)
     
     // Simulate download delay
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    // In production, this would track downloads and serve the actual file
-    // For now, we'll just simulate it
     setDownloadingId(null)
     
     // Create download link
@@ -105,12 +107,19 @@ export default function DownloadableResources() {
                     </span>
                     <motion.button
                       onClick={() => handleDownload(resource)}
-                      disabled={downloadingId === resource.id}
+                      disabled={downloadingId === resource.id || resource.fileUrl === '#coming-soon' || !resource.fileUrl || resource.fileUrl.startsWith('#')}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                     >
-                      {downloadingId === resource.id ? (
+                      {resource.fileUrl === '#coming-soon' || !resource.fileUrl || resource.fileUrl.startsWith('#') ? (
+                        <>
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Coming Soon
+                        </>
+                      ) : downloadingId === resource.id ? (
                         <>
                           <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

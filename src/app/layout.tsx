@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     alternateLocale: ['fr_FR', 'pt_BR', 'es_ES', 'de_DE', 'ar_SA', 'zh_CN'],
-    url: 'https://emmanuelinambao.com',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com',
     title: 'Prof. Emmanuel Inambao | Electronic Engineer & IoT Developer',
     description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer. Building intelligent systems that solve real-world problems.',
     siteName: 'Emmanuel Inambao Portfolio',
@@ -90,6 +90,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`scroll-smooth dark overflow-x-hidden ${inter.variable} ${notoArabic.variable} ${notoSC.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/icons/icon-192.png" type="image/png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6366f1" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />

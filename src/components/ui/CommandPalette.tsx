@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import {
   Search, Home, User, Code, Briefcase, Mail, FileText,
   BookOpen, Award, Download, Sun, Moon, Globe, X,
-  Cpu, Zap, Shield, Wrench, MessageSquare, Calendar
+  Cpu, Zap, Shield, Wrench, MessageSquare, Calendar, Calculator
 } from 'lucide-react'
 
 const sections = [
@@ -20,9 +20,10 @@ const sections = [
   { name: 'Contact', href: '#contact', icon: Mail, group: 'Navigation' },
   { name: 'Blog', href: '/blog', icon: BookOpen, group: 'Pages' },
   { name: 'Case Studies', href: '/case-studies', icon: FileText, group: 'Pages' },
+  { name: 'Start Project', href: '/start-project', icon: Calculator, group: 'Pages' },
   { name: 'Interactive Resume', href: '/resume', icon: Award, group: 'Pages' },
   { name: 'Changelog', href: '/changelog', icon: Zap, group: 'Pages' },
-  { name: 'Download CV', href: '/cv/Emmanuel_Inambao_CV.pdf', icon: Download, group: 'Actions' },
+  { name: 'Download CV', href: '/cv/emmanuel-inambao-cv.pdf', icon: Download, group: 'Actions' },
   { name: 'Book a Meeting', href: '#booking', icon: Calendar, group: 'Actions' },
 ]
 

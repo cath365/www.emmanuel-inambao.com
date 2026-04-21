@@ -1,6 +1,8 @@
 // JSON-LD Schema markup for better SEO
 // Import and use in layout.tsx
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com'
+
 export function generatePersonSchema() {
   return {
     '@context': 'https://schema.org',
@@ -9,7 +11,7 @@ export function generatePersonSchema() {
     alternateName: 'Emmanuel Inambao',
     description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer based in Lusaka, Zambia',
     jobTitle: 'Electronic Engineer & IoT Developer',
-    url: 'https://emmanuelinambao.com',
+    url: SITE_URL,
     email: 'denuelinambao@gmail.com',
     telephone: '+260973914432',
     address: {
@@ -39,7 +41,7 @@ export function generateWebsiteSchema() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'Emmanuel Inambao Portfolio',
-    url: 'https://emmanuelinambao.com',
+    url: SITE_URL,
     description: 'Professional portfolio of Professor Emmanuel Inambao - Electronic Engineer, IoT & Robotics Developer',
     author: {
       '@type': 'Person',

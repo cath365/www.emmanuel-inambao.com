@@ -21,6 +21,37 @@ interface CertificationContextType {
   deleteCertification: (id: string) => void
 }
 
+const defaultCertifications: Certification[] = [
+  {
+    id: 'cisco-iot',
+    name: 'Certified IoT Developer',
+    issuer: 'Cisco Networking Academy',
+    issueDate: '2022-06',
+    description: 'IoT fundamentals, networking, security, and data analytics for connected devices.',
+  },
+  {
+    id: 'arduino-pro',
+    name: 'Arduino Professional Certification',
+    issuer: 'Arduino',
+    issueDate: '2022-03',
+    description: 'Advanced embedded programming, sensor integration, and system design with Arduino platforms.',
+  },
+  {
+    id: 'aws-iot',
+    name: 'AWS IoT Core Fundamentals',
+    issuer: 'Amazon Web Services',
+    issueDate: '2023-01',
+    description: 'Cloud-connected IoT architectures using AWS IoT Core, Greengrass, and device shadows.',
+  },
+  {
+    id: 'siemens-plc',
+    name: 'PLC Programming — Siemens TIA Portal',
+    issuer: 'Siemens',
+    issueDate: '2023-04',
+    description: 'Industrial automation programming with Siemens S7 PLCs and TIA Portal engineering framework.',
+  },
+]
+
 const CertificationContext = createContext<CertificationContextType | undefined>(undefined)
 
 function saveToServer(data: Certification[]) {
@@ -39,19 +70,29 @@ export function CertificationProvider({ children }: { children: ReactNode }) {
     fetch('/api/portfolio-data?key=certifications')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setCertifications(data)
         } else {
           const saved = localStorage.getItem('portfolio-certifications')
           if (saved) {
-            try { setCertifications(JSON.parse(saved)) } catch {}
+            try {
+              const parsed = JSON.parse(saved)
+              setCertifications(parsed.length > 0 ? parsed : defaultCertifications)
+            } catch { setCertifications(defaultCertifications) }
+          } else {
+            setCertifications(defaultCertifications)
           }
         }
       })
       .catch(() => {
         const saved = localStorage.getItem('portfolio-certifications')
         if (saved) {
-          try { setCertifications(JSON.parse(saved)) } catch {}
+          try {
+            const parsed = JSON.parse(saved)
+            setCertifications(parsed.length > 0 ? parsed : defaultCertifications)
+          } catch { setCertifications(defaultCertifications) }
+        } else {
+          setCertifications(defaultCertifications)
         }
       })
       .finally(() => setIsLoaded(true))

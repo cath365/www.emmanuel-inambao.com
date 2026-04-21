@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -13,11 +14,13 @@ import { CertificationProvider } from '@/lib/certifications'
 import { ServiceProvider } from '@/lib/services'
 import { ResourcesProvider } from '@/lib/resources'
 import { GalleryProvider } from '@/lib/gallery'
+import { SkillsProvider } from '@/lib/skills'
 import { ThemeProvider } from '@/components/ui/ThemeToggle'
 import { LanguageProvider } from '@/lib/i18n'
 import AIChatbot from '@/components/ui/AIChatbot'
 import CookieConsent from '@/components/ui/CookieConsent'
 import BookingScheduler from '@/components/ui/BookingScheduler'
+import WhatsAppQuickAction from '@/components/ui/WhatsAppQuickAction'
 import SkipToContent from '@/components/ui/SkipToContent'
 import ScrollProgress from '@/components/ui/ScrollProgress'
 import ServiceWorkerRegistrar from '@/components/ui/ServiceWorkerRegistrar'
@@ -29,6 +32,27 @@ const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette'), {
 export default function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdminPage = pathname?.startsWith('/admin')
+  const [floatingWidgetsVisible, setFloatingWidgetsVisible] = useState(true)
+
+  useEffect(() => {
+    if (isAdminPage) return
+
+    const handleSingleClick = () => {
+      setFloatingWidgetsVisible(true)
+    }
+
+    const handleDoubleClick = () => {
+      setFloatingWidgetsVisible(false)
+    }
+
+    window.addEventListener('click', handleSingleClick)
+    window.addEventListener('dblclick', handleDoubleClick)
+
+    return () => {
+      window.removeEventListener('click', handleSingleClick)
+      window.removeEventListener('dblclick', handleDoubleClick)
+    }
+  }, [isAdminPage])
 
   return (
     <ThemeProvider>
@@ -40,8 +64,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                 <TestimonialProvider>
                   <CertificationProvider>
                     <ServiceProvider>
-                      <ResourcesProvider>
-                        <GalleryProvider>
+                      <SkillsProvider>
+                        <ResourcesProvider>
+                          <GalleryProvider>
                           {/* Skip to main content for accessibility */}
                           <SkipToContent />
 
@@ -60,10 +85,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                           {!isAdminPage && <Footer />}
 
                           {/* AI Chatbot - visible on all public pages */}
-                          {!isAdminPage && <AIChatbot />}
+                          {!isAdminPage && <AIChatbot floatingVisible={floatingWidgetsVisible} />}
 
                           {/* Booking Scheduler - visible on all public pages */}
-                          {!isAdminPage && <BookingScheduler />}
+                          {!isAdminPage && <BookingScheduler floatingVisible={floatingWidgetsVisible} />}
+
+                          {/* WhatsApp quick action */}
+                          {!isAdminPage && <WhatsAppQuickAction floatingVisible={floatingWidgetsVisible} />}
 
                           {/* Cookie Consent Banner - visible on all pages */}
                           <CookieConsent />
@@ -76,8 +104,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
                           {/* Service Worker Registration */}
                           <ServiceWorkerRegistrar />
-                        </GalleryProvider>
-                      </ResourcesProvider>
+                          </GalleryProvider>
+                        </ResourcesProvider>
+                      </SkillsProvider>
                     </ServiceProvider>
                   </CertificationProvider>
                 </TestimonialProvider>

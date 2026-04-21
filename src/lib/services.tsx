@@ -20,6 +20,54 @@ interface ServiceContextType {
   deleteService: (id: string) => void
 }
 
+const defaultServices: Service[] = [
+  {
+    id: 'iot-systems',
+    title: 'IoT System Design & Development',
+    description: 'End-to-end IoT solutions — from sensor selection and PCB design to cloud dashboards. Specializing in ESP32, LoRa, and MQTT-based architectures for agriculture, industry, and smart buildings.',
+    icon: 'wifi',
+    features: ['Custom sensor networks', 'Real-time dashboards', 'MQTT & LoRa connectivity', 'Offline-first design', 'Remote OTA updates'],
+    price: 'From $500',
+    featured: true,
+  },
+  {
+    id: 'embedded-firmware',
+    title: 'Embedded Systems & Firmware',
+    description: 'Low-level firmware for microcontrollers (ESP32, STM32, Arduino). Motor control, sensor fusion, communication protocols, and power-optimized designs for battery-operated devices.',
+    icon: 'cpu',
+    features: ['ESP32 / STM32 / Arduino', 'Custom PCB design (KiCad)', 'Motor & actuator control', 'Power optimization', 'Communication protocols'],
+    price: 'From $300',
+    featured: true,
+  },
+  {
+    id: 'web-development',
+    title: 'Full-Stack Web Development',
+    description: 'Modern web applications with Next.js, React, and TypeScript. Real-time data visualization dashboards, admin panels, and progressive web apps optimized for performance and SEO.',
+    icon: 'code',
+    features: ['Next.js & React', 'TypeScript', 'REST & WebSocket APIs', 'Responsive design', 'SEO optimization'],
+    price: 'From $400',
+    featured: true,
+  },
+  {
+    id: 'robotics',
+    title: 'Robotics & Automation',
+    description: 'Custom robotic systems for industrial and educational use. From concept to deployment — mechanical design, motor control, sensor integration, and web-based remote operation interfaces.',
+    icon: 'settings',
+    features: ['Industrial automation', 'Conveyor & sorting systems', 'Web-controlled robots', 'Safety interlocks', 'PLC programming'],
+    price: 'From $800',
+    featured: false,
+  },
+  {
+    id: 'consulting',
+    title: 'Technical Consulting & Training',
+    description: 'Expert guidance for IoT projects, embedded systems architecture, and technical team training. Curriculum development for educational institutions and hands-on workshops.',
+    icon: 'zap',
+    features: ['Architecture review', 'Technology selection', 'Team training', 'Curriculum development', 'Project mentorship'],
+    price: 'From $100/hr',
+    featured: false,
+  },
+]
+
 const ServiceContext = createContext<ServiceContextType | undefined>(undefined)
 
 function saveToServer(data: Service[]) {
@@ -38,19 +86,29 @@ export function ServiceProvider({ children }: { children: ReactNode }) {
     fetch('/api/portfolio-data?key=services')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setServices(data)
         } else {
           const saved = localStorage.getItem('portfolio-services')
           if (saved) {
-            try { setServices(JSON.parse(saved)) } catch {}
+            try {
+              const parsed = JSON.parse(saved)
+              setServices(parsed.length > 0 ? parsed : defaultServices)
+            } catch { setServices(defaultServices) }
+          } else {
+            setServices(defaultServices)
           }
         }
       })
       .catch(() => {
         const saved = localStorage.getItem('portfolio-services')
         if (saved) {
-          try { setServices(JSON.parse(saved)) } catch {}
+          try {
+            const parsed = JSON.parse(saved)
+            setServices(parsed.length > 0 ? parsed : defaultServices)
+          } catch { setServices(defaultServices) }
+        } else {
+          setServices(defaultServices)
         }
       })
       .finally(() => setIsLoaded(true))

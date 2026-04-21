@@ -1,105 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { ExternalLink } from 'lucide-react'
 
-interface ContributionDay {
-  date: string
-  count: number
-  level: 0 | 1 | 2 | 3 | 4
-}
-
-interface GitHubStats {
-  totalContributions: number
-  weeks: ContributionDay[][]
-}
-
-// Generate mock data for visualization (in production, fetch from GitHub API)
-function generateMockData(): GitHubStats {
-  const weeks: ContributionDay[][] = []
-  const today = new Date()
-  let totalContributions = 0
-
-  for (let week = 0; week < 52; week++) {
-    const days: ContributionDay[] = []
-    for (let day = 0; day < 7; day++) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - ((51 - week) * 7 + (6 - day)))
-      
-      // Generate random contribution count with some patterns
-      const isWeekday = day > 0 && day < 6
-      const baseChance = isWeekday ? 0.7 : 0.3
-      const hasContribution = Math.random() < baseChance
-      
-      let count = 0
-      let level: 0 | 1 | 2 | 3 | 4 = 0
-      
-      if (hasContribution) {
-        count = Math.floor(Math.random() * 15) + 1
-        if (count > 10) level = 4
-        else if (count > 7) level = 3
-        else if (count > 3) level = 2
-        else level = 1
-        totalContributions += count
-      }
-
-      days.push({
-        date: date.toISOString().split('T')[0],
-        count,
-        level,
-      })
-    }
-    weeks.push(days)
-  }
-
-  return { totalContributions, weeks }
-}
-
-const levelColors = {
-  0: 'bg-gray-100 dark:bg-gray-800',
-  1: 'bg-green-200 dark:bg-green-900',
-  2: 'bg-green-400 dark:bg-green-700',
-  3: 'bg-green-500 dark:bg-green-500',
-  4: 'bg-green-600 dark:bg-green-400',
-}
-
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-export default function GitHubContributions({ username = 'emmanuel-inambao' }: { username?: string }) {
-  const [data, setData] = useState<GitHubStats | null>(null)
-  const [hoveredDay, setHoveredDay] = useState<ContributionDay | null>(null)
-
-  useEffect(() => {
-    // In production, you would fetch from GitHub API
-    // For now, using mock data
-    const mockData = generateMockData()
-    setData(mockData)
-  }, [])
-
-  if (!data) {
-    return (
-      <div className="animate-pulse bg-gray-100 dark:bg-gray-800 rounded-xl h-40" />
-    )
-  }
-
-  // Calculate month labels positions
-  const getMonthLabels = () => {
-    const labels: { month: string; index: number }[] = []
-    let currentMonth = -1
-
-    data.weeks.forEach((week, weekIndex) => {
-      const date = new Date(week[0].date)
-      const month = date.getMonth()
-      if (month !== currentMonth) {
-        currentMonth = month
-        labels.push({ month: months[month], index: weekIndex })
-      }
-    })
-
-    return labels
-  }
-
+export default function GitHubContributions({ username = 'bolo3574' }: { username?: string }) {
   return (
     <section className="py-12">
       <div className="container mx-auto px-4">
@@ -124,94 +28,28 @@ export default function GitHubContributions({ username = 'emmanuel-inambao' }: {
                 </p>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {data.totalContributions.toLocaleString()}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-500">
-                contributions this year
-              </div>
-            </div>
           </div>
 
-          {/* Contribution graph */}
+          {/* GitHub contribution graph embed via img */}
           <div className="overflow-x-auto">
-            <div className="min-w-[750px]">
-              {/* Month labels */}
-              <div className="flex mb-2 pl-8">
-                {getMonthLabels().map(({ month, index }) => (
-                  <div
-                    key={`${month}-${index}`}
-                    className="text-xs text-gray-500 dark:text-gray-500"
-                    style={{ marginLeft: index === 0 ? 0 : `${(index - getMonthLabels()[getMonthLabels().indexOf({ month, index }) - 1]?.index || 0) * 14 - 20}px` }}
-                  >
-                    {month}
-                  </div>
-                ))}
-              </div>
-
-              {/* Graph */}
-              <div className="flex">
-                {/* Day labels */}
-                <div className="flex flex-col gap-[3px] mr-2 text-xs text-gray-500 dark:text-gray-500">
-                  {days.map((day, i) => (
-                    <div key={day} className="h-[11px] flex items-center">
-                      {i % 2 === 1 && <span>{day}</span>}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Contribution cells */}
-                <div className="flex gap-[3px]">
-                  {data.weeks.map((week, weekIndex) => (
-                    <div key={weekIndex} className="flex flex-col gap-[3px]">
-                      {week.map((day, dayIndex) => (
-                        <motion.div
-                          key={day.date}
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: (weekIndex * 7 + dayIndex) * 0.001 }}
-                          onMouseEnter={() => setHoveredDay(day)}
-                          onMouseLeave={() => setHoveredDay(null)}
-                          className={`w-[11px] h-[11px] rounded-sm ${levelColors[day.level]} cursor-pointer transition-transform hover:scale-125`}
-                          title={`${day.count} contributions on ${day.date}`}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tooltip */}
-          {hoveredDay && (
-            <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-              <strong>{hoveredDay.count} contributions</strong> on {hoveredDay.date}
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="flex items-center justify-end gap-2 mt-4 text-xs text-gray-500 dark:text-gray-500">
-            <span>Less</span>
-            {[0, 1, 2, 3, 4].map((level) => (
-              <div
-                key={level}
-                className={`w-[11px] h-[11px] rounded-sm ${levelColors[level as 0 | 1 | 2 | 3 | 4]}`}
-              />
-            ))}
-            <span>More</span>
+            <img
+              src={`https://ghchart.rshah.org/${username}`}
+              alt={`${username}'s GitHub contribution chart`}
+              className="w-full max-w-[750px] mx-auto dark:invert dark:hue-rotate-180"
+              loading="lazy"
+            />
           </div>
 
           {/* View on GitHub link */}
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <a
               href={`https://github.com/${username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
-              View full profile on GitHub →
+              View full profile on GitHub
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
         </motion.div>

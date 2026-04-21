@@ -22,8 +22,9 @@ import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
+import SkillsEditor from '@/components/admin/SkillsEditor'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -36,6 +37,42 @@ export default function AdminDashboard() {
   const [isCreating, setIsCreating] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [newLeadsCount, setNewLeadsCount] = useState(0)
+  const [pendingBookingsCount, setPendingBookingsCount] = useState(0)
+  const [todayVisitsCount, setTodayVisitsCount] = useState(0)
+
+  const formatBadge = (value: number) => (value > 99 ? '99+' : String(value))
+
+  const loadLiveBadges = async () => {
+    try {
+      const [leadsRes, bookingsRes, analyticsRes] = await Promise.all([
+        fetch('/api/service-inquiry', { credentials: 'include' }),
+        fetch('/api/booking', { credentials: 'include' }),
+        fetch('/api/analytics?days=1', { credentials: 'include' }),
+      ])
+
+      if (leadsRes.ok) {
+        const leadData = await leadsRes.json()
+        const leads = Array.isArray(leadData.leads) ? leadData.leads : []
+        setNewLeadsCount(leads.filter((l: { status: string }) => l.status === 'new').length)
+      }
+
+      if (bookingsRes.ok) {
+        const bookingData = await bookingsRes.json()
+        const bookings = Array.isArray(bookingData.bookings) ? bookingData.bookings : []
+        setPendingBookingsCount(bookings.filter((b: { status: string }) => b.status === 'pending').length)
+      }
+
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json()
+        const visits = Array.isArray(analyticsData.visits) ? analyticsData.visits : []
+        const today = new Date().toISOString().split('T')[0]
+        setTodayVisitsCount(visits.filter((v: { timestamp: string }) => String(v.timestamp).startsWith(today)).length)
+      }
+    } catch {
+      // Keep existing badge counts on transient network errors.
+    }
+  }
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -51,6 +88,28 @@ export default function AdminDashboard() {
       return () => clearTimeout(timer)
     }
   }, [notification])
+
+  // Live tab badges: refresh every 20s and when tab regains focus.
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    loadLiveBadges()
+    const intervalId = setInterval(loadLiveBadges, 20000)
+
+    const onFocus = () => loadLiveBadges()
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') loadLiveBadges()
+    }
+
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [isAuthenticated])
 
   if (authLoading) {
     return (
@@ -240,6 +299,17 @@ export default function AdminDashboard() {
               Media
             </button>
             <button
+              onClick={() => setActiveTab('skills')}
+              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                activeTab === 'skills'
+                  ? 'text-primary-400 border-primary-500'
+                  : 'text-dark-400 border-transparent hover:text-white'
+              }`}
+            >
+              <Cpu className="w-5 h-5" />
+              Skills
+            </button>
+            <button
               onClick={() => setActiveTab('resources')}
               className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
                 activeTab === 'resources'
@@ -271,6 +341,11 @@ export default function AdminDashboard() {
             >
               <Bell className="w-5 h-5" />
               Leads
+              {newLeadsCount > 0 && (
+                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-red-500 text-white text-xs px-1.5">
+                  {formatBadge(newLeadsCount)}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('bookings')}
@@ -282,6 +357,11 @@ export default function AdminDashboard() {
             >
               <Calendar className="w-5 h-5" />
               Bookings
+              {pendingBookingsCount > 0 && (
+                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-500 text-dark-950 text-xs px-1.5">
+                  {formatBadge(pendingBookingsCount)}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
@@ -293,6 +373,11 @@ export default function AdminDashboard() {
             >
               <BarChart2 className="w-5 h-5" />
               Analytics
+              {todayVisitsCount > 0 && (
+                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs px-1.5">
+                  {formatBadge(todayVisitsCount)}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -605,6 +690,17 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, x: -20 }}
             >
               <MediaUploader 
+                onNotify={(type, message) => setNotification({ type, message })}
+              />
+            </motion.div>
+          ) : activeTab === 'skills' ? (
+            <motion.div
+              key="skills"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <SkillsEditor
                 onNotify={(type, message) => setNotification({ type, message })}
               />
             </motion.div>
@@ -1548,16 +1644,36 @@ function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadLeads = () => {
-    setLoading(true)
+  const loadLeads = (silent = false) => {
+    if (!silent) setLoading(true)
     fetch('/api/service-inquiry')
       .then(r => r.json())
       .then(data => setLeads(data.leads || []))
       .catch(() => setLeads([]))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (!silent) setLoading(false)
+      })
   }
 
-  useEffect(() => { loadLeads() }, [])
+  useEffect(() => {
+    loadLeads()
+
+    // Keep panel live without requiring manual refresh.
+    const intervalId = setInterval(() => loadLeads(true), 10000)
+    const onFocus = () => loadLeads(true)
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') loadLeads(true)
+    }
+
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [])
 
   const updateLeadStatus = async (id: string, status: ServiceLead['status']) => {
     await fetch('/api/service-inquiry', {
@@ -1739,16 +1855,36 @@ function BookingsPanel() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadBookings = () => {
-    setLoading(true)
+  const loadBookings = (silent = false) => {
+    if (!silent) setLoading(true)
     fetch('/api/booking')
       .then(r => r.json())
       .then(data => setBookings(data.bookings || []))
       .catch(() => setBookings([]))
-      .finally(() => setLoading(false))
+      .finally(() => {
+        if (!silent) setLoading(false)
+      })
   }
 
-  useEffect(() => { loadBookings() }, [])
+  useEffect(() => {
+    loadBookings()
+
+    // Keep panel live without requiring manual refresh.
+    const intervalId = setInterval(() => loadBookings(true), 10000)
+    const onFocus = () => loadBookings(true)
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') loadBookings(true)
+    }
+
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [])
 
   const updateStatus = async (id: string, status: Booking['status']) => {
     await fetch('/api/booking', {

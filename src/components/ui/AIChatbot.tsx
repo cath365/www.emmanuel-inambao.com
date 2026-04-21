@@ -2,6 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
+import { useProfile } from '@/lib/profile'
+import { useServices } from '@/lib/services'
+import { useProjects } from '@/lib/projects'
+import { useSkills } from '@/lib/skills'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -44,23 +49,6 @@ export interface ServiceLead {
   status: 'new' | 'contacted' | 'closed'
 }
 
-// Knowledge base about Emmanuel
-const knowledgeBase = {
-  name: "Emmanuel Inambao",
-  title: "Electronic Engineer | IoT & Robotics Developer | Full-Stack Systems Engineer",
-  skills: ["Python", "JavaScript", "TypeScript", "C++", "React", "Next.js", "Arduino", "Raspberry Pi", "ESP32", "TensorFlow", "AWS", "Docker"],
-  experience: "5+ years of experience in IoT development, robotics, and full-stack engineering",
-  education: "Bachelor's degree in Electronic Engineering",
-  contact: "denuelinambao@gmail.com",
-  services: ["IoT Development", "Robotics Solutions", "Full-Stack Development", "PCB Design", "Embedded Systems", "AI/ML Integration"],
-  projects: [
-    "Smart Agriculture IoT System",
-    "Industrial Automation Robot",
-    "Real-time Monitoring Dashboard",
-    "Autonomous Drone System",
-  ],
-}
-
 // Get available dates (next 14 business days)
 function getAvailableDates(): string[] {
   const dates: string[] = []
@@ -83,7 +71,29 @@ function getAvailableTimes(): string[] {
   return ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']
 }
 
-export default function AIChatbot() {
+export default function AIChatbot({ floatingVisible = true }: { floatingVisible?: boolean }) {
+  const { profile } = useProfile()
+  const { services } = useServices()
+  const { projects } = useProjects()
+  const { skillCategories } = useSkills()
+
+  const dynamicSkills = Array.from(
+    new Set(skillCategories.flatMap(cat => cat.skills.map(s => s.name)).filter(Boolean))
+  )
+  const dynamicServices = services.map(s => s.title).filter(Boolean)
+  const dynamicProjects = projects.map(p => p.title).filter(Boolean)
+  const skillLines = (dynamicSkills.length ? dynamicSkills : ['IoT Development', 'Embedded Systems', 'Full-Stack Development'])
+    .slice(0, 18)
+    .map(s => `• ${s}`)
+    .join('\n')
+  const serviceLines = (dynamicServices.length ? dynamicServices : ['IoT Development', 'Robotics Solutions', 'Full-Stack Development'])
+    .map(s => `• ${s}`)
+    .join('\n')
+  const projectLines = (dynamicProjects.length ? dynamicProjects : ['Smart Irrigation System', 'ESP32 Cutter Robot', 'Automated Bottle Sorting'])
+    .slice(0, 6)
+    .map((p, i) => `${i + 1}. ${p}`)
+    .join('\n')
+
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -105,6 +115,25 @@ export default function AIChatbot() {
     data: { name: '', email: '', service: '', details: '' }
   })
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const trackEvent = (page: string, referrer: string) => {
+    let sessionId = sessionStorage.getItem('_vsid')
+    if (!sessionId) {
+      sessionId = `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+      sessionStorage.setItem('_vsid', sessionId)
+    }
+
+    fetch('/api/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page,
+        referrer,
+        sessionId,
+        screenWidth: window.innerWidth,
+      }),
+    }).catch(() => {})
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -250,6 +279,8 @@ export default function AIChatbot() {
           source: 'chatbot',
         }),
       })
+
+      trackEvent('/intent/booking', 'ai-chatbot')
     } catch (error) {
       console.error('Booking submission error:', error)
     }
@@ -332,6 +363,8 @@ export default function AIChatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLead),
       })
+
+      trackEvent('/intent/service-inquiry', 'ai-chatbot')
     } catch (error) {
       console.error('Lead submission error:', error)
     }
@@ -382,7 +415,7 @@ export default function AIChatbot() {
     // Skills
     if (lowerQuery.includes('skill') || lowerQuery.includes('know') || lowerQuery.includes('tech')) {
       return {
-        response: `Emmanuel is skilled in:\n\n**Programming:** Python, JavaScript, TypeScript, C++\n**Frameworks:** React, Next.js, Node.js, TensorFlow\n**Hardware:** Arduino, Raspberry Pi, ESP32, STM32\n**Cloud:** AWS, Docker, Kubernetes\n\nWant to discuss a project using these skills?`,
+        response: `Emmanuel's current skills include:\n\n${skillLines}\n\nWant to discuss a project using these skills?`,
         options: ['Book a meeting', 'See projects', 'Contact info']
       }
     }
@@ -390,7 +423,7 @@ export default function AIChatbot() {
     // Projects
     if (lowerQuery.includes('project') || lowerQuery.includes('work') || lowerQuery.includes('built')) {
       return {
-        response: `Emmanuel's notable projects:\n\n🌱 **Smart Agriculture IoT** - Automated farming\n🤖 **Industrial Robot** - Manufacturing automation\n📊 **Monitoring Dashboard** - Real-time data viz\n🚁 **Autonomous Drone** - AI navigation\n\nInterested in discussing a similar project?`,
+        response: `Emmanuel's current featured projects:\n\n${projectLines}\n\nInterested in discussing a similar project?`,
         options: ['Book a meeting', 'View skills', 'Contact info']
       }
     }
@@ -398,7 +431,7 @@ export default function AIChatbot() {
     // Services / Hire / Need help - trigger lead capture
     if (lowerQuery.includes('service') || lowerQuery.includes('offer') || lowerQuery.includes('hire') || lowerQuery.includes('help') || lowerQuery.includes('need') || lowerQuery.includes('interested') || lowerQuery.includes('quote') || lowerQuery.includes('price') || lowerQuery.includes('cost')) {
       return {
-        response: `Emmanuel offers:\n\n⚡ IoT Development\n🤖 Robotics Solutions\n💻 Full-Stack Development\n🔧 PCB Design\n🧠 AI/ML Integration\n📐 Embedded Systems\n\nWould you like to send an inquiry? Emmanuel will get back to you personally!`,
+        response: `Emmanuel currently offers:\n\n${serviceLines}\n\nWould you like to send an inquiry? Emmanuel will get back to you personally!`,
         options: ['📩 Send inquiry', 'Book a meeting', 'See projects']
       }
     }
@@ -414,7 +447,7 @@ export default function AIChatbot() {
     // Contact
     if (lowerQuery.includes('contact') || lowerQuery.includes('email') || lowerQuery.includes('reach')) {
       return {
-        response: `You can reach Emmanuel at:\n\n📧 Email: ${knowledgeBase.contact}\n📱 WhatsApp: +260 973 914 432\n\nOr book a meeting directly!`,
+        response: `You can reach Emmanuel at:\n\n📧 Email: ${profile.email}\n📱 WhatsApp: ${profile.phone}\n🔗 Direct WhatsApp: https://wa.me/${profile.phone.replace(/\D/g, '')}\n\nOr book a meeting directly!`,
         options: ['Book a meeting', 'View skills', 'See projects']
       }
     }
@@ -449,16 +482,34 @@ export default function AIChatbot() {
     handleSend(option)
   }
 
+  useEffect(() => {
+    if (!floatingVisible) setIsOpen(false)
+  }, [floatingVisible])
+
+  if (!floatingVisible) return null
+
   return (
     <>
       {/* Chat Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform overflow-hidden border-2 border-white/20"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         aria-label="Open AI Chat"
       >
+        {profile.image ? (
+          <Image
+            src={profile.image}
+            alt={profile.name}
+            fill
+            className={`object-cover transition-all ${isOpen ? 'opacity-40' : 'opacity-100'}`}
+            sizes="56px"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600" />
+        )}
+
         <AnimatePresence mode="wait">
           {isOpen ? (
             <motion.svg
@@ -466,7 +517,7 @@ export default function AIChatbot() {
               initial={{ rotate: -90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               exit={{ rotate: 90, opacity: 0 }}
-              className="w-6 h-6"
+              className="w-6 h-6 relative z-10"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -479,7 +530,7 @@ export default function AIChatbot() {
               initial={{ rotate: 90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               exit={{ rotate: -90, opacity: 0 }}
-              className="w-6 h-6"
+              className="w-6 h-6 relative z-10"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

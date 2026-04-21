@@ -2,61 +2,65 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Github, 
-  Linkedin, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Github,
+  Linkedin,
   Send,
   MessageSquare,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Loader2,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
-
-// Contact information
-const contactInfo = [
-  {
-    icon: Mail,
-    label: 'Email',
-    value: 'denuelinambao@gmail.com',
-    href: 'mailto:denuelinambao@gmail.com',
-  },
-  {
-    icon: Phone,
-    label: 'Phone / WhatsApp',
-    value: '+260 973 914 432',
-    href: 'https://wa.me/260973914432',
-  },
-  {
-    icon: MapPin,
-    label: 'Location',
-    value: 'Lusaka, Zambia',
-    href: null,
-  },
-]
-
-// Social links
-const socialLinks = [
-  {
-    icon: Github,
-    label: 'GitHub',
-    href: 'https://github.com/bolo3574',
-    username: '@bolo3574',
-  },
-  {
-    icon: Linkedin,
-    label: 'LinkedIn',
-    href: 'https://linkedin.com/in/emmanuelinambao',
-    username: 'Emmanuel Inambao',
-  },
-]
+import { useProfile } from '@/lib/profile'
 
 export default function Contact() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { t } = useLanguage()
+  const { profile } = useProfile()
+
+  const phoneDigits = profile.phone.replace(/\D/g, '')
+  const whatsappMessage = encodeURIComponent('Hello Emmanuel, I visited your portfolio and would like to discuss a project.')
+
+  const contactInfo = [
+    {
+      icon: Mail,
+      label: 'Email',
+      value: profile.email,
+      href: `mailto:${profile.email}`,
+    },
+    {
+      icon: Phone,
+      label: 'Phone / WhatsApp',
+      value: profile.phone,
+      href: `https://wa.me/${phoneDigits}?text=${whatsappMessage}`,
+    },
+    {
+      icon: MapPin,
+      label: 'Location',
+      value: profile.location,
+      href: null,
+    },
+  ]
+
+  const socialLinks = [
+    {
+      icon: Github,
+      label: 'GitHub',
+      href: profile.socialLinks.github || 'https://github.com/bolo3574',
+      username: '@bolo3574',
+    },
+    {
+      icon: Linkedin,
+      label: 'LinkedIn',
+      href: profile.socialLinks.linkedin || 'https://linkedin.com/in/emmanuelinambao',
+      username: profile.name,
+    },
+  ]
   
   // Form state
   const [formData, setFormData] = useState({
@@ -65,7 +69,8 @@ export default function Contact() {
     subject: '',
     message: '',
   })
-  const [formStatus, setFormStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState<string>('')
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -73,20 +78,22 @@ export default function Contact() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  // Handle form submission via API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setFormStatus('idle')
-    
+    setFormStatus('loading')
+    setErrorMessage('')
+
     try {
+      // Include honeypot field for spam detection
+      const honeypotEl = (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[name="_honeypot"]')
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, _honeypot: honeypotEl?.value || '' }),
       })
-      
-      const result = await response.json()
-      
+
+      const result = await response.json().catch(() => ({}))
+
       if (response.ok && result.success) {
         setFormStatus('success')
         setTimeout(() => {
@@ -95,9 +102,11 @@ export default function Contact() {
         }, 3000)
       } else {
         setFormStatus('error')
+        setErrorMessage(result.error || 'Something went wrong. Please try again or email directly.')
       }
     } catch {
       setFormStatus('error')
+      setErrorMessage('Network error. Please check your connection and try again.')
     }
   }
 
@@ -239,6 +248,16 @@ export default function Contact() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Honeypot field - hidden from real users, bots fill it */}
+                  <input
+                    type="text"
+                    name="_honeypot"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    style={{ position: 'absolute', left: '-9999px', opacity: 0 }}
+                    aria-hidden="true"
+                  />
+
                   {/* Name field */}
                   <div>
                     <label 
@@ -324,13 +343,18 @@ export default function Contact() {
                     />
                   </div>
 
-                  {/* Submit button */}
                   <button
                     type="submit"
-                    disabled={formStatus === 'success'}
+                    disabled={formStatus === 'success' || formStatus === 'loading'}
+                    aria-busy={formStatus === 'loading'}
                     className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {formStatus === 'success' ? (
+                    {formStatus === 'loading' ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                        Sending...
+                      </>
+                    ) : formStatus === 'success' ? (
                       <>
                         <CheckCircle className="w-5 h-5" aria-hidden="true" />
                         Message Sent!
@@ -361,11 +385,12 @@ export default function Contact() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-2 p-3 bg-red-900/20 border border-red-700/30 rounded-lg"
+                      role="alert"
+                      className="flex items-start gap-2 p-3 bg-red-900/20 border border-red-700/30 rounded-lg"
                     >
-                      <AlertCircle className="w-5 h-5 text-red-400" aria-hidden="true" />
+                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <p className="text-red-400 text-sm">
-                        Something went wrong. Please try again or email directly.
+                        {errorMessage || 'Something went wrong. Please try again or email directly.'}
                       </p>
                     </motion.div>
                   )}

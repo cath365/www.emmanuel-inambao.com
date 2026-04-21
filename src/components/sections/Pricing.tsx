@@ -1,71 +1,93 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
-import { Check, Zap, Crown, Rocket } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
+import { Calculator, MessageCircle, Send } from 'lucide-react'
+import { useProfile } from '@/lib/profile'
 
-const plans = [
-  {
-    name: 'Starter',
-    description: 'Perfect for small IoT prototypes and consultations',
-    price: 'From $500',
-    period: 'per project',
-    icon: Zap,
-    color: 'from-blue-500 to-cyan-500',
-    popular: false,
-    features: [
-      'Initial consultation & assessment',
-      'Simple IoT prototype',
-      'Basic firmware development',
-      'Circuit design & schematic',
-      '2 weeks of support',
-      'Documentation included',
-    ],
-  },
-  {
-    name: 'Professional',
-    description: 'For production-ready systems and full-stack solutions',
-    price: 'From $2,000',
-    period: 'per project',
-    icon: Crown,
-    color: 'from-primary-500 to-purple-500',
-    popular: true,
-    features: [
-      'Everything in Starter, plus:',
-      'Custom PCB design & manufacturing',
-      'Full embedded firmware',
-      'Web/mobile dashboard',
-      'Cloud integration (AWS/Firebase)',
-      'Testing & quality assurance',
-      '3 months of support',
-      'Training & handover',
-    ],
-  },
-  {
-    name: 'Enterprise',
-    description: 'For industrial-scale systems and long-term partnerships',
-    price: 'Custom',
-    period: 'contact for quote',
-    icon: Rocket,
-    color: 'from-accent-500 to-orange-500',
-    popular: false,
-    features: [
-      'Everything in Professional, plus:',
-      'Industrial automation systems',
-      'SCADA/HMI development',
-      'Multi-node IoT networks',
-      'Custom protocol implementation',
-      'Compliance & certification support',
-      '12 months of priority support',
-      'Dedicated project manager',
-      'SLA guarantee',
-    ],
-  },
-]
+type ProjectType = 'iot-prototype' | 'industrial-automation' | 'embedded-product' | 'web-dashboard' | 'custom'
+type Complexity = 'basic' | 'standard' | 'advanced'
+type Timeline = 'normal' | 'fast' | 'urgent'
+
+interface QuoteForm {
+  projectType: ProjectType
+  complexity: Complexity
+  timeline: Timeline
+  hardwareUnits: number
+  needsDashboard: boolean
+  needsCloud: boolean
+  integrations: number
+  supportMonths: number
+}
+
+const DEFAULT_FORM: QuoteForm = {
+  projectType: 'iot-prototype',
+  complexity: 'standard',
+  timeline: 'normal',
+  hardwareUnits: 1,
+  needsDashboard: true,
+  needsCloud: false,
+  integrations: 1,
+  supportMonths: 1,
+}
+
+function estimateQuote(form: QuoteForm) {
+  const typeBase: Record<ProjectType, number> = {
+    'iot-prototype': 700,
+    'industrial-automation': 2500,
+    'embedded-product': 1800,
+    'web-dashboard': 900,
+    'custom': 1200,
+  }
+
+  const complexityFactor: Record<Complexity, number> = {
+    basic: 0.85,
+    standard: 1,
+    advanced: 1.45,
+  }
+
+  const timelineFactor: Record<Timeline, number> = {
+    normal: 1,
+    fast: 1.2,
+    urgent: 1.45,
+  }
+
+  let base = typeBase[form.projectType]
+  base += Math.max(0, form.hardwareUnits - 1) * 140
+  if (form.needsDashboard) base += 600
+  if (form.needsCloud) base += 500
+  base += form.integrations * 120
+  base += form.supportMonths * 80
+
+  const final = base * complexityFactor[form.complexity] * timelineFactor[form.timeline]
+  const min = Math.round(final * 0.85)
+  const max = Math.round(final * 1.2)
+  return { min, max }
+}
 
 export default function Pricing() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const { profile } = useProfile()
+  const [form, setForm] = useState<QuoteForm>(DEFAULT_FORM)
+
+  const quote = useMemo(() => estimateQuote(form), [form])
+
+  const waPhone = profile.phone.replace(/\D/g, '')
+  const summary = [
+    'Hello Emmanuel, I need a project quote.',
+    `Project Type: ${form.projectType}`,
+    `Complexity: ${form.complexity}`,
+    `Timeline: ${form.timeline}`,
+    `Hardware Units: ${form.hardwareUnits}`,
+    `Dashboard: ${form.needsDashboard ? 'Yes' : 'No'}`,
+    `Cloud: ${form.needsCloud ? 'Yes' : 'No'}`,
+    `Integrations: ${form.integrations}`,
+    `Support (months): ${form.supportMonths}`,
+    `Estimated Range: $${quote.min} - $${quote.max}`,
+  ].join('\n')
+
+  const whatsappHref = `https://wa.me/${waPhone}?text=${encodeURIComponent(summary)}`
 
   return (
     <section ref={ref} id="pricing" className="py-20 lg:py-32">
@@ -80,74 +102,158 @@ export default function Pricing() {
           <p className="text-primary-400 font-semibold text-sm uppercase tracking-wider mb-3">
             Pricing
           </p>
-          <h2 className="section-heading">Packages & Pricing</h2>
+          <h2 className="section-heading">Project Quote Estimator</h2>
           <p className="section-subheading mx-auto">
-            Transparent pricing for quality engineering. Every project is unique —
-            these are starting points. Let&apos;s discuss your specific needs.
+            Answer a few questions and get a live estimate based on your real project needs.
+            Final pricing is confirmed after technical scoping.
           </p>
         </motion.div>
 
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: index * 0.15 }}
-              className={`relative rounded-2xl overflow-hidden ${
-                plan.popular
-                  ? 'border-2 border-primary-500 shadow-lg shadow-primary-500/10'
-                  : 'border border-dark-700'
-              }`}
-            >
-              {/* Popular badge */}
-              {plan.popular && (
-                <div className="absolute top-0 right-0 bg-primary-500 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
-                  MOST POPULAR
-                </div>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+            className="lg:col-span-2 border border-dark-700 rounded-2xl p-6 sm:p-8 bg-dark-800/50"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <Calculator className="w-5 h-5 text-primary-400" />
+              <h3 className="text-white text-lg font-semibold">Tell us what you need</h3>
+            </div>
 
-              <div className="p-8 bg-dark-800/50">
-                {/* Icon */}
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl
-                                bg-gradient-to-br ${plan.color} mb-4`}>
-                  <plan.icon className="w-6 h-6 text-white" />
-                </div>
-
-                <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-                <p className="text-dark-400 text-sm mb-6">{plan.description}</p>
-
-                {/* Price */}
-                <div className="mb-6">
-                  <span className="text-3xl font-bold text-white">{plan.price}</span>
-                  <span className="text-dark-500 text-sm ml-2">/ {plan.period}</span>
-                </div>
-
-                {/* CTA */}
-                <a
-                  href="#contact"
-                  className={`block text-center py-3 rounded-lg font-medium transition-all duration-300 ${
-                    plan.popular
-                      ? 'bg-primary-600 text-white hover:bg-primary-700'
-                      : 'bg-dark-700 text-dark-200 hover:bg-dark-600 hover:text-white'
-                  }`}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <label className="text-sm text-dark-300">
+                Project Type
+                <select
+                  value={form.projectType}
+                  onChange={e => setForm(prev => ({ ...prev, projectType: e.target.value as ProjectType }))}
+                  className="mt-2 w-full px-3 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white"
                 >
-                  Get Started
-                </a>
+                  <option value="iot-prototype">IoT Prototype</option>
+                  <option value="industrial-automation">Industrial Automation</option>
+                  <option value="embedded-product">Embedded Product</option>
+                  <option value="web-dashboard">Web Dashboard</option>
+                  <option value="custom">Custom Solution</option>
+                </select>
+              </label>
 
-                {/* Features */}
-                <ul className="mt-8 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm text-dark-300">
-                      <Check className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </motion.div>
-          ))}
+              <label className="text-sm text-dark-300">
+                Complexity
+                <select
+                  value={form.complexity}
+                  onChange={e => setForm(prev => ({ ...prev, complexity: e.target.value as Complexity }))}
+                  className="mt-2 w-full px-3 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white"
+                >
+                  <option value="basic">Basic</option>
+                  <option value="standard">Standard</option>
+                  <option value="advanced">Advanced</option>
+                </select>
+              </label>
+
+              <label className="text-sm text-dark-300">
+                Timeline
+                <select
+                  value={form.timeline}
+                  onChange={e => setForm(prev => ({ ...prev, timeline: e.target.value as Timeline }))}
+                  className="mt-2 w-full px-3 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="fast">Fast</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </label>
+
+              <label className="text-sm text-dark-300">
+                Hardware Units
+                <input
+                  type="number"
+                  min={1}
+                  max={1000}
+                  value={form.hardwareUnits}
+                  onChange={e => setForm(prev => ({ ...prev, hardwareUnits: Number(e.target.value) || 1 }))}
+                  className="mt-2 w-full px-3 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white"
+                />
+              </label>
+
+              <label className="text-sm text-dark-300">
+                External Integrations
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={form.integrations}
+                  onChange={e => setForm(prev => ({ ...prev, integrations: Math.max(0, Number(e.target.value) || 0) }))}
+                  className="mt-2 w-full px-3 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white"
+                />
+              </label>
+
+              <label className="text-sm text-dark-300">
+                Support (months)
+                <input
+                  type="number"
+                  min={0}
+                  max={24}
+                  value={form.supportMonths}
+                  onChange={e => setForm(prev => ({ ...prev, supportMonths: Math.max(0, Number(e.target.value) || 0) }))}
+                  className="mt-2 w-full px-3 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white"
+                />
+              </label>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-4">
+              <label className="inline-flex items-center gap-2 text-dark-300 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.needsDashboard}
+                  onChange={e => setForm(prev => ({ ...prev, needsDashboard: e.target.checked }))}
+                  className="w-4 h-4"
+                />
+                Need Dashboard/UI
+              </label>
+              <label className="inline-flex items-center gap-2 text-dark-300 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.needsCloud}
+                  onChange={e => setForm(prev => ({ ...prev, needsCloud: e.target.checked }))}
+                  className="w-4 h-4"
+                />
+                Need Cloud Integration
+              </label>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="border border-primary-500/40 rounded-2xl p-6 sm:p-8 bg-primary-500/5"
+          >
+            <h3 className="text-white text-lg font-semibold mb-2">Estimated Budget</h3>
+            <p className="text-dark-400 text-sm mb-4">Auto-calculated from your answers.</p>
+
+            <div className="text-3xl font-bold text-white mb-1">
+              ${quote.min.toLocaleString()} - ${quote.max.toLocaleString()}
+            </div>
+            <p className="text-dark-500 text-xs mb-6">USD estimated project range</p>
+
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Send on WhatsApp
+            </a>
+
+            <a
+              href="#contact"
+              className="mt-3 w-full inline-flex items-center justify-center gap-2 bg-dark-700 hover:bg-dark-600 text-dark-100 font-medium py-3 rounded-lg transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              Request Formal Proposal
+            </a>
+          </motion.div>
         </div>
 
         {/* Bottom note */}
@@ -157,7 +263,8 @@ export default function Pricing() {
           transition={{ delay: 0.8 }}
           className="text-center text-dark-500 text-sm mt-8"
         >
-          All prices are negotiable based on project scope. VAT may apply depending on your location.
+          This estimator gives a realistic range based on your inputs. Final quote depends on full scope,
+          hardware availability, deployment environment, and compliance requirements.
         </motion.p>
       </div>
     </section>

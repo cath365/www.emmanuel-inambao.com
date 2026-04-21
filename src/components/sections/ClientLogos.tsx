@@ -15,10 +15,10 @@ const clients = [
 ]
 
 const stats = [
-  { value: '50+', label: 'Projects Completed' },
-  { value: '30+', label: 'Happy Clients' },
+  { value: '15+', label: 'IoT Systems Deployed' },
+  { value: '200+', label: 'Students Trained' },
   { value: '5+', label: 'Years Experience' },
-  { value: '99%', label: 'Client Satisfaction' },
+  { value: '5', label: 'Featured Projects' },
 ]
 
 export default function ClientLogos() {

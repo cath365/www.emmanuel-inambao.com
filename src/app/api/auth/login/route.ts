@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { validateCredentials, AUTH_CONFIG } from '@/lib/auth-config'
+import { validateCredentials, AUTH_CONFIG, signSession } from '@/lib/auth-config'
 import { cookies } from 'next/headers'
 
 // Simple rate limiting (in production, use Redis or similar)
@@ -73,14 +73,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create session token (in production, use proper JWT or session library)
-    const sessionToken = Buffer.from(
-      JSON.stringify({
-        email,
-        exp: Date.now() + AUTH_CONFIG.sessionDuration,
-        iat: Date.now(),
-      })
-    ).toString('base64')
+    const sessionToken = signSession({ email })
 
     // Set HTTP-only cookie
     const cookieStore = await cookies()

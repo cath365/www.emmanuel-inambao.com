@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
+import { isAuthenticated } from '@/lib/auth-helpers'
 
 const LEADS_BLOB_PATH = 'data/leads.json'
 
@@ -38,6 +39,10 @@ async function writeLeads(leads: ServiceLead[]) {
 
 // GET - fetch all leads for admin panel
 export async function GET() {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const leads = await readLeads()
     return NextResponse.json({ leads, count: leads.length })
@@ -49,6 +54,10 @@ export async function GET() {
 
 // PATCH - update lead status
 export async function PATCH(request: NextRequest) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { id, status } = await request.json()
     const leads = await readLeads()
@@ -63,6 +72,10 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - remove a lead
 export async function DELETE(request: NextRequest) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { id } = await request.json()
     const leads = await readLeads()

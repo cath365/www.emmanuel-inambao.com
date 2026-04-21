@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(npx vercel:*)",
+      "Bash(node ./node_modules/.bin/next build)",
+      "Bash(npm list:*)",
+      "Bash(curl -s \"https://emmanuel-inambao.com/api/service-inquiry\")"
+    ]
+  }
+}

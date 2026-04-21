@@ -12,6 +12,7 @@ const navLinks = [
   { href: '#about', labelKey: 'nav.about' },
   { href: '#skills', labelKey: 'nav.skills' },
   { href: '#projects', labelKey: 'nav.projects' },
+  { href: '/start-project', labelKey: 'hero.cta.contact' },
   { href: '/case-studies', labelKey: 'nav.caseStudies' },
   { href: '/blog', labelKey: 'nav.blog' },
   { href: '#contact', labelKey: 'nav.contact' },

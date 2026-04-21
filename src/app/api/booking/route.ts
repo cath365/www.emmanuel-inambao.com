@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
+import { isAuthenticated } from '@/lib/auth-helpers'
 
 const ADMIN_EMAIL = 'denuelinambao@gmail.com'
 const BOOKINGS_BLOB_PATH = 'data/bookings.json'
@@ -46,6 +47,10 @@ async function writeBookings(bookings: BookingData[]) {
 
 // GET - fetch all bookings for admin panel
 export async function GET() {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const bookings = await readBookings()
     return NextResponse.json({ bookings })
@@ -57,6 +62,10 @@ export async function GET() {
 
 // PATCH - update booking status
 export async function PATCH(request: NextRequest) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { id, status } = await request.json()
     const bookings = await readBookings()
@@ -71,6 +80,10 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - remove a booking
 export async function DELETE(request: NextRequest) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const { id } = await request.json()
     const bookings = await readBookings()

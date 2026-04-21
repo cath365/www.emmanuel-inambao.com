@@ -29,16 +29,16 @@ const defaultProfile: Profile = {
   bio: 'I design and build intelligent embedded systems that bridge hardware and software to solve real-world problems. From smart agriculture to industrial automation, I engineer solutions that work offline, scale locally, and create measurable impact.',
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
-  phone: '+260 XXX XXX XXX',
+  phone: '+260 973 914 432',
   image: '/images/profile/profile.jpg',
   coverImage: '',
-  cv: '',
+  cv: '/cv/emmanuel-inambao-cv.pdf',
   status: 'Available for Engineering Projects',
   socialLinks: {
-    github: 'https://github.com/einambao',
-    linkedin: 'https://linkedin.com/in/einambao',
+    github: 'https://github.com/bolo3574',
+    linkedin: 'https://linkedin.com/in/emmanuelinambao',
     twitter: '',
-    website: '',
+    website: 'https://emmanuelinambao.com',
   },
 }
 

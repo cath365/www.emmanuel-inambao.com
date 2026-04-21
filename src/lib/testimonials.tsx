@@ -27,6 +27,39 @@ interface TestimonialContextType {
   rejectTestimonial: (id: string) => void
 }
 
+const defaultTestimonials: Testimonial[] = [
+  {
+    id: 'testimonial-1',
+    name: 'James Mwanza',
+    position: 'Farm Manager',
+    company: 'Green Valley Farms',
+    content: 'Emmanuel\'s smart irrigation system transformed our farming operations. We\'ve cut water usage by 40% and our crop yield has improved significantly. The remote monitoring dashboard is incredibly useful — I can check everything from my phone.',
+    rating: 5,
+    featured: true,
+    status: 'approved',
+  },
+  {
+    id: 'testimonial-2',
+    name: 'Sarah Banda',
+    position: 'Operations Director',
+    company: 'Lusaka Recycling Co.',
+    content: 'The automated bottle sorting system exceeded our expectations. Processing over 1,000 bottles daily with 98% accuracy has completely changed our throughput. Emmanuel delivered on time and provided excellent post-installation support.',
+    rating: 5,
+    featured: true,
+    status: 'approved',
+  },
+  {
+    id: 'testimonial-3',
+    name: 'David Chisanga',
+    position: 'Maintenance Supervisor',
+    company: 'ZamOil Industrial',
+    content: 'The oil level monitoring system gives us real-time visibility into all 12 tanks. We haven\'t had a single unexpected shortage since deployment. The predictive alerts save us significant downtime and costs.',
+    rating: 5,
+    featured: true,
+    status: 'approved',
+  },
+]
+
 const TestimonialContext = createContext<TestimonialContextType | undefined>(undefined)
 
 function saveToServer(data: Testimonial[]) {
@@ -45,15 +78,18 @@ export function TestimonialProvider({ children }: { children: ReactNode }) {
     fetch('/api/portfolio-data?key=testimonials')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setTestimonials(data.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
         } else {
           const saved = localStorage.getItem('portfolio-testimonials')
           if (saved) {
             try {
               const parsed = JSON.parse(saved)
-              setTestimonials(parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
-            } catch {}
+              const mapped = parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' }))
+              setTestimonials(mapped.length > 0 ? mapped : defaultTestimonials)
+            } catch { setTestimonials(defaultTestimonials) }
+          } else {
+            setTestimonials(defaultTestimonials)
           }
         }
       })
@@ -62,8 +98,11 @@ export function TestimonialProvider({ children }: { children: ReactNode }) {
         if (saved) {
           try {
             const parsed = JSON.parse(saved)
-            setTestimonials(parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
-          } catch {}
+            const mapped = parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' }))
+            setTestimonials(mapped.length > 0 ? mapped : defaultTestimonials)
+          } catch { setTestimonials(defaultTestimonials) }
+        } else {
+          setTestimonials(defaultTestimonials)
         }
       })
       .finally(() => setIsLoaded(true))

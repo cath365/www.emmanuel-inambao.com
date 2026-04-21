@@ -161,6 +161,10 @@ export default function Hero() {
             variants={itemVariants}
             className="flex flex-wrap items-center gap-3 mt-5 sm:mt-6"
           >
+            <Link href="/start-project" className="btn-primary group text-sm sm:text-base">
+              Start Your Project
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
             <Link href="#projects" className="btn-primary group text-sm sm:text-base">
               {t('hero.cta.projects')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

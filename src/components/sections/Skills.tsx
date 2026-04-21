@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useLanguage } from '@/lib/i18n'
+import { useSkills, SkillCategory } from '@/lib/skills'
 
 const SkillGlobe = dynamic(() => import('@/components/ui/SkillGlobe'), {
   ssr: false,
@@ -26,75 +27,13 @@ import {
   Server
 } from 'lucide-react'
 
-// Skills data organized by category
-const skillCategories = [
-  {
-    id: 'hardware',
-    title: 'Hardware & Embedded',
-    icon: Cpu,
-    description: 'Physical systems and microcontroller development',
-    color: 'from-blue-500 to-cyan-500',
-    skills: [
-      { name: 'Arduino', level: 95 },
-      { name: 'ESP32', level: 90 },
-      { name: 'Ultrasonic Sensors', level: 92 },
-      { name: 'Relays & Switching', level: 88 },
-      { name: 'L298N Motor Driver', level: 85 },
-      { name: 'Servo & DC Motors', level: 90 },
-      { name: 'Power Regulation (12V→5V/9V)', level: 85 },
-      { name: 'PCB Design Basics', level: 75 },
-    ],
-  },
-  {
-    id: 'software',
-    title: 'Software & Web',
-    icon: Code,
-    description: 'Frontend, backend, and full-stack development',
-    color: 'from-purple-500 to-pink-500',
-    skills: [
-      { name: 'Next.js', level: 88 },
-      { name: 'React', level: 90 },
-      { name: 'HTML/CSS', level: 95 },
-      { name: 'JavaScript', level: 92 },
-      { name: 'TypeScript', level: 80 },
-      { name: 'REST APIs', level: 88 },
-      { name: 'Admin Dashboards', level: 85 },
-      { name: 'Tailwind CSS', level: 90 },
-    ],
-  },
-  {
-    id: 'iot',
-    title: 'IoT & Networking',
-    icon: Wifi,
-    description: 'Connected devices and communication protocols',
-    color: 'from-green-500 to-emerald-500',
-    skills: [
-      { name: 'Wi-Fi AP/STA Modes', level: 92 },
-      { name: 'Local Web Servers', level: 90 },
-      { name: 'Offline-First Systems', level: 88 },
-      { name: 'MQTT Protocol', level: 82 },
-      { name: 'HTTP/HTTPS', level: 90 },
-      { name: 'Firebase Integration', level: 78 },
-      { name: 'WebSocket', level: 80 },
-      { name: 'Serial Communication', level: 88 },
-    ],
-  },
-  {
-    id: 'security',
-    title: 'Security & Systems',
-    icon: Shield,
-    description: 'Secure design and access control',
-    color: 'from-amber-500 to-orange-500',
-    skills: [
-      { name: 'Authentication Systems', level: 85 },
-      { name: 'Role-Based Access Control', level: 88 },
-      { name: 'Offline Validation', level: 90 },
-      { name: 'Secure Device Logic', level: 85 },
-      { name: 'Data Encryption Basics', level: 75 },
-      { name: 'Secure OTA Updates', level: 72 },
-    ],
-  },
-]
+const iconMap = {
+  hardware: Cpu,
+  software: Code,
+  iot: Wifi,
+  security: Shield,
+  default: Cog,
+}
 
 // Skill badge component
 function SkillBadge({ name, level }: { name: string; level: number }) {
@@ -117,10 +56,10 @@ function SkillCard({
   category, 
   index 
 }: { 
-  category: typeof skillCategories[0]
+  category: SkillCategory
   index: number 
 }) {
-  const Icon = category.icon
+  const Icon = iconMap[category.id as keyof typeof iconMap] || iconMap.default
 
   return (
     <motion.div
@@ -162,6 +101,7 @@ export default function Skills() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { t } = useLanguage()
   const [showGlobe, setShowGlobe] = useState(false)
+  const { skillCategories } = useSkills()
 
   return (
     <section

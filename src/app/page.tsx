@@ -18,6 +18,7 @@ import HowIWork from '@/components/sections/HowIWork'
 import FAQ from '@/components/sections/FAQ'
 import Pricing from '@/components/sections/Pricing'
 import OpenSource from '@/components/sections/OpenSource'
+import SectionViewTracker from '@/components/ui/SectionViewTracker'
 
 /**
  * Main portfolio page for Prof. Emmanuel Inambao
@@ -29,6 +30,8 @@ import OpenSource from '@/components/sections/OpenSource'
 export default function Home() {
   return (
     <>
+      <SectionViewTracker />
+
       {/* Hero Section - First impression with name, title, and mission */}
       <Hero />
 
@@ -42,7 +45,7 @@ export default function Home() {
       <Skills />
 
       {/* GitHub Activity - Show coding contributions */}
-      <GitHubContributions username="emmanuel-inambao" />
+      <GitHubContributions username="bolo3574" />
 
       {/* Services Section - What services you offer */}
       <Services />

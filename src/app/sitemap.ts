@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/#education', priority: 0.6, changeFrequency: 'monthly' as const },
     { path: '/blog', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/case-studies', priority: 0.8, changeFrequency: 'monthly' as const },
+    { path: '/start-project', priority: 0.95, changeFrequency: 'weekly' as const },
     { path: '/resume', priority: 0.7, changeFrequency: 'monthly' as const },
     { path: '/changelog', priority: 0.5, changeFrequency: 'monthly' as const },
   ]

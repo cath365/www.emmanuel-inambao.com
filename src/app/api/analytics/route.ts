@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
-import { cookies } from 'next/headers'
-import { AUTH_CONFIG } from '@/lib/auth-config'
+import { isAuthenticated } from '@/lib/auth-helpers'
 
 export interface Visit {
   id: string
@@ -83,6 +82,42 @@ function parseReferrer(ref: string): string {
   }
 }
 
+async function sendVisitorAlert(visit: Visit) {
+  const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
+  const VISITOR_ALERT_EMAIL = process.env.VISITOR_ALERT_EMAIL || process.env.ADMIN_EMAIL
+  if (!WEB3FORMS_KEY || !VISITOR_ALERT_EMAIL) return
+
+  const message = [
+    'New portfolio visitor session detected.',
+    '',
+    `Page: ${visit.page}`,
+    `Referrer: ${visit.referrer}`,
+    `Country: ${visit.country}`,
+    `City: ${visit.city}`,
+    `Device: ${visit.device}`,
+    `Browser: ${visit.browser}`,
+    `Time: ${new Date(visit.timestamp).toLocaleString()}`,
+    `Session ID: ${visit.sessionId}`,
+  ].join('\n')
+
+  try {
+    await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: `👀 New Visitor: ${visit.page}`,
+        from_name: 'Portfolio Analytics',
+        name: 'Portfolio Tracker',
+        email: VISITOR_ALERT_EMAIL,
+        message,
+      }),
+    })
+  } catch (e) {
+    console.error('Visitor alert email failed:', e)
+  }
+}
+
 // POST — track a visit (public, no auth)
 export async function POST(request: NextRequest) {
   try {
@@ -127,6 +162,13 @@ export async function POST(request: NextRequest) {
     if (recent) return NextResponse.json({ ok: true })
 
     await writeDay(day, [visit, ...existing])
+
+    // Notify only on the first tracked hit for a session in this day (avoids spam).
+    const sessionSeenToday = existing.some(v => v.sessionId === visit.sessionId)
+    if (!sessionSeenToday) {
+      void sendVisitorAlert(visit)
+    }
+
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ ok: false })
@@ -135,13 +177,7 @@ export async function POST(request: NextRequest) {
 
 // GET — read analytics for admin (requires auth)
 export async function GET(request: NextRequest) {
-  try {
-    const cookieStore = await cookies()
-    const session = cookieStore.get(AUTH_CONFIG.cookieName)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const sessionData = JSON.parse(Buffer.from(session.value, 'base64').toString())
-    if (sessionData.exp < Date.now()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  } catch {
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
