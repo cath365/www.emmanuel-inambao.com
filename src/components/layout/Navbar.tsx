@@ -1,27 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { Menu, Search, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Cpu, Menu, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import { LanguageSwitcher } from '@/lib/i18n'
 
 const navLinks = [
   { href: '#about', label: 'About' },
+  { href: '#skills', label: 'Skills' },
   { href: '#projects', label: 'Projects' },
   { href: '#experience', label: 'Experience' },
-  { href: '#skills', label: 'Skills' },
   { href: '#contact', label: 'Contact' },
 ]
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const reduceMotion = useReducedMotion()
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 24)
+    const handleScroll = () => setIsScrolled(window.scrollY > 40)
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -41,56 +40,24 @@ export default function Navbar() {
   }
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 border-b transition duration-300 ${
-        isScrolled
-          ? 'border-brand-cream/10 bg-brand-navy/95 shadow-[0_8px_30px_rgba(0,11,38,0.16)] backdrop-blur-xl'
-          : 'border-transparent bg-brand-navy/90 backdrop-blur-md'
-      }`}
-    >
+    <header className={`fixed inset-x-0 top-0 z-50 border-b transition duration-300 ${isScrolled ? 'border-brand-cream/10 bg-brand-navy/95 backdrop-blur-md' : 'border-transparent bg-brand-navy/80 backdrop-blur-sm'}`}>
       <nav className="section-container" aria-label="Primary navigation">
-        <div className="flex h-[4.75rem] items-center justify-between gap-6">
-          <Link
-            href="/"
-            className="group inline-flex min-w-0 items-center gap-3 text-brand-cream"
-            aria-label="Emmanuel Inambao home"
-          >
-            <span
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-brand-sky/40 bg-brand-sky/10 font-serif text-lg font-semibold text-brand-sky"
-              aria-hidden="true"
-            >
-              EI
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate font-serif text-xl font-semibold leading-none tracking-tight sm:text-2xl">
-                Emmanuel Inambao
-              </span>
-              <span className="mt-1 block text-[0.58rem] font-semibold uppercase tracking-[0.23em] text-brand-camel">
-                Systems Engineer
-              </span>
-            </span>
+        <div className="flex h-16 items-center justify-between lg:h-20">
+          <Link href="/" className="inline-flex items-center gap-2.5 text-brand-cream" aria-label="Emmanuel Inambao home">
+            <Cpu className="h-5 w-5 text-brand-sky" aria-hidden="true" />
+            <span className="font-semibold tracking-tight">E.Inambao</span>
           </Link>
 
-          <div className="hidden items-center gap-5 lg:flex">
-            <div className="flex items-center gap-5" role="list">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm font-medium text-brand-cream/70 transition hover:text-brand-sky"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+          <div className="hidden items-center gap-6 lg:flex">
+            {navLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="text-sm font-medium text-brand-cream/65 transition hover:text-brand-cream">
+                {link.label}
+              </Link>
+            ))}
 
-            <button
-              type="button"
-              onClick={openCommandPalette}
-              className="hidden h-10 w-10 items-center justify-center rounded-full border border-brand-cream/10 text-brand-cream/60 transition hover:border-brand-sky/40 hover:text-brand-sky xl:inline-flex"
-              aria-label="Open site search"
-            >
-              <Search className="h-4 w-4" aria-hidden="true" />
+            <button type="button" onClick={openCommandPalette} className="hidden items-center gap-2 rounded-md border border-brand-cream/10 px-3 py-2 text-xs text-brand-cream/45 transition hover:text-brand-cream xl:inline-flex" aria-label="Open site search">
+              <Search className="h-3.5 w-3.5" aria-hidden="true" />
+              Ctrl K
             </button>
 
             <div className="hidden items-center gap-2 2xl:flex">
@@ -98,72 +65,26 @@ export default function Navbar() {
               <ThemeToggle />
             </div>
 
-            <Link
-              href="#projects"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-brand-sky px-5 text-sm font-semibold text-brand-navy transition hover:bg-brand-camel"
-            >
-              View My Work
+            <Link href="#contact" className="rounded-lg bg-brand-sky px-4 py-2.5 text-sm font-semibold text-brand-navy transition hover:bg-brand-camel">
+              Contact
             </Link>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsOpen((value) => !value)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-cream/10 text-brand-cream transition hover:border-brand-sky/50 hover:text-brand-sky lg:hidden"
-            aria-label={isOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={isOpen}
-            aria-controls="mobile-menu"
-          >
-            {isOpen ? (
-              <X className="h-5 w-5" aria-hidden="true" />
-            ) : (
-              <Menu className="h-5 w-5" aria-hidden="true" />
-            )}
+          <button type="button" onClick={() => setIsOpen((value) => !value)} className="inline-flex h-10 w-10 items-center justify-center text-brand-cream lg:hidden" aria-label={isOpen ? 'Close menu' : 'Open menu'} aria-expanded={isOpen} aria-controls="mobile-menu">
+            {isOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
         </div>
 
         <AnimatePresence initial={false}>
           {isOpen ? (
-            <motion.div
-              id="mobile-menu"
-              initial={reduceMotion ? false : { opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={reduceMotion ? undefined : { opacity: 0, height: 0 }}
-              className="overflow-hidden border-t border-brand-cream/10 lg:hidden"
-            >
+            <motion.div id="mobile-menu" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden border-t border-brand-cream/10 lg:hidden">
               <div className="grid gap-1 py-4">
                 {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    className="rounded-xl px-3 py-3 text-base font-medium text-brand-cream/100 transition hover:bg-brand-cream/5 hover:text-brand-sky"
-                  >
+                  <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="rounded-md px-3 py-3 text-base text-brand-cream/75 transition hover:bg-white/5 hover:text-brand-cream">
                     {link.label}
                   </Link>
                 ))}
-
-                <div className="mt-2 grid grid-cols-3 gap-2 border-t border-brand-cream/10 pt-4 text-center text-xs font-semibold uppercase tracking-[0.14em]">
-                  <Link href="/case-studies" onClick={() => setIsOpen(false)} className="rounded-lg px-2 py-3 text-brand-camel hover:bg-brand-cream/5">
-                    Cases
-                  </Link>
-                  <Link href="/blog" onClick={() => setIsOpen(false)} className="rounded-lg px-2 py-3 text-brand-camel hover:bg-brand-cream/5">
-                    Blog
-                  </Link>
-                  <Link href="/resume" onClick={() => setIsOpen(false)} className="rounded-lg px-2 py-3 text-brand-camel hover:bg-brand-cream/5">
-                    Resume
-                  </Link>
-                </div>
-
-                <Link
-                  href="#projects"
-                  onClick={() => setIsOpen(false)}
-                  className="mt-3 inline-flex min-h-12 items-center justify-center rounded-full bg-brand-sky px-5 font-semibold text-brand-navy"
-                >
-                  View My Work
-                </Link>
-
-                <div className="mt-3 flex items-center justify-center gap-3">
+                <div className="mt-3 flex items-center gap-3 border-t border-brand-cream/10 pt-4">
                   <LanguageSwitcher />
                   <ThemeToggle />
                 </div>
