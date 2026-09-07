@@ -1,9 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowUpRight, Layers3 } from 'lucide-react'
-import { motion, useReducedMotion } from 'framer-motion'
-import PixelPhoneMockup from '@/components/ui/PixelPhoneMockup'
+import { ArrowRight } from 'lucide-react'
 import type { ShowcaseProject } from '@/data/portfolio'
 
 interface ProjectCardProps {
@@ -13,77 +11,64 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, index, onOpen }: ProjectCardProps) {
-  const reduceMotion = useReducedMotion()
-  const visualOrder = index % 2 === 0 ? 'lg:order-1' : 'lg:order-2'
-  const copyOrder = index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'
+  const details = [
+    ['Problem', project.caseStudy.problem],
+    ['Built', project.caseStudy.solution],
+    ['Technology', project.caseStudy.technology.slice(0, 6).join(', ')],
+    ['Status', project.caseStudy.status],
+  ] as const
 
   return (
-    <motion.article
-      layout={!reduceMotion}
-      initial={reduceMotion ? false : { opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: reduceMotion ? 0 : 0.55 }}
-      className="grid items-center gap-10 border-t border-brand-navy/10 py-14 first:border-t-0 first:pt-5 dark:border-brand-cream/10 sm:py-18 lg:grid-cols-2 lg:gap-20 lg:py-20"
-    >
-      <div className={'group relative py-6 ' + visualOrder}>
-        <div className="absolute inset-x-[6%] bottom-4 top-16 rounded-[3rem] border border-brand-navy/5 bg-white/55 shadow-editorial-sm transition duration-500 group-hover:-translate-y-1 group-hover:bg-brand-camel/20 dark:border-brand-cream/10 dark:bg-white/5" />
-        <div className="absolute left-[8%] top-2 h-20 w-20 rounded-full bg-brand-sky/25 blur-2xl" />
-        <div className="relative transition duration-500 group-hover:-translate-y-2">
-          <PixelPhoneMockup project={project} />
-        </div>
-      </div>
-
-      <div className={copyOrder}>
-        <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-full border border-brand-navy/10 bg-brand-camel/35 text-xs font-bold text-brand-navy dark:border-brand-cream/10 dark:text-brand-cream">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <p className="editorial-label">Flagship system</p>
-        </div>
-
-        <h3 className="mt-5 max-w-xl font-serif text-4xl font-semibold leading-[0.96] tracking-[-0.03em] text-brand-navy dark:text-brand-cream sm:text-5xl lg:text-[3.6rem]">
+    <article className="grid gap-7 border-t border-brand-navy/10 py-10 first:mt-8 dark:border-brand-cream/10 sm:py-12 lg:grid-cols-[0.34fr_0.66fr] lg:gap-14">
+      <div>
+        <p className="text-xs font-semibold text-brand-chocolate/45 dark:text-brand-cream/40">
+          {String(index + 1).padStart(2, '0')}
+        </p>
+        <h3 className="mt-3 font-serif text-3xl font-semibold leading-tight tracking-[-0.02em] sm:text-4xl">
           {project.name}
         </h3>
-
-        <div className="mt-5 flex flex-wrap gap-2" aria-label={project.name + ' categories'}>
-          {project.categories.map((category) => (
-            <span key={category} className="rounded-full border border-brand-navy/10 bg-white/50 px-3 py-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.13em] text-brand-chocolate dark:border-brand-cream/10 dark:bg-white/5 dark:text-brand-camel">
-              {category}
-            </span>
-          ))}
-        </div>
-
-        <p className="mt-7 max-w-xl text-base leading-8 text-brand-chocolate/75 dark:text-brand-cream/70 sm:text-lg">
+        <p className="mt-4 text-base leading-7 text-brand-chocolate/70 dark:text-brand-cream/65">
           {project.description}
         </p>
 
-        <div className="mt-7 rounded-2xl border border-brand-navy/10 bg-white/55 p-4 dark:border-brand-cream/10 dark:bg-white/5">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-brand-chocolate/60 dark:text-brand-camel">
-            <Layers3 className="h-4 w-4 text-brand-sky" aria-hidden="true" />
-            Interface preview
-          </div>
-          <p className="mt-2 text-sm leading-6 text-brand-navy/75 dark:text-brand-cream/65">
-            {project.screenItems.slice(0, 5).join(' · ')}
-          </p>
-        </div>
+        <p className="mt-5 text-sm leading-6 text-brand-chocolate/55 dark:text-brand-cream/50">
+          {project.categories.join(' · ')}
+        </p>
 
-        <p className="sr-only">Phone preview includes: {project.screenItems.join(', ')}.</p>
-
-        <div className="mt-8">
+        <div className="mt-6">
           {onOpen ? (
-            <button type="button" onClick={() => onOpen(project)} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-navy px-6 text-sm font-semibold text-brand-cream transition duration-300 hover:-translate-y-0.5 hover:bg-brand-chocolate dark:bg-brand-sky dark:text-brand-navy dark:hover:bg-brand-camel">
-              View Case Study
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={() => onOpen(project)}
+              className="inline-flex items-center gap-2 text-sm font-bold text-brand-navy underline decoration-brand-sky decoration-2 underline-offset-4 dark:text-brand-cream"
+            >
+              View case study
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           ) : (
-            <Link href={'/case-studies/' + project.slug} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-navy px-6 text-sm font-semibold text-brand-cream transition duration-300 hover:-translate-y-0.5 hover:bg-brand-chocolate dark:bg-brand-sky dark:text-brand-navy dark:hover:bg-brand-camel">
-              View Case Study
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            <Link
+              href={'/case-studies/' + project.slug}
+              className="inline-flex items-center gap-2 text-sm font-bold text-brand-navy underline decoration-brand-sky decoration-2 underline-offset-4 dark:text-brand-cream"
+            >
+              View case study
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           )}
         </div>
       </div>
-    </motion.article>
+
+      <dl className="grid border border-brand-navy/10 bg-white dark:border-brand-cream/10 dark:bg-white/[0.03] sm:grid-cols-2">
+        {details.map(([label, value]) => (
+          <div key={label} className="border-b border-brand-navy/10 p-5 last:border-b-0 dark:border-brand-cream/10 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-last-child(-n+2)]:border-b-0">
+            <dt className="text-xs font-bold uppercase tracking-[0.14em] text-brand-chocolate/50 dark:text-brand-camel">
+              {label}
+            </dt>
+            <dd className="mt-2 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/65">
+              {value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </article>
   )
 }
