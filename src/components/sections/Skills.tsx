@@ -33,12 +33,12 @@ export default function Skills() {
           className="grid gap-8 border-b border-[#000B26]/25 pb-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end"
         >
           <div>
-            <p className="eyebrow text-[#000B26]/65">03 / Capability stack</p>
+            <p className="eyebrow text-[#000B26]/60">03 / Capability stack</p>
             <h2 id="skills-heading" className="editorial-serif mt-4 text-5xl leading-none tracking-[-0.025em] text-[#000B26] sm:text-6xl">
               One engineer, multiple layers.
             </h2>
           </div>
-          <p className="max-w-2xl text-base leading-7 text-[#000B26]/72 lg:justify-self-end">
+          <p className="max-w-2xl text-base leading-7 text-[#000B26]/70 lg:justify-self-end">
             My work crosses the boundaries between electronics and software. Instead of presenting ability as decorative percentages, this section shows the actual disciplines and technologies I use to build complete systems.
           </p>
         </motion.div>
@@ -52,18 +52,18 @@ export default function Skills() {
                 initial={{ opacity: 0, y: 18 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.45, delay: index * 0.07 }}
-                className="grid gap-5 border-b border-[#000B26]/22 py-8 md:grid-cols-[4rem_0.72fr_1.28fr] md:items-start md:gap-8"
+                className="grid gap-5 border-b border-[#000B26]/20 py-8 md:grid-cols-[4rem_0.72fr_1.28fr] md:items-start md:gap-8"
               >
-                <div className="flex h-11 w-11 items-center justify-center border border-[#000B26]/35">
+                <div className="flex h-11 w-11 items-center justify-center border border-[#000B26]/30">
                   <Icon className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="editorial-serif text-2xl leading-tight">{category.title}</h3>
-                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#000B26]/62">{category.description}</p>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#000B26]/60">{category.description}</p>
                 </div>
                 <div className="flex flex-wrap gap-2 md:pt-1">
                   {category.skills.map(skill => (
-                    <span key={skill.name} className="border border-[#000B26]/30 bg-[#F7F3EC]/24 px-3 py-2 text-xs font-semibold text-[#000B26] sm:text-sm">
+                    <span key={skill.name} className="border border-[#000B26]/30 bg-[#F7F3EC]/25 px-3 py-2 text-xs font-semibold text-[#000B26] sm:text-sm">
                       {skill.name}
                     </span>
                   ))}
@@ -76,7 +76,7 @@ export default function Skills() {
         <div className="mt-10 grid gap-5 lg:grid-cols-[0.55fr_1.45fr] lg:items-start">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#000B26]/60">Tools & platforms</p>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            {tools.map(tool => <span key={tool} className="text-sm font-medium text-[#000B26]/78">{tool}</span>)}
+            {tools.map(tool => <span key={tool} className="text-sm font-medium text-[#000B26]/80">{tool}</span>)}
           </div>
         </div>
       </div>
