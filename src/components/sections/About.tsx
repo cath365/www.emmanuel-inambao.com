@@ -19,7 +19,7 @@ export default function About() {
     <section
       id="about"
       ref={ref}
-      className="content-auto bg-brand-cream py-20 text-brand-navy dark:bg-brand-navy dark:text-brand-cream sm:py-24 lg:py-32"
+      className="content-auto bg-brand-camel/20 py-20 text-brand-navy dark:bg-brand-navy dark:text-brand-cream sm:py-24 lg:py-32"
       aria-labelledby="about-heading"
     >
       <div className="section-container">
