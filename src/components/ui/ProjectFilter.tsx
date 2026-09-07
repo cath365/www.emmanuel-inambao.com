@@ -31,7 +31,7 @@ export default function ProjectFilter({
                 'min-h-10 rounded-full border px-4 text-sm font-semibold transition ' +
                 (active
                   ? 'border-brand-navy bg-brand-navy text-brand-cream dark:border-brand-sky dark:bg-brand-sky dark:text-brand-navy'
-                  : 'border-brand-navy/10 bg-transparent text-brand-chocolate hover:border-brand-sky hover:text-brand-navy dark:border-brand-cream/15 dark:text-brand-cream/65 dark:hover:text-brand-sky')
+                  : 'border-brand-navy/10 bg-transparent text-brand-chocolate hover:border-brand-sky hover:text-brand-navy dark:border-brand-cream/10 dark:text-brand-cream/60 dark:hover:text-brand-sky')
               }
             >
               {filter}
