@@ -22,20 +22,25 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        id: install
+        continue-on-error: true
+        run: npm ci --legacy-peer-deps > install-output.txt 2>&1
 
       - name: Run ESLint
         id: lint
+        if: steps.install.outcome == 'success'
         continue-on-error: true
         run: npm run lint > lint-output.txt 2>&1
 
       - name: Check formatting
         id: format
+        if: steps.install.outcome == 'success'
         continue-on-error: true
         run: npm run format:check > format-output.txt 2>&1
 
       - name: Build project
         id: build
+        if: steps.install.outcome == 'success'
         continue-on-error: true
         run: npm run build > build-output.txt 2>&1
         env:
@@ -47,16 +52,20 @@ jobs:
         with:
           name: ci-diagnostics
           path: |
+            install-output.txt
             lint-output.txt
             format-output.txt
             build-output.txt
+          if-no-files-found: warn
           retention-days: 1
 
       - name: Enforce quality gates
-        if: steps.lint.outcome == 'failure' || steps.format.outcome == 'failure' || steps.build.outcome == 'failure'
+        if: always()
         run: |
-          echo "One or more quality gates failed."
-          exit 1
+          if [ "${{ steps.install.outcome }}" != "success" ] ||              [ "${{ steps.lint.outcome }}" = "failure" ] ||              [ "${{ steps.format.outcome }}" = "failure" ] ||              [ "${{ steps.build.outcome }}" = "failure" ]; then
+            echo "One or more quality gates failed."
+            exit 1
+          fi
 
   test:
     name: E2E Tests
