@@ -1,54 +1,77 @@
 import type { Metadata } from 'next'
-import { Inter, Noto_Sans_Arabic, Noto_Sans_SC } from 'next/font/google'
+import {
+  Cormorant_Garamond,
+  Inter,
+  Noto_Sans_Arabic,
+  Noto_Sans_SC,
+} from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
 import { Analytics } from '@vercel/analytics/react'
+import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
+import VisitorTracker from '@/components/ui/VisitorTracker'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const notoArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font-arabic', weight: ['400', '500', '600', '700'] })
-const notoSC = Noto_Sans_SC({ subsets: ['latin'], variable: '--font-chinese', weight: ['400', '500', '600', '700'] })
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
-// Multilingual SEO metadata
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  variable: '--font-serif',
+  display: 'swap',
+  weight: ['500', '600', '700'],
+})
+
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ['arabic'],
+  variable: '--font-arabic',
+  weight: ['400', '500', '600', '700'],
+})
+
+const notoSC = Noto_Sans_SC({
+  subsets: ['latin'],
+  variable: '--font-chinese',
+  weight: ['400', '500', '600', '700'],
+})
+
 export const metadata: Metadata = {
   title: {
-    default: 'Prof. Emmanuel Inambao | Electronic Engineer & IoT Developer',
+    default: 'Emmanuel Inambao | Systems Engineer',
     template: '%s | Emmanuel Inambao',
   },
-  description: 'Professional portfolio of Professor Emmanuel Inambao - Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer based in Lusaka, Zambia. Specializing in embedded systems, industrial automation, and smart solutions.',
+  description:
+    'Portfolio of Emmanuel Inambao, a Systems Engineer in Lusaka, Zambia building practical solutions across AI, IoT, robotics, embedded systems, mobile applications and full-stack development.',
   keywords: [
     'Emmanuel Inambao',
-    'Electronic Engineer',
+    'Systems Engineer Zambia',
+    'AI Developer Zambia',
     'IoT Developer',
     'Robotics',
     'Embedded Systems',
-    'Arduino',
     'ESP32',
+    'Arduino',
+    'Mobile App Development',
     'Full-Stack Developer',
+    'Lusaka',
     'Zambia',
-    'Industrial Automation',
-    'Smart Systems',
-    // Multilingual keywords
-    'Ingénieur Électronique',
-    'Développeur IoT',
-    'Ingeniero Electrónico',
-    'Elektroingenieur',
-    '电子工程师',
-    '物联网开发者',
-    'مهندس إلكترونيات',
   ],
   authors: [{ name: 'Emmanuel Inambao' }],
   creator: 'Emmanuel Inambao',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com',
+  ),
   alternates: {
     canonical: '/',
     languages: {
-      'en': '/?lang=en',
-      'fr': '/?lang=fr',
-      'pt': '/?lang=pt',
-      'es': '/?lang=es',
-      'de': '/?lang=de',
-      'ar': '/?lang=ar',
-      'zh': '/?lang=zh',
+      en: '/?lang=en',
+      fr: '/?lang=fr',
+      pt: '/?lang=pt',
+      es: '/?lang=es',
+      de: '/?lang=de',
+      ar: '/?lang=ar',
+      zh: '/?lang=zh',
       'x-default': '/',
     },
   },
@@ -57,14 +80,16 @@ export const metadata: Metadata = {
     locale: 'en_US',
     alternateLocale: ['fr_FR', 'pt_BR', 'es_ES', 'de_DE', 'ar_SA', 'zh_CN'],
     url: process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com',
-    title: 'Prof. Emmanuel Inambao | Electronic Engineer & IoT Developer',
-    description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer. Building intelligent systems that solve real-world problems.',
+    title: 'Emmanuel Inambao | Systems Engineer',
+    description:
+      'Turning ideas into intelligent real-world solutions through AI, IoT, robotics, embedded systems, mobile applications and full-stack engineering.',
     siteName: 'Emmanuel Inambao Portfolio',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Prof. Emmanuel Inambao | Electronic Engineer & IoT Developer',
-    description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer. Building intelligent systems that solve real-world problems.',
+    title: 'Emmanuel Inambao | Systems Engineer',
+    description:
+      'Turning ideas into intelligent real-world solutions through AI, IoT, robotics and software engineering.',
   },
   robots: {
     index: true,
@@ -79,26 +104,28 @@ export const metadata: Metadata = {
   },
 }
 
-import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
-import VisitorTracker from '@/components/ui/VisitorTracker'
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`scroll-smooth dark overflow-x-hidden ${inter.variable} ${notoArabic.variable} ${notoSC.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`scroll-smooth dark overflow-x-hidden ${inter.variable} ${cormorant.variable} ${notoArabic.variable} ${notoSC.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="icon" href="/icons/icon-192.png" type="image/png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#6366f1" />
+        <meta name="theme-color" content="#000B26" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        {/* RSS Feed */}
-        <link rel="alternate" type="application/rss+xml" title="Emmanuel Inambao Blog" href="/api/rss" />
-        {/* Preconnect to Google Fonts for Arabic and Chinese */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Emmanuel Inambao Blog"
+          href="/api/rss"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -112,7 +139,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} bg-dark-950 text-dark-100 light:bg-slate-50 light:text-slate-900`}>
+      <body className={inter.className}>
         <Providers>
           {children}
           <VisitorTracker />

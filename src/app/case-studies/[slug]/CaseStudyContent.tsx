@@ -1,247 +1,200 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { ArrowLeft, ArrowUpRight } from 'lucide-react'
+import PixelPhoneMockup from '@/components/ui/PixelPhoneMockup'
+import type { ShowcaseProject } from '@/data/portfolio'
 
-interface CaseStudy {
-  title: string
-  subtitle: string
-  overview: string
-  problem: string[]
-  solution: string[]
-  results: { metric: string; value: string; description: string }[]
-  technologies: string[]
-  timeline: string
-  role: string
-  testimonial?: { quote: string; author: string; role: string }
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-4 grid gap-3">
+      {items.map((item) => (
+        <li
+          key={item}
+          className="flex gap-3 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60"
+        >
+          <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-sky" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  )
 }
 
-export default function CaseStudyContent({ study }: { study: CaseStudy }) {
+export default function CaseStudyContent({ project }: { project: ShowcaseProject }) {
+  const study = project.caseStudy
+
   return (
-    <main className="min-h-screen py-20 bg-white dark:bg-gray-900">
-      <article className="container mx-auto px-4 max-w-4xl">
-        {/* Back link */}
+    <article className="min-h-screen bg-brand-cream pb-24 pt-28 dark:bg-brand-navy sm:pt-32">
+      <div className="section-container">
         <Link
-          href="/case-studies"
-          className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-8"
+          href="/#projects"
+          className="inline-flex min-h-10 items-center gap-2 rounded-full text-sm font-semibold text-brand-navy transition hover:text-brand-sky dark:text-brand-cream"
         >
-          <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to Case Studies
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          Back to Projects
         </Link>
 
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            {study.title}
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            {study.subtitle}
-          </p>
-          
-          {/* Meta info */}
-          <div className="flex flex-wrap gap-6 mt-6 text-sm text-gray-500 dark:text-gray-500">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{study.timeline}</span>
+        <header className="mt-7 grid items-center gap-10 border-b border-brand-navy/10 pb-12 dark:border-brand-cream/10 lg:grid-cols-[1fr_0.82fr] lg:gap-16">
+          <div>
+            <p className="editorial-label">Case Study</p>
+            <h1 className="mt-4 font-serif text-5xl font-semibold leading-[0.92] tracking-[-0.035em] text-brand-navy dark:text-brand-cream sm:text-6xl lg:text-7xl">
+              {project.name}
+            </h1>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {project.categories.map((category) => (
+                <span
+                  key={category}
+                  className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-camel"
+                >
+                  {category}
+                </span>
+              ))}
             </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span>{study.role}</span>
+
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-brand-chocolate/75 dark:text-brand-cream/70">
+              {study.overview}
+            </p>
+
+            <div className="mt-7 rounded-2xl border border-brand-sky/30 bg-brand-sky/10 p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-chocolate dark:text-brand-camel">
+                Current status
+              </p>
+              <p className="mt-2 font-semibold text-brand-navy dark:text-brand-cream">
+                {study.status}
+              </p>
             </div>
           </div>
-        </motion.header>
 
-        {/* Overview */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-12"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Overview</h2>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-            {study.overview}
-          </p>
-        </motion.section>
+          <PixelPhoneMockup project={project} />
+        </header>
 
-        {/* Results (Key Metrics) */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white"
-        >
-          <h2 className="text-2xl font-bold mb-6">Key Results</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {study.results.map((result, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + index * 0.1 }}
-                className="text-center"
-              >
-                <div className="text-4xl font-bold mb-1">{result.metric}</div>
-                <div className="text-sm text-white/80">{result.value}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
+        <div className="mt-12 grid gap-8 lg:grid-cols-2">
+          <section className="editorial-card p-6 sm:p-8">
+            <p className="editorial-label">Problem</p>
+            <p className="mt-4 leading-8 text-brand-chocolate/75 dark:text-brand-cream/70">
+              {study.problem}
+            </p>
+          </section>
+          <section className="editorial-card p-6 sm:p-8">
+            <p className="editorial-label">Proposed solution</p>
+            <p className="mt-4 leading-8 text-brand-chocolate/75 dark:text-brand-cream/70">
+              {study.solution}
+            </p>
+          </section>
+        </div>
 
-        {/* Problem */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-12"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </span>
-            The Challenge
+        <div className="mt-12 grid gap-10 lg:grid-cols-2">
+          <section>
+            <h2 className="font-serif text-4xl font-semibold text-brand-navy dark:text-brand-cream">
+              Technologies used
+            </h2>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {study.technologies.map((item) => (
+                <span key={item} className="tech-badge">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="font-serif text-4xl font-semibold text-brand-navy dark:text-brand-cream">
+              Hardware used
+            </h2>
+            {study.hardware.length ? (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {study.hardware.map((item) => (
+                  <span key={item} className="tech-badge">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-5 text-sm leading-7 text-brand-chocolate/60 dark:text-brand-cream/50">
+                Software-focused project; no dedicated hardware is required for the current
+                workflow.
+              </p>
+            )}
+          </section>
+        </div>
+
+        <section className="mt-14">
+          <h2 className="font-serif text-4xl font-semibold text-brand-navy dark:text-brand-cream">
+            System workflow
           </h2>
-          <ul className="space-y-3">
-            {study.problem.map((item, index) => (
-              <motion.li
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + index * 0.05 }}
-                className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
+          <ol className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {study.workflow.map((step, index) => (
+              <li
+                key={step}
+                className="rounded-2xl border border-brand-navy/10 p-5 dark:border-brand-cream/10"
               >
-                <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
-                {item}
-              </motion.li>
-            ))}
-          </ul>
-        </motion.section>
-
-        {/* Solution */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-12"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </span>
-            The Solution
-          </h2>
-          <ul className="space-y-3">
-            {study.solution.map((item, index) => (
-              <motion.li
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + index * 0.05 }}
-                className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
-              >
-                <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
-                {item}
-              </motion.li>
-            ))}
-          </ul>
-        </motion.section>
-
-        {/* Technologies */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mb-12"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Technologies Used</h2>
-          <div className="flex flex-wrap gap-2">
-            {study.technologies.map((tech) => (
-              <span
-                key={tech}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* Testimonial */}
-        {study.testimonial && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mb-12"
-          >
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 relative">
-              <svg
-                className="absolute top-4 left-4 w-12 h-12 text-blue-200 dark:text-blue-900"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-              </svg>
-              <blockquote className="pl-8 pt-4">
-                <p className="text-lg text-gray-700 dark:text-gray-300 italic mb-4">
-                  &ldquo;{study.testimonial.quote}&rdquo;
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-brand-sky">
+                  Step {String(index + 1).padStart(2, '0')}
+                </span>
+                <p className="mt-2 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60">
+                  {step}
                 </p>
-                <footer className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {study.testimonial.author.charAt(0)}
-                  </div>
-                  <div>
-                    <cite className="not-italic font-semibold text-gray-900 dark:text-white">
-                      {study.testimonial.author}
-                    </cite>
-                    <p className="text-sm text-gray-500 dark:text-gray-500">
-                      {study.testimonial.role}
-                    </p>
-                  </div>
-                </footer>
-              </blockquote>
-            </div>
-          </motion.section>
-        )}
+              </li>
+            ))}
+          </ol>
+        </section>
 
-        {/* CTA */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="text-center py-12 border-t border-gray-200 dark:border-gray-700"
-        >
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Interested in a similar solution?
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Let&apos;s discuss how I can help with your project.
-          </p>
+        <div className="mt-14 grid gap-10 lg:grid-cols-3">
+          <section>
+            <h2 className="font-serif text-3xl font-semibold text-brand-navy dark:text-brand-cream">
+              My role
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60">
+              {study.role}
+            </p>
+          </section>
+          <section>
+            <h2 className="font-serif text-3xl font-semibold text-brand-navy dark:text-brand-cream">
+              Challenges
+            </h2>
+            <BulletList items={study.challenges} />
+          </section>
+          <section>
+            <h2 className="font-serif text-3xl font-semibold text-brand-navy dark:text-brand-cream">
+              Future improvements
+            </h2>
+            <BulletList items={study.futureImprovements} />
+          </section>
+        </div>
+
+        <section className="mt-14 border-t border-brand-navy/10 pt-12 dark:border-brand-cream/10">
+          <p className="editorial-label">Interface gallery</p>
+          <h2 className="mt-3 font-serif text-4xl font-semibold text-brand-navy dark:text-brand-cream">
+            Product screens and controls
+          </h2>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {project.screenItems.map((item) => (
+              <div
+                key={item}
+                className="rounded-2xl border border-brand-navy/10 bg-white/70 p-5 text-sm font-semibold text-brand-navy dark:border-brand-cream/10 dark:bg-white/5 dark:text-brand-cream"
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="mt-14 flex flex-col items-start justify-between gap-5 rounded-[1.75rem] bg-brand-chocolate p-7 text-brand-cream sm:flex-row sm:items-center sm:p-9">
+          <div>
+            <p className="editorial-label !text-brand-camel">Project discussion</p>
+            <p className="mt-2 max-w-xl font-serif text-3xl font-semibold leading-tight">
+              Have a related system or product problem to solve?
+            </p>
+          </div>
           <Link
             href="/#contact"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
+            className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-full bg-brand-sky px-6 text-sm font-semibold text-brand-navy transition hover:bg-brand-camel"
           >
-            Get in Touch
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            Get In Touch
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-        </motion.section>
-      </article>
-    </main>
+        </div>
+      </div>
+    </article>
   )
 }

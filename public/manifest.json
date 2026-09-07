@@ -1,11 +1,11 @@
 {
   "name": "Emmanuel Inambao Portfolio",
   "short_name": "EI Portfolio",
-  "description": "Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer",
+  "description": "Systems Engineer — AI, IoT, Robotics, Embedded Systems, Mobile and Full-Stack Development",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#6366f1",
+  "background_color": "#F7F3EC",
+  "theme_color": "#000B26",
   "orientation": "portrait-primary",
   "icons": [
     {
