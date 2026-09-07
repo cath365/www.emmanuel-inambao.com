@@ -48,7 +48,7 @@ export default function Hero() {
             </h1>
 
             <div className="mt-8 max-w-3xl border-l border-[#CBB08A] pl-5 sm:pl-7">
-              <p className="text-base leading-7 text-[#F7F3EC]/72 sm:text-lg sm:leading-8">
+              <p className="text-base leading-7 text-[#F7F3EC]/70 sm:text-lg sm:leading-8">
                 {profile.bio}
               </p>
             </div>
@@ -63,7 +63,7 @@ export default function Hero() {
               </Link>
               <Link
                 href="/start-project"
-                className="inline-flex items-center gap-2 border border-[#F7F3EC]/35 px-5 py-3 text-sm font-semibold text-[#F7F3EC] transition hover:border-[#F7F3EC] hover:bg-[#F7F3EC]/5"
+                className="inline-flex items-center gap-2 border border-[#F7F3EC]/30 px-5 py-3 text-sm font-semibold text-[#F7F3EC] transition hover:border-[#F7F3EC] hover:bg-[#F7F3EC]/5"
               >
                 Start a project
                 <ArrowUpRight className="h-4 w-4" />
@@ -106,7 +106,7 @@ export default function Hero() {
                   {displayName.charAt(0)}
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#000B26]/65 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#000B26]/60 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#CBB08A]">Engineer / Developer</p>
                 <p className="editorial-serif mt-2 text-3xl leading-none text-[#F7F3EC] sm:text-4xl">{displayName}</p>
@@ -119,7 +119,7 @@ export default function Hero() {
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#CBB08A]">Core disciplines</span>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {disciplines.map(item => (
-              <span key={item} className="text-sm text-[#F7F3EC]/62">{item}</span>
+              <span key={item} className="text-sm text-[#F7F3EC]/60">{item}</span>
             ))}
           </div>
           <Link href="#about" className="inline-flex items-center gap-2 text-sm font-semibold text-[#7CA7EB] hover:text-[#F7F3EC]">
