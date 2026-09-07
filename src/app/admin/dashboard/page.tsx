@@ -58,8 +58,6 @@ export default function AdminDashboard() {
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0)
   const [todayVisitsCount, setTodayVisitsCount] = useState(0)
 
-  const formatBadge = (value: number) => (value > 99 ? '99+' : String(value))
-
   const loadLiveBadges = async () => {
     try {
       const [leadsRes, bookingsRes, analyticsRes] = await Promise.all([
