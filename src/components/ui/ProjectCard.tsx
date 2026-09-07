@@ -14,7 +14,7 @@ export default function ProjectCard({ project, index, onOpen }: ProjectCardProps
   const details = [
     ['Problem', project.caseStudy.problem],
     ['Built', project.caseStudy.solution],
-    ['Technology', project.caseStudy.technology.slice(0, 6).join(', ')],
+    ['Technology', project.caseStudy.technologies.slice(0, 6).join(', ')],
     ['Status', project.caseStudy.status],
   ] as const
 
