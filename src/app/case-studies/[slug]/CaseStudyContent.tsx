@@ -9,7 +9,7 @@ function BulletList({ items }: { items: string[] }) {
       {items.map((item) => (
         <li
           key={item}
-          className="flex gap-3 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/65"
+          className="flex gap-3 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60"
         >
           <span className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-sky" />
           <span>{item}</span>
@@ -44,7 +44,7 @@ export default function CaseStudyContent({ project }: { project: ShowcaseProject
               {project.categories.map((category) => (
                 <span
                   key={category}
-                  className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/15 dark:text-brand-camel"
+                  className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-camel"
                 >
                   {category}
                 </span>
@@ -71,13 +71,13 @@ export default function CaseStudyContent({ project }: { project: ShowcaseProject
         <div className="mt-12 grid gap-8 lg:grid-cols-2">
           <section className="editorial-card p-6 sm:p-8">
             <p className="editorial-label">Problem</p>
-            <p className="mt-4 leading-8 text-brand-chocolate/75 dark:text-brand-cream/68">
+            <p className="mt-4 leading-8 text-brand-chocolate/75 dark:text-brand-cream/70">
               {study.problem}
             </p>
           </section>
           <section className="editorial-card p-6 sm:p-8">
             <p className="editorial-label">Proposed solution</p>
-            <p className="mt-4 leading-8 text-brand-chocolate/75 dark:text-brand-cream/68">
+            <p className="mt-4 leading-8 text-brand-chocolate/75 dark:text-brand-cream/70">
               {study.solution}
             </p>
           </section>
@@ -110,7 +110,7 @@ export default function CaseStudyContent({ project }: { project: ShowcaseProject
                 ))}
               </div>
             ) : (
-              <p className="mt-5 text-sm leading-7 text-brand-chocolate/65 dark:text-brand-cream/55">
+              <p className="mt-5 text-sm leading-7 text-brand-chocolate/60 dark:text-brand-cream/50">
                 Software-focused project; no dedicated hardware is required for the current
                 workflow.
               </p>
@@ -131,7 +131,7 @@ export default function CaseStudyContent({ project }: { project: ShowcaseProject
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-brand-sky">
                   Step {String(index + 1).padStart(2, '0')}
                 </span>
-                <p className="mt-2 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/65">
+                <p className="mt-2 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60">
                   {step}
                 </p>
               </li>
@@ -144,7 +144,7 @@ export default function CaseStudyContent({ project }: { project: ShowcaseProject
             <h2 className="font-serif text-3xl font-semibold text-brand-navy dark:text-brand-cream">
               My role
             </h2>
-            <p className="mt-4 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/65">
+            <p className="mt-4 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60">
               {study.role}
             </p>
           </section>
@@ -171,7 +171,7 @@ export default function CaseStudyContent({ project }: { project: ShowcaseProject
             {project.screenItems.map((item) => (
               <div
                 key={item}
-                className="rounded-2xl border border-brand-navy/10 bg-white/70 p-5 text-sm font-semibold text-brand-navy dark:border-brand-cream/10 dark:bg-white/[0.04] dark:text-brand-cream"
+                className="rounded-2xl border border-brand-navy/10 bg-white/70 p-5 text-sm font-semibold text-brand-navy dark:border-brand-cream/10 dark:bg-white/5 dark:text-brand-cream"
               >
                 {item}
               </div>
