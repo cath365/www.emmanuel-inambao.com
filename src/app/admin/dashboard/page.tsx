@@ -22,9 +22,26 @@ import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
-import SkillsEditor from '@/components/admin/SkillsEditor'
+import SkillsEditor from '@/components/admin/SkillsEditor'\nimport AdminSidebar, { type AdminTab } from '@/components/admin/AdminSidebar'\nimport AdminOverview from '@/components/admin/AdminOverview'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = AdminTab
+
+const tabTitles: Record<TabType, string> = {
+  overview: 'Overview',
+  projects: 'Projects',
+  profile: 'Profile',
+  experience: 'Experience',
+  testimonials: 'Testimonials',
+  certifications: 'Certifications',
+  services: 'Services',
+  skills: 'Skills',
+  media: 'Media',
+  resources: 'Resources',
+  gallery: 'Gallery',
+  leads: 'Leads',
+  bookings: 'Bookings',
+  analytics: 'Audience Analytics',
+}
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -32,7 +49,7 @@ export default function AdminDashboard() {
   const { projects, addProject, updateProject, deleteProject } = useProjects()
   const { profile, updateProfile } = useProfile()
   
-  const [activeTab, setActiveTab] = useState<TabType>('projects')
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -170,7 +187,17 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-[#070B17] text-white">
+      <AdminSidebar
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        userEmail={user?.email}
+        newLeadsCount={newLeadsCount}
+        pendingBookingsCount={pendingBookingsCount}
+        todayVisitsCount={todayVisitsCount}
+        onLogout={handleLogout}
+      />
+      <div className="min-h-screen pt-16 lg:pl-72 lg:pt-0">
       {/* Notification Toast */}
       <AnimatePresence>
         {notification && (
@@ -192,201 +219,38 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <header className="bg-dark-900 border-b border-dark-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2 text-white font-bold text-lg">
-              <Cpu className="w-6 h-6 text-primary-500" />
-              Admin Dashboard
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-dark-400 text-sm hidden sm:block">
-                Welcome, {user?.email}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-dark-400 hover:text-white transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="hidden sm:block">Logout</span>
-              </button>
-            </div>
+      <header className="sticky top-0 z-30 hidden border-b border-white/10 bg-[#070B17]/95 backdrop-blur lg:block">
+        <div className="flex h-20 items-center justify-between px-8 xl:px-10">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Portfolio Control</p>
+            <h1 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-white">{tabTitles[activeTab]}</h1>
           </div>
+          <Link href="/" target="_blank" className="border border-white/15 px-4 py-2 text-xs font-semibold text-white/65 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]">
+            View live portfolio
+          </Link>
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="bg-dark-900/50 border-b border-dark-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto pb-px">
-            <button
-              onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'projects'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <FolderOpen className="w-5 h-5" />
-              Projects
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'profile'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <User className="w-5 h-5" />
-              Profile
-            </button>
-            <button
-              onClick={() => setActiveTab('experience')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'experience'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Briefcase className="w-5 h-5" />
-              Experience
-            </button>
-            <button
-              onClick={() => setActiveTab('testimonials')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'testimonials'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Quote className="w-5 h-5" />
-              Testimonials
-            </button>
-            <button
-              onClick={() => setActiveTab('certifications')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'certifications'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Award className="w-5 h-5" />
-              Certifications
-            </button>
-            <button
-              onClick={() => setActiveTab('services')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'services'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Settings className="w-5 h-5" />
-              Services
-            </button>
-            <button
-              onClick={() => setActiveTab('media')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'media'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Video className="w-5 h-5" />
-              Media
-            </button>
-            <button
-              onClick={() => setActiveTab('skills')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'skills'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Cpu className="w-5 h-5" />
-              Skills
-            </button>
-            <button
-              onClick={() => setActiveTab('resources')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'resources'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <FileText className="w-5 h-5" />
-              Resources
-            </button>
-            <button
-              onClick={() => setActiveTab('gallery')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'gallery'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <GalleryHorizontal className="w-5 h-5" />
-              Gallery
-            </button>
-            <button
-              onClick={() => setActiveTab('leads')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'leads'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Bell className="w-5 h-5" />
-              Leads
-              {newLeadsCount > 0 && (
-                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-red-500 text-white text-xs px-1.5">
-                  {formatBadge(newLeadsCount)}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('bookings')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'bookings'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Calendar className="w-5 h-5" />
-              Bookings
-              {pendingBookingsCount > 0 && (
-                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-500 text-dark-950 text-xs px-1.5">
-                  {formatBadge(pendingBookingsCount)}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'analytics'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <BarChart2 className="w-5 h-5" />
-              Analytics
-              {todayVisitsCount > 0 && (
-                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs px-1.5">
-                  {formatBadge(todayVisitsCount)}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-[100rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 xl:px-10">
         <AnimatePresence mode="wait">
-          {activeTab === 'projects' ? (
+          {activeTab === 'overview' ? (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+            >
+              <AdminOverview
+                projectsCount={projects.length}
+                newLeadsCount={newLeadsCount}
+                pendingBookingsCount={pendingBookingsCount}
+                todayVisitsCount={todayVisitsCount}
+                onNavigate={setActiveTab}
+                onCreateProject={handleCreateNew}
+              />
+            </motion.div>
+          ) : activeTab === 'projects' ? (
             <motion.div
               key="projects"
               initial={{ opacity: 0, x: -20 }}
@@ -752,15 +616,6 @@ export default function AdminDashboard() {
           ) : null}
         </AnimatePresence>
 
-        {/* Quick links */}
-        <div className="mt-8 pt-8 border-t border-dark-700">
-          <Link 
-            href="/" 
-            className="text-primary-400 hover:text-primary-300 transition-colors"
-          >
-            ← View Portfolio
-          </Link>
-        </div>
       </main>
 
       {/* Edit/Create Project Modal */}
@@ -777,6 +632,7 @@ export default function AdminDashboard() {
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }
