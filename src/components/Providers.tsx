@@ -16,6 +16,8 @@ import { GalleryProvider } from '@/lib/gallery'
 import { SkillsProvider } from '@/lib/skills'
 import { ThemeProvider } from '@/components/ui/ThemeToggle'
 import { LanguageProvider } from '@/lib/i18n'
+import AIChatbot from '@/components/ui/AIChatbot'
+import VisitorTracker from '@/components/ui/VisitorTracker'
 import CookieConsent from '@/components/ui/CookieConsent'
 import SkipToContent from '@/components/ui/SkipToContent'
 import ScrollProgress from '@/components/ui/ScrollProgress'
@@ -41,6 +43,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         <ResourcesProvider>
                           <GalleryProvider>
                             <SkipToContent />
+                            {!isAdminPage && <VisitorTracker />}
                             {!isAdminPage && <ScrollProgress />}
                             {!isAdminPage && <Navbar />}
 
@@ -49,6 +52,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                             </main>
 
                             {!isAdminPage && <Footer />}
+                            {!isAdminPage && <AIChatbot />}
                             <CookieConsent />
                             {!isAdminPage && <CommandPalette />}
                             <ServiceWorkerRegistrar />
