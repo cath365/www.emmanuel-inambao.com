@@ -18,7 +18,7 @@ export default function SkillGroup({ group, index }: SkillGroupProps) {
         <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-brand-sky" aria-hidden="true" />
       </div>
 
-      <p className="mt-5 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/65">
+      <p className="mt-5 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/60">
         {group.description}
       </p>
 
@@ -26,10 +26,10 @@ export default function SkillGroup({ group, index }: SkillGroupProps) {
         {group.skills.map((skill) => (
           <li
             key={skill.name}
-            className="rounded-2xl border border-brand-navy/8 bg-brand-cream/70 p-4 dark:border-brand-cream/10 dark:bg-white/[0.035]"
+            className="rounded-2xl border border-brand-navy/10 bg-brand-cream/70 p-4 dark:border-brand-cream/10 dark:bg-white/5"
           >
             <p className="font-semibold text-brand-navy dark:text-brand-cream">{skill.name}</p>
-            <p className="mt-1 text-sm leading-6 text-brand-chocolate/65 dark:text-brand-cream/55">
+            <p className="mt-1 text-sm leading-6 text-brand-chocolate/60 dark:text-brand-cream/50">
               {skill.description}
             </p>
           </li>
