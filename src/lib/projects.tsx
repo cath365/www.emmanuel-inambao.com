@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'\nimport { showcaseProjects } from '@/data/portfolio'
 
 export interface Project {
   id: string
