@@ -1,26 +1,32 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import CaseStudyList from './CaseStudyList'
 
 export const metadata: Metadata = {
-  title: 'Case Studies | Emmanuel Inambao',
-  description: 'Detailed case studies of IoT, robotics, and engineering projects with problem-solution-results format.',
+  title: 'Case Studies',
+  description:
+    'Engineering case studies from Emmanuel Inambao covering AI, IoT, robotics, embedded systems, mobile applications and full-stack product development.',
 }
 
 export default function CaseStudiesPage() {
   return (
-    <main className="min-h-screen py-20 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Case Studies
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Deep dive into my most impactful projects with detailed analysis of challenges, solutions, and measurable results.
+    <section className="min-h-screen bg-brand-cream pb-24 pt-32 dark:bg-brand-navy sm:pt-36">
+      <div className="section-container">
+        <div className="grid gap-8 border-b border-brand-navy/10 pb-10 dark:border-brand-cream/10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div>
+            <p className="editorial-label">Engineering Work</p>
+            <h1 className="section-heading mt-4">Case Studies</h1>
+          </div>
+          <p className="section-subheading lg:ml-auto">
+            Detailed project views focused on the problem, proposed solution, architecture,
+            workflow, current status and next engineering steps. No invented customer results or
+            performance statistics are used.
           </p>
         </div>
-        
-        <CaseStudyList />
+
+        <div className="mt-10">
+          <CaseStudyList />
+        </div>
       </div>
-    </main>
+    </section>
   )
 }
