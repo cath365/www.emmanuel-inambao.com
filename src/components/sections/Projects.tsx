@@ -17,7 +17,7 @@ export default function Projects() {
     <section
       id="projects"
       ref={ref}
-      className="content-auto bg-brand-cream py-20 dark:bg-brand-navy sm:py-24 lg:py-32"
+      className="content-auto bg-brand-sky/10 py-20 dark:bg-brand-navy sm:py-24 lg:py-32"
       aria-labelledby="projects-heading"
     >
       <div className="section-container">
