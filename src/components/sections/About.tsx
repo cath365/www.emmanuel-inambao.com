@@ -56,7 +56,7 @@ export default function About() {
             <p className="max-w-3xl text-xl leading-8 text-[#402924] sm:text-2xl sm:leading-9">
               I work across electronics, embedded control, IoT, robotics and full-stack software. The objective is not simply to make technology work — it is to make the complete system useful, resilient and understandable.
             </p>
-            <p className="mt-6 max-w-3xl text-base leading-7 text-[#402924]/72">
+            <p className="mt-6 max-w-3xl text-base leading-7 text-[#402924]/70">
               That means considering the circuit, firmware, connectivity, data model, user interface, security and field environment as one engineering problem. My strongest work sits exactly at those boundaries.
             </p>
           </div>
@@ -74,7 +74,7 @@ export default function About() {
               <span className="text-xs font-bold tracking-[0.18em] text-[#7B5F3E]">{principle.number}</span>
               <principle.icon className="h-6 w-6 text-[#402924]" />
               <h3 className="editorial-serif text-2xl leading-tight text-[#402924]">{principle.title}</h3>
-              <p className="max-w-2xl text-sm leading-6 text-[#402924]/68 sm:text-base">{principle.description}</p>
+              <p className="max-w-2xl text-sm leading-6 text-[#402924]/70 sm:text-base">{principle.description}</p>
             </motion.div>
           ))}
         </div>
