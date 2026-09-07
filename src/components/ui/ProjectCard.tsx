@@ -1,238 +1,85 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { ExternalLink, Github, ChevronRight, Globe, Smartphone, FileText, Play } from 'lucide-react'
-
-// Project data type definition
-export interface Project {
-  id: string
-  title: string
-  purpose: string
-  image: string
-  techStack: string[]
-  problemSolved: string
-  systemLogic: string
-  outcome: string
-  featured?: boolean
-  githubUrl?: string
-  liveUrl?: string
-  appStoreUrl?: string
-  playStoreUrl?: string
-  websiteUrl?: string
-  docsUrl?: string
-  videoUrl?: string
-}
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
+import PixelPhoneMockup from '@/components/ui/PixelPhoneMockup'
+import type { ShowcaseProject } from '@/data/portfolio'
 
 interface ProjectCardProps {
-  project: Project
+  project: ShowcaseProject
   index: number
+  onOpen?: (project: ShowcaseProject) => void
 }
 
-export default function ProjectCard({ project, index }: ProjectCardProps) {
-  const isEven = index % 2 === 0
+export default function ProjectCard({ project, index, onOpen }: ProjectCardProps) {
+  const reduceMotion = useReducedMotion()
+  const visualOrder = index % 2 === 0 ? 'lg:order-1' : 'lg:order-2'
+  const copyOrder = index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 40 }}
+      layout={!reduceMotion}
+      initial={reduceMotion ? false : { opacity: 0, y: 26 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      className={`grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center ${
-        isEven ? '' : 'lg:flex-row-reverse'
-      }`}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: reduceMotion ? 0 : 0.5 }}
+      className="grid items-center gap-10 border-t border-brand-navy/10 py-12 first:border-t-0 first:pt-4 dark:border-brand-cream/10 sm:py-16 lg:grid-cols-2 lg:gap-16"
     >
-      {/* Project Image */}
-      <div className={`relative overflow-hidden ${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-dark-800 border border-dark-700 group">
-          {project.image && project.image !== '' ? (
-            <>
-              {/* Actual project image */}
-              <Image
-                src={project.image}
-                alt={project.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              {/* Subtle overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </>
-          ) : (
-            <>
-              {/* Placeholder gradient when no image */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-dark-800 to-accent-900/30" />
-              <div
-                className="absolute inset-0 opacity-10"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`,
-                }}
-                aria-hidden="true"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-6">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-600/20 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary-400">
-                      {project.title.charAt(0)}
-                    </span>
-                  </div>
-                  <p className="text-dark-400 text-sm">{project.title}</p>
-                </div>
-              </div>
-            </>
-          )}
+      <div className={'group relative py-5 ' + visualOrder}>
+        <div className="absolute inset-x-[10%] bottom-0 h-2/3 rounded-[3rem] bg-brand-sky/10 transition duration-500 group-hover:bg-brand-camel/20" />
+        <div className="relative transition duration-500 group-hover:-translate-y-1.5">
+          <PixelPhoneMockup project={project} />
         </div>
-
-        {/* Featured badge */}
-        {project.featured && (
-          <div className="absolute top-2 right-2 bg-accent-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full z-10">
-            Featured
-          </div>
-        )}
       </div>
 
-      {/* Project Details */}
-      <div className={`${isEven ? 'lg:order-2' : 'lg:order-1'}`}>
-        <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-          {project.title}
-        </h3>
-        
-        <p className="text-primary-400 font-medium mb-4">
-          {project.purpose}
+      <div className={copyOrder}>
+        <p className="editorial-label">
+          Selected project · {String(index + 1).padStart(2, '0')}
         </p>
+        <h3 className="mt-4 max-w-xl font-serif text-4xl font-semibold leading-[0.98] tracking-[-0.025em] text-brand-navy dark:text-brand-cream sm:text-5xl">
+          {project.name}
+        </h3>
 
-        {/* Tech stack */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {project.techStack.map((tech) => (
-            <span key={tech} className="tech-badge text-xs">
-              {tech}
+        <div
+          className="mt-5 flex flex-wrap gap-2"
+          aria-label={project.name + ' categories'}
+        >
+          {project.categories.map((category) => (
+            <span
+              key={category}
+              className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/15 dark:text-brand-camel"
+            >
+              {category}
             </span>
           ))}
         </div>
 
-        {/* Project details */}
-        <div className="space-y-4 mb-6">
-          <div>
-            <h4 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-1">
-              Problem Solved
-            </h4>
-            <p className="text-dark-400 text-sm leading-relaxed">
-              {project.problemSolved}
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-1">
-              System Logic
-            </h4>
-            <p className="text-dark-400 text-sm leading-relaxed">
-              {project.systemLogic}
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-1">
-              Outcome & Impact
-            </h4>
-            <p className="text-dark-400 text-sm leading-relaxed">
-              {project.outcome}
-            </p>
-          </div>
-        </div>
+        <p className="mt-6 max-w-xl text-base leading-8 text-brand-chocolate/75 dark:text-brand-cream/70 sm:text-lg">
+          {project.description}
+        </p>
 
-        {/* Action buttons */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {project.githubUrl && (
-            <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-dark-300 hover:text-white transition-colors"
-              aria-label={`View ${project.title} on GitHub`}
+        <p className="sr-only">Phone preview includes: {project.screenItems.join(', ')}.</p>
+
+        <div className="mt-8">
+          {onOpen ? (
+            <button
+              type="button"
+              onClick={() => onOpen(project)}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-navy px-6 text-sm font-semibold text-brand-cream transition hover:-translate-y-0.5 hover:bg-brand-chocolate dark:bg-brand-sky dark:text-brand-navy dark:hover:bg-brand-camel"
             >
-              <Github className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Code</span>
-            </a>
-          )}
-          {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 transition-colors"
-              aria-label={`View ${project.title} live demo`}
+              View Case Study
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          ) : (
+            <Link
+              href={'/case-studies/' + project.slug}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-brand-navy px-6 text-sm font-semibold text-brand-cream transition hover:-translate-y-0.5 hover:bg-brand-chocolate dark:bg-brand-sky dark:text-brand-navy dark:hover:bg-brand-camel"
             >
-              <ExternalLink className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Demo</span>
-            </a>
+              View Case Study
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           )}
-          {project.websiteUrl && (
-            <a
-              href={project.websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
-              aria-label={`Visit ${project.title} website`}
-            >
-              <Globe className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Website</span>
-            </a>
-          )}
-          {project.appStoreUrl && (
-            <a
-              href={project.appStoreUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-              aria-label={`Download ${project.title} on App Store`}
-            >
-              <Smartphone className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">App Store</span>
-            </a>
-          )}
-          {project.playStoreUrl && (
-            <a
-              href={project.playStoreUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
-              aria-label={`Download ${project.title} on Play Store`}
-            >
-              <Smartphone className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Play Store</span>
-            </a>
-          )}
-          {project.docsUrl && (
-            <a
-              href={project.docsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors"
-              aria-label={`View ${project.title} documentation`}
-            >
-              <FileText className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Docs</span>
-            </a>
-          )}
-          {project.videoUrl && (
-            <a
-              href={project.videoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
-              aria-label={`Watch ${project.title} video`}
-            >
-              <Play className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Video</span>
-            </a>
-          )}
-          <button 
-            className="inline-flex items-center gap-1 text-dark-500 hover:text-dark-300 transition-colors sm:ml-auto"
-            aria-label={`Read more about ${project.title}`}
-          >
-            <span className="text-sm">Details</span>
-            <ChevronRight className="w-4 h-4" aria-hidden="true" />
-          </button>
         </div>
       </div>
     </motion.article>
