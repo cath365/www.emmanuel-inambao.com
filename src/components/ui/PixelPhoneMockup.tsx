@@ -53,7 +53,7 @@ export default function PixelPhoneMockup({ project }: PixelPhoneMockupProps) {
     >
       <div className="absolute -inset-5 rounded-full bg-brand-sky/10 blur-3xl" />
 
-      <div className="relative rounded-[3.25rem] border border-brand-navy/15 bg-brand-chocolate p-[0.55rem] shadow-[0_30px_80px_rgba(0,11,38,0.25)] dark:border-brand-cream/15">
+      <div className="relative rounded-[3.25rem] border border-brand-navy/10 bg-brand-chocolate p-[0.55rem] shadow-[0_30px_80px_rgba(0,11,38,0.25)] dark:border-brand-cream/10">
         <div className="pointer-events-none absolute left-1/2 top-4 z-20 flex h-9 w-[58%] -translate-x-1/2 items-center justify-center gap-2 rounded-full border border-brand-cream/10 bg-brand-navy shadow-lg">
           <span className="h-4 w-4 rounded-full border border-brand-sky/30 bg-[#071535]" />
           <span className="h-4 w-4 rounded-full border border-brand-sky/30 bg-[#071535]" />
@@ -74,7 +74,7 @@ export default function PixelPhoneMockup({ project }: PixelPhoneMockupProps) {
               <p className="mt-2 font-serif text-2xl font-semibold leading-none text-brand-cream">
                 {config.title}
               </p>
-              <p className="mt-3 text-[0.7rem] leading-5 text-brand-cream/65">
+              <p className="mt-3 text-[0.7rem] leading-5 text-brand-cream/60">
                 {config.feature}
               </p>
 
@@ -114,7 +114,7 @@ export default function PixelPhoneMockup({ project }: PixelPhoneMockupProps) {
             </div>
 
             <div className="mt-3 rounded-2xl border border-brand-navy/10 bg-white p-3">
-              <p className="text-[0.52rem] font-bold uppercase tracking-[0.15em] text-brand-chocolate/55">
+              <p className="text-[0.52rem] font-bold uppercase tracking-[0.15em] text-brand-chocolate/50">
                 Live interface
               </p>
               <p className="mt-1 text-[0.68rem] font-semibold text-brand-navy">{config.status}</p>
