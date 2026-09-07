@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="grid gap-12 border-t border-[#402924]/20 pt-10 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
             <p className="editorial-serif text-4xl leading-none sm:text-5xl">Emmanuel Inambao</p>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-[#402924]/68 sm:text-base">
+            <p className="mt-4 max-w-xl text-sm leading-6 text-[#402924]/70 sm:text-base">
               Systems engineer building embedded, IoT, robotics and full-stack products from Lusaka, Zambia.
             </p>
             <div className="mt-6 flex items-center gap-4">
@@ -51,7 +51,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-[#402924]/20 pt-6 text-xs text-[#402924]/55 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-3 border-t border-[#402924]/20 pt-6 text-xs text-[#402924]/50 sm:flex-row sm:items-center sm:justify-between">
           <p>© {currentYear} Emmanuel Inambao. All rights reserved.</p>
           <p>Designed and engineered in Lusaka, Zambia.</p>
         </div>
