@@ -45,7 +45,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <button onClick={openCommandPalette} className="p-2 text-[#F7F3EC]/55 transition hover:text-[#7CA7EB]" aria-label="Search portfolio">
+            <button onClick={openCommandPalette} className="p-2 text-[#F7F3EC]/50 transition hover:text-[#7CA7EB]" aria-label="Search portfolio">
               <Search className="h-4 w-4" />
             </button>
             <LanguageSwitcher />
