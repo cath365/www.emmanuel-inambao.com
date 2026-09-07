@@ -1,8 +1,7 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { usePathname } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/lib/auth'
@@ -17,42 +16,20 @@ import { GalleryProvider } from '@/lib/gallery'
 import { SkillsProvider } from '@/lib/skills'
 import { ThemeProvider } from '@/components/ui/ThemeToggle'
 import { LanguageProvider } from '@/lib/i18n'
-import AIChatbot from '@/components/ui/AIChatbot'
-import CookieConsent from '@/components/ui/CookieConsent'
-import BookingScheduler from '@/components/ui/BookingScheduler'
-import WhatsAppQuickAction from '@/components/ui/WhatsAppQuickAction'
 import SkipToContent from '@/components/ui/SkipToContent'
 import ScrollProgress from '@/components/ui/ScrollProgress'
 import ServiceWorkerRegistrar from '@/components/ui/ServiceWorkerRegistrar'
-import EasterEggs from '@/components/ui/EasterEggs'
 
-// Lazy load command palette for performance
+const AIChatbot = dynamic(() => import('@/components/ui/AIChatbot'), { ssr: false })
+const CookieConsent = dynamic(() => import('@/components/ui/CookieConsent'), { ssr: false })
+const BookingScheduler = dynamic(() => import('@/components/ui/BookingScheduler'), { ssr: false })
+const WhatsAppQuickAction = dynamic(() => import('@/components/ui/WhatsAppQuickAction'), { ssr: false })
 const CommandPalette = dynamic(() => import('@/components/ui/CommandPalette'), { ssr: false })
+const EasterEggs = dynamic(() => import('@/components/ui/EasterEggs'), { ssr: false })
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isAdminPage = pathname?.startsWith('/admin')
-  const [floatingWidgetsVisible, setFloatingWidgetsVisible] = useState(true)
-
-  useEffect(() => {
-    if (isAdminPage) return
-
-    const handleSingleClick = () => {
-      setFloatingWidgetsVisible(true)
-    }
-
-    const handleDoubleClick = () => {
-      setFloatingWidgetsVisible(false)
-    }
-
-    window.addEventListener('click', handleSingleClick)
-    window.addEventListener('dblclick', handleDoubleClick)
-
-    return () => {
-      window.removeEventListener('click', handleSingleClick)
-      window.removeEventListener('dblclick', handleDoubleClick)
-    }
-  }, [isAdminPage])
 
   return (
     <ThemeProvider>
@@ -67,43 +44,20 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                       <SkillsProvider>
                         <ResourcesProvider>
                           <GalleryProvider>
-                          {/* Skip to main content for accessibility */}
-                          <SkipToContent />
+                            <SkipToContent />
+                            {!isAdminPage && <ScrollProgress />}
+                            {!isAdminPage && <Navbar />}
 
-                          {/* Scroll progress bar */}
-                          {!isAdminPage && <ScrollProgress />}
+                            <main id="main-content" className="overflow-x-hidden">{children}</main>
 
-                          {/* Navigation - hidden on admin pages */}
-                          {!isAdminPage && <Navbar />}
-
-                          {/* Main content */}
-                          <main id="main-content" className="overflow-x-hidden">
-                            {children}
-                          </main>
-
-                          {/* Footer - hidden on admin pages */}
-                          {!isAdminPage && <Footer />}
-
-                          {/* AI Chatbot - visible on all public pages */}
-                          {!isAdminPage && <AIChatbot floatingVisible={floatingWidgetsVisible} />}
-
-                          {/* Booking Scheduler - visible on all public pages */}
-                          {!isAdminPage && <BookingScheduler floatingVisible={floatingWidgetsVisible} />}
-
-                          {/* WhatsApp quick action */}
-                          {!isAdminPage && <WhatsAppQuickAction floatingVisible={floatingWidgetsVisible} />}
-
-                          {/* Cookie Consent Banner - visible on all pages */}
-                          <CookieConsent />
-
-                          {/* Command Palette (Ctrl+K) */}
-                          {!isAdminPage && <CommandPalette />}
-
-                          {/* Easter Eggs */}
-                          {!isAdminPage && <EasterEggs />}
-
-                          {/* Service Worker Registration */}
-                          <ServiceWorkerRegistrar />
+                            {!isAdminPage && <Footer />}
+                            {!isAdminPage && <AIChatbot />}
+                            {!isAdminPage && <BookingScheduler />}
+                            {!isAdminPage && <WhatsAppQuickAction />}
+                            <CookieConsent />
+                            {!isAdminPage && <CommandPalette />}
+                            {!isAdminPage && <EasterEggs />}
+                            <ServiceWorkerRegistrar />
                           </GalleryProvider>
                         </ResourcesProvider>
                       </SkillsProvider>

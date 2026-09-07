@@ -2,132 +2,46 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import Image from 'next/image'
-
-const caseStudies = [
-  {
-    id: 'smart-agriculture',
-    title: 'Smart Agriculture IoT Platform',
-    subtitle: 'Revolutionizing farming with connected sensors and AI',
-    image: '/images/projects/smart-agriculture.jpg',
-    tags: ['IoT', 'AI/ML', 'AWS', 'Python'],
-    metrics: [
-      { label: 'Crop Yield Increase', value: '30%' },
-      { label: 'Water Savings', value: '45%' },
-      { label: 'Farms Connected', value: '50+' },
-    ],
-    color: 'from-green-500 to-emerald-600',
-  },
-  {
-    id: 'industrial-automation',
-    title: 'Industrial Automation Robot',
-    subtitle: 'Custom robotic solution for manufacturing efficiency',
-    image: '/images/projects/industrial-robot.jpg',
-    tags: ['Robotics', 'ROS', 'C++', 'OpenCV'],
-    metrics: [
-      { label: 'Cost Reduction', value: '25%' },
-      { label: 'Efficiency Gain', value: '40%' },
-      { label: 'Error Reduction', value: '95%' },
-    ],
-    color: 'from-blue-500 to-indigo-600',
-  },
-  {
-    id: 'autonomous-drone',
-    title: 'Autonomous Drone Navigation',
-    subtitle: 'AI-powered drone system for surveying and monitoring',
-    image: '/images/projects/drone.jpg',
-    tags: ['Drone', 'AI', 'Computer Vision', 'Python'],
-    metrics: [
-      { label: 'Flight Accuracy', value: '99.2%' },
-      { label: 'Survey Area', value: '500+ km²' },
-      { label: 'Processing Time', value: '-60%' },
-    ],
-    color: 'from-purple-500 to-pink-600',
-  },
-  {
-    id: 'smart-home',
-    title: 'Smart Home Automation System',
-    subtitle: 'Complete home IoT ecosystem with voice control',
-    image: '/images/projects/smart-home.jpg',
-    tags: ['IoT', 'Home Automation', 'ESP32', 'React'],
-    metrics: [
-      { label: 'Energy Savings', value: '35%' },
-      { label: 'Devices Supported', value: '100+' },
-      { label: 'Response Time', value: '<50ms' },
-    ],
-    color: 'from-orange-500 to-red-600',
-  },
-]
+import { ArrowUpRight } from 'lucide-react'
+import { caseStudies } from '@/lib/case-studies'
 
 export default function CaseStudyList() {
   return (
-    <div className="grid gap-8 md:grid-cols-2">
+    <div className="grid gap-6 md:grid-cols-2">
       {caseStudies.map((study, index) => (
-        <motion.div
-          key={study.id}
+        <motion.article
+          key={study.slug}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
+          transition={{ duration: 0.45, delay: index * 0.07 }}
+          className="group flex min-h-[390px] flex-col overflow-hidden rounded-2xl border border-dark-800 bg-dark-900/65 transition hover:-translate-y-1 hover:border-primary-500/40"
         >
-          <Link href={`/case-studies/${study.id}`}>
-            <motion.article
-              whileHover={{ y: -5 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
-            >
-              {/* Image */}
-              <div className={`relative h-48 bg-gradient-to-r ${study.color}`}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white/20 text-9xl font-bold">
-                    {study.title.charAt(0)}
-                  </div>
-                </div>
-                {/* Tags */}
-                <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
-                  {study.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs text-white font-medium"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+          <div className="relative min-h-44 overflow-hidden bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950 p-6">
+            <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full border border-primary-400/15" />
+            <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-primary-400">{study.status}</p>
+            <h2 className="relative mt-3 max-w-lg text-2xl font-bold text-white">{study.title}</h2>
+            <p className="relative mt-2 text-sm leading-relaxed text-dark-300">{study.subtitle}</p>
+          </div>
 
-              {/* Content */}
-              <div className="p-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                  {study.title}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {study.subtitle}
-                </p>
+          <div className="flex flex-1 flex-col p-6">
+            <div className="flex flex-wrap gap-2">
+              {study.technologies.slice(0, 5).map(tech => <span key={tech} className="tech-badge text-xs">{tech}</span>)}
+            </div>
 
-                {/* Metrics */}
-                <div className="grid grid-cols-3 gap-4">
-                  {study.metrics.map((metric) => (
-                    <div key={metric.label} className="text-center">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {metric.value}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-500">
-                        {metric.label}
-                      </div>
-                    </div>
-                  ))}
+            <div className="mt-6 grid grid-cols-2 gap-3">
+              {study.results.slice(0, 4).map(result => (
+                <div key={result.label} className="rounded-xl border border-dark-800 bg-dark-950/50 p-3">
+                  <div className="font-bold text-primary-300">{result.value}</div>
+                  <div className="mt-0.5 text-xs text-dark-500">{result.label}</div>
                 </div>
+              ))}
+            </div>
 
-                {/* Read More */}
-                <div className="mt-6 flex items-center text-blue-600 dark:text-blue-400 font-medium">
-                  Read Case Study
-                  <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </motion.article>
-          </Link>
-        </motion.div>
+            <Link href={'/case-studies/' + study.slug} className="mt-auto inline-flex items-center gap-2 pt-7 text-sm font-semibold text-primary-400 hover:text-primary-300">
+              Read case study <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </motion.article>
       ))}
     </div>
   )

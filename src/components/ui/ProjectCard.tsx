@@ -2,27 +2,9 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { ExternalLink, Github, ChevronRight, Globe, Smartphone, FileText, Play } from 'lucide-react'
-
-// Project data type definition
-export interface Project {
-  id: string
-  title: string
-  purpose: string
-  image: string
-  techStack: string[]
-  problemSolved: string
-  systemLogic: string
-  outcome: string
-  featured?: boolean
-  githubUrl?: string
-  liveUrl?: string
-  appStoreUrl?: string
-  playStoreUrl?: string
-  websiteUrl?: string
-  docsUrl?: string
-  videoUrl?: string
-}
+import type { Project } from '@/lib/project-catalog'
 
 interface ProjectCardProps {
   project: Project
@@ -34,205 +16,121 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      className={`grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-center ${
-        isEven ? '' : 'lg:flex-row-reverse'
-      }`}
+      transition={{ duration: 0.55, delay: Math.min(index * 0.08, 0.24) }}
+      className="grid items-center gap-7 lg:grid-cols-2 lg:gap-12"
     >
-      {/* Project Image */}
-      <div className={`relative overflow-hidden ${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-dark-800 border border-dark-700 group">
-          {project.image && project.image !== '' ? (
+      <div className={'relative overflow-hidden ' + (isEven ? 'lg:order-1' : 'lg:order-2')}>
+        <Link
+          href={'/projects/' + project.id}
+          className="group relative block aspect-video overflow-hidden rounded-2xl border border-dark-700 bg-dark-800"
+          aria-label={'Open ' + project.title + ' project details'}
+        >
+          {project.image ? (
             <>
-              {/* Actual project image */}
               <Image
                 src={project.image}
                 alt={project.title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
-              {/* Subtle overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
             </>
           ) : (
-            <>
-              {/* Placeholder gradient when no image */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-dark-800 to-accent-900/30" />
-              <div
-                className="absolute inset-0 opacity-10"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%239C92AC' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E")`,
-                }}
-                aria-hidden="true"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-6">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-600/20 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary-400">
-                      {project.title.charAt(0)}
-                    </span>
-                  </div>
-                  <p className="text-dark-400 text-sm">{project.title}</p>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950">
+              <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full border border-primary-400/20" />
+              <div className="absolute -bottom-16 -left-8 h-64 w-64 rounded-full border border-accent-400/10" />
+              <div className="absolute inset-0 flex items-end p-6 sm:p-8">
+                <div>
+                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-400">
+                    Engineering system
+                  </span>
+                  <p className="mt-2 max-w-md text-2xl font-bold text-white sm:text-3xl">
+                    {project.title}
+                  </p>
                 </div>
               </div>
-            </>
+            </div>
           )}
-        </div>
 
-        {/* Featured badge */}
-        {project.featured && (
-          <div className="absolute top-2 right-2 bg-accent-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full z-10">
-            Featured
+          <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+            {project.featured && (
+              <span className="rounded-full border border-accent-300/30 bg-accent-400/15 px-3 py-1 text-xs font-semibold text-accent-300 backdrop-blur">
+                Featured
+              </span>
+            )}
+            {project.status && (
+              <span className="rounded-full border border-white/10 bg-dark-950/60 px-3 py-1 text-xs font-medium text-dark-200 backdrop-blur">
+                {project.status}
+              </span>
+            )}
           </div>
-        )}
+        </Link>
       </div>
 
-      {/* Project Details */}
-      <div className={`${isEven ? 'lg:order-2' : 'lg:order-1'}`}>
-        <h3 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-          {project.title}
-        </h3>
-        
-        <p className="text-primary-400 font-medium mb-4">
-          {project.purpose}
-        </p>
+      <div className={isEven ? 'lg:order-2' : 'lg:order-1'}>
+        {project.role && (
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-400">
+            {project.role}
+          </p>
+        )}
 
-        {/* Tech stack */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {project.techStack.map((tech) => (
-            <span key={tech} className="tech-badge text-xs">
-              {tech}
-            </span>
+        <h3 className="text-2xl font-bold text-white lg:text-3xl">
+          <Link href={'/projects/' + project.id} className="transition-colors hover:text-primary-300">
+            {project.title}
+          </Link>
+        </h3>
+
+        <p className="mt-2 font-medium leading-relaxed text-primary-400">{project.purpose}</p>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          {project.techStack.slice(0, 7).map(tech => (
+            <span key={tech} className="tech-badge text-xs">{tech}</span>
           ))}
         </div>
 
-        {/* Project details */}
-        <div className="space-y-4 mb-6">
-          <div>
-            <h4 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-1">
-              Problem Solved
-            </h4>
-            <p className="text-dark-400 text-sm leading-relaxed">
-              {project.problemSolved}
-            </p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-dark-800 bg-dark-900/50 p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-dark-300">Problem</h4>
+            <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-dark-400">{project.problemSolved}</p>
           </div>
-          
-          <div>
-            <h4 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-1">
-              System Logic
-            </h4>
-            <p className="text-dark-400 text-sm leading-relaxed">
-              {project.systemLogic}
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="text-sm font-semibold text-dark-300 uppercase tracking-wider mb-1">
-              Outcome & Impact
-            </h4>
-            <p className="text-dark-400 text-sm leading-relaxed">
-              {project.outcome}
-            </p>
+          <div className="rounded-xl border border-dark-800 bg-dark-900/50 p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-dark-300">Outcome</h4>
+            <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-dark-400">{project.outcome}</p>
           </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {project.githubUrl && (
-            <a
-              href={project.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-dark-300 hover:text-white transition-colors"
-              aria-label={`View ${project.title} on GitHub`}
-            >
-              <Github className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Code</span>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link
+            href={'/projects/' + project.id}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-500"
+          >
+            View engineering details
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+
+          {project.liveUrl && (
+            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-primary-300 hover:text-primary-200">
+              <ExternalLink className="h-4 w-4" /> Live
             </a>
           )}
-          {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 transition-colors"
-              aria-label={`View ${project.title} live demo`}
-            >
-              <ExternalLink className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Demo</span>
+          {project.githubUrl && (
+            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-dark-300 hover:text-white">
+              <Github className="h-4 w-4" /> Code
             </a>
           )}
           {project.websiteUrl && (
-            <a
-              href={project.websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
-              aria-label={`Visit ${project.title} website`}
-            >
-              <Globe className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Website</span>
+            <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-green-300 hover:text-green-200">
+              <Globe className="h-4 w-4" /> Website
             </a>
           )}
-          {project.appStoreUrl && (
-            <a
-              href={project.appStoreUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
-              aria-label={`Download ${project.title} on App Store`}
-            >
-              <Smartphone className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">App Store</span>
-            </a>
-          )}
-          {project.playStoreUrl && (
-            <a
-              href={project.playStoreUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
-              aria-label={`Download ${project.title} on Play Store`}
-            >
-              <Smartphone className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Play Store</span>
-            </a>
-          )}
-          {project.docsUrl && (
-            <a
-              href={project.docsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors"
-              aria-label={`View ${project.title} documentation`}
-            >
-              <FileText className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Docs</span>
-            </a>
-          )}
-          {project.videoUrl && (
-            <a
-              href={project.videoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors"
-              aria-label={`Watch ${project.title} video`}
-            >
-              <Play className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm font-medium">Video</span>
-            </a>
-          )}
-          <button 
-            className="inline-flex items-center gap-1 text-dark-500 hover:text-dark-300 transition-colors sm:ml-auto"
-            aria-label={`Read more about ${project.title}`}
-          >
-            <span className="text-sm">Details</span>
-            <ChevronRight className="w-4 h-4" aria-hidden="true" />
-          </button>
+          {project.appStoreUrl && <a href={project.appStoreUrl} target="_blank" rel="noopener noreferrer" aria-label="App Store"><Smartphone className="h-4 w-4" /></a>}
+          {project.playStoreUrl && <a href={project.playStoreUrl} target="_blank" rel="noopener noreferrer" aria-label="Play Store"><Smartphone className="h-4 w-4" /></a>}
+          {project.docsUrl && <a href={project.docsUrl} target="_blank" rel="noopener noreferrer" aria-label="Documentation"><FileText className="h-4 w-4" /></a>}
+          {project.videoUrl && <a href={project.videoUrl} target="_blank" rel="noopener noreferrer" aria-label="Video"><Play className="h-4 w-4" /></a>}
         </div>
       </div>
     </motion.article>
