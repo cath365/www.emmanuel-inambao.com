@@ -6,7 +6,7 @@ interface ExperienceTimelineProps {
 
 export default function ExperienceTimeline({ roles }: ExperienceTimelineProps) {
   return (
-    <ol className="relative grid gap-0 border-l border-brand-navy/15 pl-6 dark:border-brand-cream/15 sm:pl-9">
+    <ol className="relative grid gap-0 border-l border-brand-navy/10 pl-6 dark:border-brand-cream/10 sm:pl-9">
       {roles.map((role, index) => (
         <li key={role.title} className="relative pb-10 last:pb-0">
           <span
@@ -19,7 +19,7 @@ export default function ExperienceTimeline({ roles }: ExperienceTimelineProps) {
           <h3 className="mt-2 font-serif text-3xl font-semibold text-brand-navy dark:text-brand-cream sm:text-4xl">
             {role.title}
           </h3>
-          <p className="mt-3 max-w-3xl text-base leading-7 text-brand-chocolate/72 dark:text-brand-cream/65">
+          <p className="mt-3 max-w-3xl text-base leading-7 text-brand-chocolate/70 dark:text-brand-cream/60">
             {role.description}
           </p>
         </li>
