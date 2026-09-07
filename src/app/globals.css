@@ -157,7 +157,7 @@
   }
 
   html.dark .tech-badge {
-    @apply border-brand-cream/10 bg-white/[0.055] text-brand-cream/100;
+    @apply border-brand-cream/10 bg-white/5 text-brand-cream/80;
   }
 
   .card-hover-lift {
