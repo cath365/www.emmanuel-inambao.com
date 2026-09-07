@@ -22,41 +22,17 @@ interface ExperienceContextType {
   deleteExperience: (id: string) => void
 }
 
-const defaultExperiences: Experience[] = [
-  {
-    id: 'freelance-iot',
-    company: 'Freelance / Independent Consultant',
-    position: 'Lead IoT Engineer & Full-Stack Developer',
-    location: 'Lusaka, Zambia',
-    startDate: '2021-01',
-    endDate: '',
-    current: true,
-    description: 'Design and deploy IoT systems for agricultural monitoring, industrial automation, and smart buildings. Build full-stack web applications for real-time data visualization.',
-    achievements: [
-      'Designed and deployed 15+ IoT systems for agriculture, industry, and smart buildings',
-      'Built full-stack web applications using Next.js, React, and Node.js',
-      'Developed custom PCB designs and embedded firmware for ESP32 and STM32',
-      'Implemented MQTT networks supporting 500+ concurrent sensor nodes',
-      'Reduced client energy costs by 35% through smart automation',
-    ],
-  },
-  {
-    id: 'technical-education',
-    company: 'Technical Education Programs',
-    position: 'Electronics Instructor & Technical Mentor',
-    location: 'Lusaka, Zambia',
-    startDate: '2020-01',
-    endDate: '',
-    current: true,
-    description: 'Teach embedded systems, PCB design, and IoT development. Mentor junior engineers through project-based learning.',
-    achievements: [
-      'Trained 200+ students in embedded systems, PCB design, and IoT',
-      'Created curriculum for Arduino, ESP32, and PLC programming',
-      'Mentored 30+ junior engineers through hands-on projects',
-      'Developed open-source educational resources used across Zambia',
-    ],
-  },
-]
+const defaultExperiences: Experience[] = professionalRoles.map((role, index) => ({
+  id: 'profile-role-' + String(index + 1),
+  company: 'Professional Engineering Practice',
+  position: role.title,
+  location: 'Lusaka, Zambia',
+  startDate: '',
+  endDate: '',
+  current: false,
+  description: role.description,
+  achievements: [],
+}))
 
 const ExperienceContext = createContext<ExperienceContextType | undefined>(undefined)
 
