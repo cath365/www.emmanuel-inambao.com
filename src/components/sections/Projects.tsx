@@ -10,24 +10,16 @@ export default function Projects() {
   const closeCaseStudy = useCallback(() => setActiveProject(null), [])
 
   return (
-    <section
-      id="projects"
-      className="bg-brand-cream py-16 text-brand-navy dark:bg-brand-navy dark:text-brand-cream sm:py-20 lg:py-24"
-      aria-labelledby="projects-heading"
-    >
+    <section id="projects" className="bg-brand-navy py-16 text-brand-cream sm:py-20 lg:py-24" aria-labelledby="projects-heading">
       <div className="section-container">
-        <div className="border-t border-brand-navy/10 pt-10 dark:border-brand-cream/10">
-          <div className="grid gap-5 lg:grid-cols-[0.45fr_0.55fr] lg:items-end">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-chocolate/60 dark:text-brand-camel">
-                Selected work
-              </p>
-              <h2 id="projects-heading" className="mt-3 font-serif text-4xl font-semibold tracking-[-0.025em] sm:text-5xl">
-                Projects
-              </h2>
-            </div>
-            <p className="max-w-2xl text-base leading-8 text-brand-chocolate/65 dark:text-brand-cream/60 lg:justify-self-end">
-              Systems I have designed and built across embedded hardware, IoT, robotics, AI and software. Open a project to see the problem, approach, technology and current status.
+        <div className="border-t border-brand-cream/10 pt-10">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-sky">Selected work</p>
+            <h2 id="projects-heading" className="mt-3 font-serif text-4xl font-semibold tracking-[-0.025em] sm:text-5xl">
+              Projects
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-brand-cream/60">
+              A selection of systems I have designed and built across embedded hardware, IoT, robotics, AI and software.
             </p>
           </div>
 
