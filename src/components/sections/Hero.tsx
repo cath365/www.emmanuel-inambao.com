@@ -9,7 +9,7 @@ export default function Hero() {
   const { profile } = useProfile()
 
   return (
-    <section id="hero" className="relative bg-brand-navy pb-16 text-brand-cream" aria-labelledby="hero-heading">
+    <section id="hero" className="relative bg-brand-navy pb-16 text-brand-camel" aria-labelledby="hero-heading">
       <div className="relative h-52 overflow-hidden sm:h-60 md:h-72">
         {profile.coverImage ? (
           <Image src={profile.coverImage} alt="Emmanuel Inambao portfolio cover" fill priority className="object-cover" />
@@ -23,24 +23,24 @@ export default function Hero() {
       </div>
 
       <div className="section-container relative -mt-14 sm:-mt-16">
-        <div className="border border-brand-cream/10 bg-brand-navy px-5 pb-7 pt-5 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:px-7 sm:pb-8 lg:px-9">
+        <div className="border border-brand-camel/20 bg-brand-navy px-5 pb-7 pt-5 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:px-7 sm:pb-8 lg:px-9">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
             <div className="-mt-16 shrink-0 sm:-mt-20">
               <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-brand-navy bg-brand-chocolate sm:h-36 sm:w-36">
                 {profile.image ? (
                   <Image src={profile.image} alt="Professional portrait of Emmanuel Inambao" width={144} height={144} priority className="h-full w-full object-cover" />
                 ) : (
-                  <div className="grid h-full w-full place-items-center font-serif text-4xl font-semibold text-brand-camel">EI</div>
+                  <div className="grid h-full w-full place-items-center font-serif text-4xl font-semibold text-brand-sky">EI</div>
                 )}
               </div>
             </div>
 
             <div className="min-w-0 flex-1">
-              <h1 id="hero-heading" className="font-sans text-3xl font-bold tracking-[-0.025em] text-brand-cream sm:text-4xl lg:text-5xl">
+              <h1 id="hero-heading" className="font-sans text-3xl font-bold tracking-[-0.025em] text-brand-camel sm:text-4xl lg:text-5xl">
                 Emmanuel Inambao
               </h1>
-              <p className="mt-2 text-lg font-semibold text-brand-sky sm:text-xl">Systems Engineer</p>
-              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-brand-cream/60">
+              <p className="mt-2 text-lg font-semibold text-brand-camel/90 sm:text-xl">Systems Engineer</p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-brand-camel/70">
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-brand-camel" aria-hidden="true" />
                   Lusaka, Zambia
@@ -50,26 +50,26 @@ export default function Hero() {
             </div>
           </div>
 
-          <p className="mt-6 max-w-3xl text-base leading-8 text-brand-cream/70 sm:text-lg">
+          <p className="mt-6 max-w-3xl text-base leading-8 text-brand-camel/80 sm:text-lg">
             I design and build practical technology systems that connect software, intelligent features, electronics and real-world automation.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/start-project" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-sky px-5 text-sm font-semibold text-brand-navy transition hover:bg-brand-camel">
+            <Link href="/start-project" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-brand-camel px-5 text-sm font-semibold text-brand-navy transition hover:bg-brand-sky hover:text-brand-chocolate">
               Start a project
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
-            <Link href="#projects" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-brand-cream/15 px-5 text-sm font-semibold text-brand-cream transition hover:border-brand-sky hover:text-brand-sky">
+            <Link href="#projects" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-brand-camel/25 px-5 text-sm font-semibold text-brand-camel transition hover:bg-brand-camel/10">
               View projects
             </Link>
-            <Link href="#contact" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-brand-cream/15 px-5 text-sm font-semibold text-brand-cream transition hover:border-brand-camel hover:text-brand-camel">
+            <Link href="#contact" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-brand-camel/25 px-5 text-sm font-semibold text-brand-camel transition hover:bg-brand-camel/10">
               <Mail className="h-4 w-4" aria-hidden="true" />
               Contact
             </Link>
           </div>
 
-          <div className="mt-7 border-t border-brand-cream/10 pt-5">
-            <p className="text-sm leading-7 text-brand-cream/55">
+          <div className="mt-7 border-t border-brand-camel/20 pt-5">
+            <p className="text-sm leading-7 text-brand-camel/65">
               Turning ideas into intelligent real-world solutions.
             </p>
           </div>
