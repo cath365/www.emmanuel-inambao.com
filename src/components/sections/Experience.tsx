@@ -14,7 +14,7 @@ export default function Experience() {
     <section
       id="experience"
       ref={ref}
-      className="content-auto bg-brand-camel/22 py-20 dark:bg-brand-chocolate/35 sm:py-24 lg:py-32"
+      className="content-auto bg-brand-camel/20 py-20 dark:bg-brand-chocolate/40 sm:py-24 lg:py-32"
       aria-labelledby="experience-heading"
     >
       <div className="section-container">
