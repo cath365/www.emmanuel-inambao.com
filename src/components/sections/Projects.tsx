@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView, useReducedMotion } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import CaseStudyModal from '@/components/ui/CaseStudyModal'
 import ProjectGallery from '@/components/ui/ProjectGallery'
 import type { ShowcaseProject } from '@/data/portfolio'
@@ -11,6 +11,7 @@ export default function Projects() {
   const isInView = useInView(ref, { once: true, margin: '-80px' })
   const reduceMotion = useReducedMotion()
   const [activeProject, setActiveProject] = useState<ShowcaseProject | null>(null)
+  const closeCaseStudy = useCallback(() => setActiveProject(null), [])
 
   return (
     <section
@@ -45,7 +46,7 @@ export default function Projects() {
         </motion.div>
       </div>
 
-      <CaseStudyModal project={activeProject} onClose={() => setActiveProject(null)} />
+      <CaseStudyModal project={activeProject} onClose={closeCaseStudy} />
     </section>
   )
 }
