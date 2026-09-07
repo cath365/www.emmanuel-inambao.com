@@ -12,8 +12,8 @@ export default function SkillGroup({ group, index }: SkillGroupProps) {
   const Icon = icons[index % icons.length]
 
   return (
-    <article className="editorial-card group h-full overflow-hidden p-0 transition duration-300 hover:-translate-y-1 hover:shadow-editorial">
-      <div className="border-b border-brand-navy/10 bg-brand-navy p-5 text-brand-cream dark:border-brand-cream/10 sm:p-7">
+    <article className="h-full overflow-hidden rounded-xl border border-brand-cream/10 bg-white/[0.04]">
+      <div className="border-b border-brand-cream/10 p-5 text-brand-cream sm:p-7">
         <div className="flex items-start justify-between gap-5">
           <div>
             <p className="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-brand-camel">Capability 0{index + 1}</p>
@@ -23,16 +23,16 @@ export default function SkillGroup({ group, index }: SkillGroupProps) {
             <Icon className="h-5 w-5" aria-hidden="true" />
           </span>
         </div>
-        <p className="mt-4 max-w-xl text-sm leading-6 text-brand-cream/65">{group.description}</p>
+        <p className="mt-4 max-w-xl text-sm leading-6 text-brand-cream/60">{group.description}</p>
       </div>
 
-      <ul className="grid gap-0 bg-white/60 dark:bg-white/5" aria-label={`${group.title} skills`}>
+      <ul className="grid gap-0" aria-label={`${group.title} skills`}>
         {group.skills.map((skill, skillIndex) => (
-          <li key={skill.name} className="grid grid-cols-[auto_1fr] gap-3 border-b border-brand-navy/10 p-4 last:border-b-0 dark:border-brand-cream/10 sm:p-5">
-            <span className="mt-1 text-[0.58rem] font-bold tracking-[0.12em] text-brand-chocolate/40 dark:text-brand-camel/70">{String(skillIndex + 1).padStart(2, '0')}</span>
+          <li key={skill.name} className="grid grid-cols-[auto_1fr] gap-3 border-b border-brand-cream/10 p-4 last:border-b-0 sm:p-5">
+            <span className="mt-1 text-[0.58rem] font-bold tracking-[0.12em] text-brand-camel/70">{String(skillIndex + 1).padStart(2, '0')}</span>
             <div>
-              <p className="font-semibold text-brand-navy dark:text-brand-cream">{skill.name}</p>
-              <p className="mt-1 text-sm leading-6 text-brand-chocolate/60 dark:text-brand-cream/50">{skill.description}</p>
+              <p className="font-semibold text-brand-cream">{skill.name}</p>
+              <p className="mt-1 text-sm leading-6 text-brand-cream/50">{skill.description}</p>
             </div>
           </li>
         ))}
