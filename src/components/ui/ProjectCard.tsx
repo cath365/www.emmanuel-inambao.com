@@ -48,7 +48,7 @@ export default function ProjectCard({ project, index, onOpen }: ProjectCardProps
           {project.categories.map((category) => (
             <span
               key={category}
-              className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/15 dark:text-brand-camel"
+              className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-camel"
             >
               {category}
             </span>
