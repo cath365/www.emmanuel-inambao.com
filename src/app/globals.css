@@ -106,7 +106,7 @@
   }
 
   html.dark .editorial-card {
-    @apply border-brand-cream/10 bg-white/[0.045];
+    @apply border-brand-cream/10 bg-white/5;
   }
 
   .btn-primary {
@@ -157,7 +157,7 @@
   }
 
   html.dark .tech-badge {
-    @apply border-brand-cream/15 bg-white/[0.055] text-brand-cream/80;
+    @apply border-brand-cream/10 bg-white/[0.055] text-brand-cream/100;
   }
 
   .card-hover-lift {
