@@ -45,7 +45,7 @@ export default function Navbar() {
       className={`fixed inset-x-0 top-0 z-50 border-b transition duration-300 ${
         isScrolled
           ? 'border-brand-cream/10 bg-brand-navy/95 shadow-[0_8px_30px_rgba(0,11,38,0.16)] backdrop-blur-xl'
-          : 'border-transparent bg-brand-navy/88 backdrop-blur-md'
+          : 'border-transparent bg-brand-navy/90 backdrop-blur-md'
       }`}
     >
       <nav className="section-container" aria-label="Primary navigation">
@@ -56,7 +56,7 @@ export default function Navbar() {
             aria-label="Emmanuel Inambao home"
           >
             <span
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-brand-sky/45 bg-brand-sky/10 font-serif text-lg font-semibold text-brand-sky"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-brand-sky/40 bg-brand-sky/10 font-serif text-lg font-semibold text-brand-sky"
               aria-hidden="true"
             >
               EI
@@ -77,7 +77,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-brand-cream/72 transition hover:text-brand-sky"
+                  className="text-sm font-medium text-brand-cream/70 transition hover:text-brand-sky"
                 >
                   {link.label}
                 </Link>
@@ -87,7 +87,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={openCommandPalette}
-              className="hidden h-10 w-10 items-center justify-center rounded-full border border-brand-cream/12 text-brand-cream/65 transition hover:border-brand-sky/45 hover:text-brand-sky xl:inline-flex"
+              className="hidden h-10 w-10 items-center justify-center rounded-full border border-brand-cream/10 text-brand-cream/60 transition hover:border-brand-sky/40 hover:text-brand-sky xl:inline-flex"
               aria-label="Open site search"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
@@ -109,7 +109,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setIsOpen((value) => !value)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-cream/15 text-brand-cream transition hover:border-brand-sky/50 hover:text-brand-sky lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-brand-cream/10 text-brand-cream transition hover:border-brand-sky/50 hover:text-brand-sky lg:hidden"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
@@ -137,7 +137,7 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setIsOpen(false)}
-                    className="rounded-xl px-3 py-3 text-base font-medium text-brand-cream/80 transition hover:bg-brand-cream/5 hover:text-brand-sky"
+                    className="rounded-xl px-3 py-3 text-base font-medium text-brand-cream/100 transition hover:bg-brand-cream/5 hover:text-brand-sky"
                   >
                     {link.label}
                   </Link>
