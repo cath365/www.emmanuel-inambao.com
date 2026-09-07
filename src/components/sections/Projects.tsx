@@ -29,7 +29,7 @@ export default function Projects() {
             </h2>
           </div>
           <div className="lg:justify-self-end">
-            <p className="max-w-2xl text-base leading-7 text-[#F7F3EC]/65">
+            <p className="max-w-2xl text-base leading-7 text-[#F7F3EC]/60">
               The strongest projects are shown as engineering stories: what had to work, how the system was structured, and what was delivered.
             </p>
             <div className="mt-5 flex flex-wrap gap-6">
