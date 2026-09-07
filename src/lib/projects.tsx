@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'\nimport { showcaseProjects } from '@/data/portfolio'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { showcaseProjects } from '@/data/portfolio'
 
 export interface Project {
   id: string
@@ -100,7 +101,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
 
   const updateProject = (id: string, updates: Partial<Project>) => {
     setProjects(prev => {
-      const updated = prev.map(p => p.id === id ? { ...p, ...updates } : p)
+      const updated = prev.map(p => (p.id === id ? { ...p, ...updates } : p))
       saveToServer(updated)
       return updated
     })
