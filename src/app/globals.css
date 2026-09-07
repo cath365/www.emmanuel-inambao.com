@@ -5,7 +5,7 @@
 :root {
   --brand-navy: #000b26;
   --brand-sky: #7ca7eb;
-  --brand-camel: #cbb08a;
+  --brand-camel: #cfb18f;
   --brand-chocolate: #402924;
   --brand-cream: #f7f3ec;
 }
@@ -68,7 +68,7 @@
   }
 
   html.dark ::-webkit-scrollbar-thumb {
-    background: rgba(203, 176, 138, 0.55);
+    background: rgba(207, 177, 143, 0.55);
   }
 }
 
