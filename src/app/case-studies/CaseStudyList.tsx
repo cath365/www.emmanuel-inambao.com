@@ -23,14 +23,14 @@ export default function CaseStudyList() {
             {project.categories.map((category) => (
               <span
                 key={category}
-                className="rounded-full border border-brand-navy/10 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-brand-chocolate dark:border-brand-cream/15 dark:text-brand-camel"
+                className="rounded-full border border-brand-navy/10 px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-camel"
               >
                 {category}
               </span>
             ))}
           </div>
 
-          <p className="mt-5 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/65">
+          <p className="mt-5 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60">
             {project.description}
           </p>
 
