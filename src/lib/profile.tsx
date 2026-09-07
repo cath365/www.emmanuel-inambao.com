@@ -23,10 +23,10 @@ export interface Profile {
 }
 
 const defaultProfile: Profile = {
-  name: 'Prof. Emmanuel Inambao',
-  title: 'Electronic Engineer | IoT & Robotics Developer',
-  subtitle: 'Full-Stack Systems Engineer',
-  bio: 'I design and build intelligent embedded systems that bridge hardware and software to solve real-world problems. From smart agriculture to industrial automation, I engineer solutions that work offline, scale locally, and create measurable impact.',
+  name: 'Emmanuel Inambao',
+  title: 'Systems Engineer',
+  subtitle: 'AI | IoT | Robotics | Embedded Systems | Mobile | Full-Stack',
+  bio: 'I design and build intelligent systems that solve real-world problems and create meaningful impact.',
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
   phone: '+260 973 914 432',
