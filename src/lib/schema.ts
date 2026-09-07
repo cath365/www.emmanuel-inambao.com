@@ -1,16 +1,13 @@
-// JSON-LD Schema markup for better SEO
-// Import and use in layout.tsx
-
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com'
 
 export function generatePersonSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    name: 'Professor Emmanuel Inambao',
-    alternateName: 'Emmanuel Inambao',
-    description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer based in Lusaka, Zambia',
-    jobTitle: 'Electronic Engineer & IoT Developer',
+    name: 'Emmanuel Inambao',
+    description:
+      'Systems Engineer based in Lusaka, Zambia working across artificial intelligence, IoT, robotics, embedded systems, mobile applications and full-stack development.',
+    jobTitle: 'Systems Engineer',
     url: SITE_URL,
     email: 'denuelinambao@gmail.com',
     telephone: '+260973914432',
@@ -24,14 +21,17 @@ export function generatePersonSchema() {
       'https://linkedin.com/in/emmanuelinambao',
     ],
     knowsAbout: [
+      'Artificial Intelligence',
+      'Machine Learning',
+      'Computer Vision',
+      'Internet of Things',
       'Embedded Systems',
-      'Internet of Things (IoT)',
-      'Robotics',
-      'Arduino',
       'ESP32',
+      'Arduino',
+      'Robotics',
+      'Mobile Application Development',
       'Full-Stack Development',
-      'Industrial Automation',
-      'PCB Design',
+      'Technical Project Management',
     ],
   }
 }
@@ -42,7 +42,8 @@ export function generateWebsiteSchema() {
     '@type': 'WebSite',
     name: 'Emmanuel Inambao Portfolio',
     url: SITE_URL,
-    description: 'Professional portfolio of Professor Emmanuel Inambao - Electronic Engineer, IoT & Robotics Developer',
+    description:
+      'Professional technology portfolio of Emmanuel Inambao, Systems Engineer in Lusaka, Zambia.',
     author: {
       '@type': 'Person',
       name: 'Emmanuel Inambao',
@@ -55,7 +56,8 @@ export function generateProfessionalServiceSchema() {
     '@context': 'https://schema.org',
     '@type': 'ProfessionalService',
     name: 'Emmanuel Inambao Engineering Services',
-    description: 'Embedded systems development, IoT solutions, industrial automation, and full-stack engineering services',
+    description:
+      'Systems engineering, IoT, embedded systems, robotics, mobile application and full-stack development services.',
     provider: {
       '@type': 'Person',
       name: 'Emmanuel Inambao',
@@ -65,11 +67,12 @@ export function generateProfessionalServiceSchema() {
       name: 'Zambia',
     },
     serviceType: [
-      'Embedded Systems Development',
+      'Systems Engineering',
       'IoT Solutions',
-      'Industrial Automation',
-      'Web Application Development',
-      'PCB Design',
+      'Embedded Systems Development',
+      'Robotics and Automation',
+      'Mobile Application Development',
+      'Full-Stack Web Development',
       'Technical Consulting',
     ],
   }
