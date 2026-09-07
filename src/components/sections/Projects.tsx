@@ -1,49 +1,40 @@
 'use client'
 
-import { motion, useInView, useReducedMotion } from 'framer-motion'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import CaseStudyModal from '@/components/ui/CaseStudyModal'
 import ProjectGallery from '@/components/ui/ProjectGallery'
 import type { ShowcaseProject } from '@/data/portfolio'
 
 export default function Projects() {
-  const ref = useRef<HTMLElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-80px' })
-  const reduceMotion = useReducedMotion()
   const [activeProject, setActiveProject] = useState<ShowcaseProject | null>(null)
   const closeCaseStudy = useCallback(() => setActiveProject(null), [])
 
   return (
     <section
       id="projects"
-      ref={ref}
-      className="content-auto bg-brand-sky/10 py-20 dark:bg-brand-navy sm:py-24 lg:py-32"
+      className="bg-brand-cream py-16 text-brand-navy dark:bg-brand-navy dark:text-brand-cream sm:py-20 lg:py-24"
       aria-labelledby="projects-heading"
     >
       <div className="section-container">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: reduceMotion ? 0 : 0.55 }}
-        >
-          <div className="grid gap-7 border-b border-brand-navy/10 pb-10 dark:border-brand-cream/10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+        <div className="border-t border-brand-navy/10 pt-10 dark:border-brand-cream/10">
+          <div className="grid gap-5 lg:grid-cols-[0.45fr_0.55fr] lg:items-end">
             <div>
-              <p className="editorial-label">Selected Projects</p>
-              <h2 id="projects-heading" className="section-heading mt-4">
-                Products where software meets the physical world.
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-chocolate/60 dark:text-brand-camel">
+                Selected work
+              </p>
+              <h2 id="projects-heading" className="mt-3 font-serif text-4xl font-semibold tracking-[-0.025em] sm:text-5xl">
+                Projects
               </h2>
             </div>
-            <p className="section-subheading lg:ml-auto">
-              Six representative systems across AI, assistive technology, automation, business
-              software, agriculture and embedded robotics. Filter the gallery by engineering
-              domain.
+            <p className="max-w-2xl text-base leading-8 text-brand-chocolate/65 dark:text-brand-cream/60 lg:justify-self-end">
+              Systems I have designed and built across embedded hardware, IoT, robotics, AI and software. Open a project to see the problem, approach, technology and current status.
             </p>
           </div>
 
           <div className="mt-8">
             <ProjectGallery onOpenProject={setActiveProject} />
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <CaseStudyModal project={activeProject} onClose={closeCaseStudy} />
