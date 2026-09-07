@@ -37,17 +37,17 @@ export default function Services() {
                 transition={{ duration: 0.45, delay: index * 0.04 }}
                 className="grid gap-5 border-b border-[#402924]/25 py-8 sm:grid-cols-[4rem_1fr] sm:gap-7"
               >
-                <span className="text-xs font-bold tracking-[0.18em] text-[#402924]/55">{String(index + 1).padStart(2, '0')}</span>
+                <span className="text-xs font-bold tracking-[0.18em] text-[#402924]/50">{String(index + 1).padStart(2, '0')}</span>
                 <div>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                     <h3 className="editorial-serif max-w-2xl text-3xl leading-tight">{service.title}</h3>
-                    {service.price && <span className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-[#402924]/62">{service.price}</span>}
+                    {service.price && <span className="shrink-0 text-xs font-bold uppercase tracking-[0.12em] text-[#402924]/60">{service.price}</span>}
                   </div>
                   <p className="mt-4 max-w-3xl text-sm leading-6 text-[#402924]/70 sm:text-base sm:leading-7">{service.description}</p>
                   {service.features.length > 0 && (
                     <div className="mt-5 grid gap-2 sm:grid-cols-2">
                       {service.features.slice(0, 6).map(feature => (
-                        <div key={feature} className="flex items-start gap-2 text-sm text-[#402924]/76">
+                        <div key={feature} className="flex items-start gap-2 text-sm text-[#402924]/75">
                           <Check className="mt-0.5 h-4 w-4 shrink-0" />
                           <span>{feature}</span>
                         </div>
