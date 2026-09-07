@@ -18,7 +18,7 @@ export default function Hero() {
     >
       <div className="absolute inset-0 -z-20 bg-brand-navy" aria-hidden="true" />
       <div
-        className="absolute -right-24 top-24 -z-10 h-72 w-72 rounded-full border-[44px] border-brand-sky/18 sm:h-96 sm:w-96"
+        className="absolute -right-24 top-24 -z-10 h-72 w-72 rounded-full border-[44px] border-brand-sky/20 sm:h-96 sm:w-96"
         aria-hidden="true"
       />
       <div
@@ -52,13 +52,13 @@ export default function Hero() {
                 Systems Engineer
               </span>
               <span className="hidden h-4 w-px bg-brand-cream/25 sm:block" aria-hidden="true" />
-              <span className="inline-flex items-center gap-1.5 text-brand-cream/65">
+              <span className="inline-flex items-center gap-1.5 text-brand-cream/60">
                 <MapPin className="h-4 w-4 text-brand-sky" aria-hidden="true" />
                 Lusaka, Zambia
               </span>
             </div>
 
-            <p className="mt-8 max-w-2xl text-lg leading-8 text-brand-cream/76 sm:text-xl">
+            <p className="mt-8 max-w-2xl text-lg leading-8 text-brand-cream/75 sm:text-xl">
               I design and build intelligent systems that solve real-world problems and create
               meaningful impact.
             </p>
@@ -84,11 +84,11 @@ export default function Hero() {
               </Link>
             </div>
 
-            <div className="mt-10 max-w-3xl border-t border-brand-cream/12 pt-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-cream/45">
+            <div className="mt-10 max-w-3xl border-t border-brand-cream/10 pt-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-cream/40">
                 Specialisation
               </p>
-              <p className="mt-3 text-sm leading-7 text-brand-cream/68 sm:text-base">
+              <p className="mt-3 text-sm leading-7 text-brand-cream/70 sm:text-base">
                 Artificial Intelligence · IoT · Robotics · Embedded Systems · Mobile Applications
                 · Full-Stack Development
               </p>
@@ -104,7 +104,7 @@ export default function Hero() {
             <div className="absolute -left-7 -top-7 h-24 w-24 rounded-full bg-brand-camel sm:h-28 sm:w-28" aria-hidden="true" />
             <div className="absolute -bottom-8 -right-8 h-36 w-36 rounded-full border-[26px] border-brand-sky/60 sm:h-44 sm:w-44" aria-hidden="true" />
 
-            <div className="relative overflow-hidden rounded-[2rem] border border-brand-cream/18 bg-brand-cream p-3 shadow-[0_34px_100px_rgba(0,0,0,0.32)]">
+            <div className="relative overflow-hidden rounded-[2rem] border border-brand-cream/20 bg-brand-cream p-3 shadow-[0_34px_100px_rgba(0,0,0,0.32)]">
               <div className="relative aspect-[4/5] overflow-hidden rounded-[1.45rem] bg-brand-chocolate">
                 {profile.image ? (
                   <Image
