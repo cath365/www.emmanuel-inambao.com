@@ -69,32 +69,32 @@ export default function Contact() {
   const inputClass = 'mt-2 min-h-12 w-full rounded-xl border border-brand-navy/15 bg-white px-4 text-base text-brand-navy outline-none transition placeholder:text-brand-chocolate/40 focus:border-brand-chocolate focus:ring-2 focus:ring-brand-chocolate/15'
 
   return (
-    <section id="contact" className="bg-brand-sky py-20 text-brand-navy sm:py-24 lg:py-28" aria-labelledby="contact-heading">
+    <section id="contact" className="bg-brand-sky py-20 text-brand-chocolate sm:py-24 lg:py-28" aria-labelledby="contact-heading">
       <div className="section-container">
-        <div className="grid gap-10 border-t border-brand-navy/15 pt-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16">
+        <div className="grid gap-10 border-t border-brand-chocolate/20 pt-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-navy/60">Contact</p>
-            <h2 id="contact-heading" className="mt-4 font-serif text-5xl font-semibold leading-[0.95] tracking-[-0.03em] text-brand-navy sm:text-6xl">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-chocolate/70">Contact</p>
+            <h2 id="contact-heading" className="mt-4 font-serif text-5xl font-semibold leading-[0.95] tracking-[-0.03em] text-brand-chocolate sm:text-6xl">
               Build something useful.
             </h2>
-            <p className="mt-6 max-w-xl text-base leading-8 text-brand-navy/70 sm:text-lg">
+            <p className="mt-6 max-w-xl text-base leading-8 text-brand-chocolate/75 sm:text-lg">
               Tell me what you are building, the problem you want to solve and where you need engineering support. Written communication is preferred for project enquiries.
             </p>
 
             <div className="mt-9 grid gap-3">
-              <a href={'mailto:' + profile.email} className="flex items-center gap-4 rounded-xl border border-brand-navy/15 bg-white/20 p-4 transition hover:bg-white/30">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-navy text-brand-sky"><Mail className="h-5 w-5" aria-hidden="true" /></span>
+              <a href={'mailto:' + profile.email} className="flex items-center gap-4 rounded-xl border border-brand-chocolate/20 bg-brand-chocolate/[0.05] p-4 transition hover:bg-brand-chocolate/[0.09]">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-chocolate text-brand-sky"><Mail className="h-5 w-5" aria-hidden="true" /></span>
                 <span className="min-w-0">
-                  <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-brand-navy/55">Email</span>
-                  <span className="mt-1 block truncate text-sm font-semibold">{profile.email}</span>
+                  <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-brand-chocolate/60">Email</span>
+                  <span className="mt-1 block truncate text-sm font-semibold text-brand-chocolate">{profile.email}</span>
                 </span>
               </a>
 
-              <div className="flex items-center gap-4 rounded-xl border border-brand-navy/15 bg-white/20 p-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-chocolate text-brand-camel"><MapPin className="h-5 w-5" aria-hidden="true" /></span>
+              <div className="flex items-center gap-4 rounded-xl border border-brand-chocolate/20 bg-brand-chocolate/[0.05] p-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-chocolate text-brand-sky"><MapPin className="h-5 w-5" aria-hidden="true" /></span>
                 <span>
-                  <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-brand-navy/55">Location</span>
-                  <span className="mt-1 block text-sm font-semibold">Lusaka, Zambia</span>
+                  <span className="block text-xs font-semibold uppercase tracking-[0.15em] text-brand-chocolate/60">Location</span>
+                  <span className="mt-1 block text-sm font-semibold text-brand-chocolate">Lusaka, Zambia</span>
                 </span>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function Contact() {
                 {socialLinks.map((social) => {
                   const Icon = social.icon
                   return (
-                    <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-navy transition hover:text-brand-chocolate">
+                    <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-brand-chocolate transition hover:opacity-70">
                       <Icon className="h-4 w-4" aria-hidden="true" />
                       {social.label}
                       <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -117,7 +117,7 @@ export default function Contact() {
 
           <div className="rounded-2xl bg-brand-cream p-5 text-brand-navy shadow-[0_24px_70px_rgba(0,11,38,0.14)] sm:p-7 lg:p-9">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-chocolate/60">Project enquiry</p>
-            <h3 className="mt-2 font-serif text-3xl font-semibold sm:text-4xl">Send a clear project brief.</h3>
+            <h3 className="mt-2 font-serif text-3xl font-semibold text-brand-navy sm:text-4xl">Send a clear project brief.</h3>
 
             <form onSubmit={handleSubmit} className="mt-7 grid gap-5">
               <div className="absolute -left-[9999px] h-px w-px overflow-hidden">
@@ -158,7 +158,7 @@ export default function Contact() {
                 <textarea id="contact-message" name="message" required minLength={20} maxLength={5000} rows={7} value={formData.message} onChange={handleChange} className={`${inputClass} py-3 leading-7`} placeholder="What problem are you solving, what already exists, and what would you like me to help build?" />
               </div>
 
-              <button type="submit" disabled={status === 'loading'} aria-busy={status === 'loading'} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-navy px-6 text-sm font-semibold text-brand-cream transition hover:bg-brand-chocolate disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={status === 'loading'} aria-busy={status === 'loading'} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-navy px-6 text-sm font-semibold text-brand-camel transition hover:bg-brand-chocolate hover:text-brand-sky disabled:cursor-not-allowed disabled:opacity-60">
                 {status === 'loading' ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />Sending</> : <><Send className="h-4 w-4" aria-hidden="true" />Submit Project Enquiry</>}
               </button>
 
