@@ -26,23 +26,24 @@ export default function Home() {
     <>
       <SectionViewTracker />
       <Hero />
-      <ClientLogos />
       <About />
+      <Projects />
       <Skills />
-      <GitHubContributions username="bolo3574" />
       <Services />
       <HowIWork />
-      <Projects />
       <EngineeringCTA />
-      <AchievementTimeline />
+
       <Experience />
-      <Certifications />
-      <OpenSource />
+      <AchievementTimeline />
       <Testimonials />
-      <Pricing />
+      <ClientLogos />
+      <Certifications />
+      <GitHubContributions username="bolo3574" />
+      <OpenSource />
       <Education />
       <DownloadableResources />
       <Gallery />
+      <Pricing />
       <FAQ />
       <Newsletter />
       <Contact />
