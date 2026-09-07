@@ -12,7 +12,7 @@ const config: Config = {
         brand: {
           navy: '#000B26',
           sky: '#7CA7EB',
-          camel: '#CBB08A',
+          camel: '#CFB18F',
           chocolate: '#402924',
           cream: '#F7F3EC',
         },
@@ -34,7 +34,7 @@ const config: Config = {
           100: '#f3eadf',
           200: '#e7d8c6',
           300: '#d9c4a7',
-          400: '#CBB08A',
+          400: '#CFB18F',
           500: '#b79a73',
           600: '#9a7e5f',
           700: '#7a624b',
