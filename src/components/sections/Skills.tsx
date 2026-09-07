@@ -1,38 +1,18 @@
-'use client'
-
-import { motion, useInView, useReducedMotion } from 'framer-motion'
-import { useRef } from 'react'
 import SkillGroup from '@/components/ui/SkillGroup'
 import { skillGroups } from '@/data/portfolio'
 
 export default function Skills() {
-  const ref = useRef<HTMLElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-80px' })
-  const reduceMotion = useReducedMotion()
-
   return (
-    <section
-      id="skills"
-      ref={ref}
-      className="content-auto bg-brand-cream py-20 dark:bg-brand-navy sm:py-24 lg:py-32"
-      aria-labelledby="skills-heading"
-    >
+    <section id="skills" className="bg-white py-16 dark:bg-brand-navy sm:py-20 lg:py-24" aria-labelledby="skills-heading">
       <div className="section-container">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: reduceMotion ? 0 : 0.55 }}
-        >
-          <div className="grid gap-6 border-b border-brand-navy/10 pb-10 dark:border-brand-cream/10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+        <div className="border-t border-brand-navy/10 pt-10 dark:border-brand-cream/10">
+          <div className="grid gap-5 lg:grid-cols-[0.45fr_0.55fr] lg:items-end">
             <div>
-              <p className="editorial-label">Skills</p>
-              <h2 id="skills-heading" className="section-heading mt-4">
-                Built around real systems, not percentages.
-              </h2>
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand-chocolate/60 dark:text-brand-camel">Capabilities</p>
+              <h2 id="skills-heading" className="mt-3 font-serif text-4xl font-semibold tracking-[-0.025em] text-brand-navy dark:text-brand-cream sm:text-5xl">Skills</h2>
             </div>
-            <p className="section-subheading lg:ml-auto">
-              My work spans intelligent software, embedded electronics, connected devices,
-              automation and the delivery discipline required to bring those pieces together.
+            <p className="max-w-2xl text-base leading-8 text-brand-chocolate/65 dark:text-brand-cream/60 lg:justify-self-end">
+              The technologies and engineering disciplines I use to build connected products and software systems.
             </p>
           </div>
 
@@ -41,7 +21,7 @@ export default function Skills() {
               <SkillGroup key={group.id} group={group} index={index} />
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
