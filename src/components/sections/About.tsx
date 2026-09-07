@@ -1,8 +1,3 @@
-'use client'
-
-import { motion, useInView, useReducedMotion } from 'framer-motion'
-import { useRef } from 'react'
-
 const focusAreas = [
   'Community and accessibility',
   'Agriculture and field systems',
@@ -11,52 +6,35 @@ const focusAreas = [
 ]
 
 export default function About() {
-  const ref = useRef<HTMLElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-80px' })
-  const reduceMotion = useReducedMotion()
-
   return (
     <section
       id="about"
-      ref={ref}
-      className="content-auto bg-brand-camel/20 py-20 text-brand-navy dark:bg-brand-navy dark:text-brand-cream sm:py-24 lg:py-32"
+      className="bg-white py-16 text-brand-navy dark:bg-brand-navy dark:text-brand-cream sm:py-20 lg:py-24"
       aria-labelledby="about-heading"
     >
       <div className="section-container">
-        <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 22 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: reduceMotion ? 0 : 0.55 }}
-          className="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20"
-        >
+        <div className="grid gap-8 border-t border-brand-navy/10 pt-10 dark:border-brand-cream/10 lg:grid-cols-[0.32fr_0.68fr] lg:gap-16">
           <div>
-            <p className="editorial-label">About</p>
-            <h2 id="about-heading" className="section-heading mt-4">
-              Engineering across the full system.
+            <h2 id="about-heading" className="text-sm font-bold uppercase tracking-[0.18em]">
+              About
             </h2>
           </div>
 
           <div>
-            <p className="font-serif text-2xl leading-9 text-brand-navy dark:text-brand-cream sm:text-3xl sm:leading-10">
-              I am Emmanuel Inambao, a systems engineer and technology builder from Zambia. I
-              design and develop practical solutions using software, artificial intelligence, IoT,
-              robotics and embedded systems. My work focuses on solving real problems in
-              communities, agriculture, accessibility, education, business and automation.
+            <p className="max-w-4xl text-xl leading-9 text-brand-navy sm:text-2xl sm:leading-10 dark:text-brand-cream">
+              I am Emmanuel Inambao, a systems engineer and technology builder from Zambia. I design and develop practical solutions using software, artificial intelligence, IoT, robotics and embedded systems.
+            </p>
+            <p className="mt-5 max-w-3xl text-base leading-8 text-brand-chocolate/70 dark:text-brand-cream/60">
+              My work focuses on solving real problems in communities, agriculture, accessibility, education, business and automation.
             </p>
 
-            <div className="mt-10 grid gap-3 border-t border-brand-navy/10 pt-6 dark:border-brand-cream/10 sm:grid-cols-2">
+            <div className="mt-8 grid gap-x-8 gap-y-3 border-t border-brand-navy/10 pt-5 text-sm text-brand-chocolate/65 dark:border-brand-cream/10 dark:text-brand-cream/55 sm:grid-cols-2">
               {focusAreas.map((area) => (
-                <div
-                  key={area}
-                  className="flex items-center gap-3 rounded-2xl border border-brand-navy/10 px-4 py-3 text-sm font-medium text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-cream/70"
-                >
-                  <span className="h-2 w-2 rounded-full bg-brand-sky" aria-hidden="true" />
-                  {area}
-                </div>
+                <p key={area}>{area}</p>
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
