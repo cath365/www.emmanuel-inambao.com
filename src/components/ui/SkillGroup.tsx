@@ -1,3 +1,4 @@
+import { Braces, Cpu, Gauge, Workflow } from 'lucide-react'
 import type { SkillGroupData } from '@/data/portfolio'
 
 interface SkillGroupProps {
@@ -5,33 +6,34 @@ interface SkillGroupProps {
   index: number
 }
 
+const icons = [Braces, Cpu, Gauge, Workflow]
+
 export default function SkillGroup({ group, index }: SkillGroupProps) {
+  const Icon = icons[index % icons.length]
+
   return (
-    <article className="editorial-card h-full p-5 sm:p-7">
-      <div className="flex items-start justify-between gap-5 border-b border-brand-navy/10 pb-5 dark:border-brand-cream/10">
-        <div>
-          <p className="editorial-label">0{index + 1}</p>
-          <h3 className="mt-2 font-serif text-3xl font-semibold leading-tight text-brand-navy dark:text-brand-cream">
-            {group.title}
-          </h3>
+    <article className="editorial-card group h-full overflow-hidden p-0 transition duration-300 hover:-translate-y-1 hover:shadow-editorial">
+      <div className="border-b border-brand-navy/10 bg-brand-navy p-5 text-brand-cream dark:border-brand-cream/10 sm:p-7">
+        <div className="flex items-start justify-between gap-5">
+          <div>
+            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-brand-camel">Capability 0{index + 1}</p>
+            <h3 className="mt-2 font-serif text-3xl font-semibold leading-tight sm:text-[2.15rem]">{group.title}</h3>
+          </div>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-brand-sky/30 bg-brand-sky/10 text-brand-sky">
+            <Icon className="h-5 w-5" aria-hidden="true" />
+          </span>
         </div>
-        <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-brand-sky" aria-hidden="true" />
+        <p className="mt-4 max-w-xl text-sm leading-6 text-brand-cream/65">{group.description}</p>
       </div>
 
-      <p className="mt-5 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/60">
-        {group.description}
-      </p>
-
-      <ul className="mt-6 grid gap-3" aria-label={`${group.title} skills`}>
-        {group.skills.map((skill) => (
-          <li
-            key={skill.name}
-            className="rounded-2xl border border-brand-navy/10 bg-brand-cream/70 p-4 dark:border-brand-cream/10 dark:bg-white/5"
-          >
-            <p className="font-semibold text-brand-navy dark:text-brand-cream">{skill.name}</p>
-            <p className="mt-1 text-sm leading-6 text-brand-chocolate/60 dark:text-brand-cream/50">
-              {skill.description}
-            </p>
+      <ul className="grid gap-0 bg-white/60 dark:bg-white/5" aria-label={`${group.title} skills`}>
+        {group.skills.map((skill, skillIndex) => (
+          <li key={skill.name} className="grid grid-cols-[auto_1fr] gap-3 border-b border-brand-navy/10 p-4 last:border-b-0 dark:border-brand-cream/10 sm:p-5">
+            <span className="mt-1 text-[0.58rem] font-bold tracking-[0.12em] text-brand-chocolate/40 dark:text-brand-camel/70">{String(skillIndex + 1).padStart(2, '0')}</span>
+            <div>
+              <p className="font-semibold text-brand-navy dark:text-brand-cream">{skill.name}</p>
+              <p className="mt-1 text-sm leading-6 text-brand-chocolate/60 dark:text-brand-cream/50">{skill.description}</p>
+            </div>
           </li>
         ))}
       </ul>
