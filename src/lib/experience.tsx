@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'\nimport { professionalRoles } from '@/data/portfolio'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { professionalRoles } from '@/data/portfolio'
 
 export interface Experience {
   id: string
@@ -60,7 +61,9 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
             try {
               const parsed = JSON.parse(saved)
               setExperiences(parsed.length > 0 ? parsed : defaultExperiences)
-            } catch { setExperiences(defaultExperiences) }
+            } catch {
+              setExperiences(defaultExperiences)
+            }
           } else {
             setExperiences(defaultExperiences)
           }
@@ -72,7 +75,9 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
           try {
             const parsed = JSON.parse(saved)
             setExperiences(parsed.length > 0 ? parsed : defaultExperiences)
-          } catch { setExperiences(defaultExperiences) }
+          } catch {
+            setExperiences(defaultExperiences)
+          }
         } else {
           setExperiences(defaultExperiences)
         }
@@ -96,7 +101,7 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
 
   const updateExperience = (id: string, updates: Partial<Experience>) => {
     setExperiences(prev => {
-      const updated = prev.map(exp => exp.id === id ? { ...exp, ...updates } : exp)
+      const updated = prev.map(exp => (exp.id === id ? { ...exp, ...updates } : exp))
       saveToServer(updated)
       return updated
     })
