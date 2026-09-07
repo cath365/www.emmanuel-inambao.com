@@ -28,6 +28,7 @@ function TextList({ items }: { items: string[] }) {
 
 export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!project) return
@@ -38,7 +39,34 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
     closeRef.current?.focus()
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') {
+        onClose()
+        return
+      }
+
+      if (event.key !== 'Tab' || !dialogRef.current) return
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      )
+
+      if (!focusable.length) {
+        event.preventDefault()
+        return
+      }
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
     }
 
     window.addEventListener('keydown', onKeyDown)
@@ -57,14 +85,17 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
   return (
     <div
       className="fixed inset-0 z-[90] overflow-y-auto bg-brand-navy/100 p-3 backdrop-blur-md sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="case-study-modal-title"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <div className="mx-auto my-3 w-full max-w-6xl overflow-hidden rounded-[2rem] border border-brand-cream/10 bg-brand-cream shadow-[0_35px_120px_rgba(0,0,0,0.35)] dark:bg-brand-navy sm:my-8">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="case-study-modal-title"
+        className="mx-auto my-3 w-full max-w-6xl overflow-hidden rounded-[2rem] border border-brand-cream/10 bg-brand-cream shadow-[0_35px_120px_rgba(0,0,0,0.35)] dark:bg-brand-navy sm:my-8"
+      >
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-brand-navy/10 bg-brand-cream/95 px-5 py-4 backdrop-blur-xl dark:border-brand-cream/10 dark:bg-brand-navy/95 sm:px-8">
           <button
             ref={closeRef}
