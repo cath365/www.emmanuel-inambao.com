@@ -16,7 +16,7 @@ function TextList({ items }: { items: string[] }) {
       {items.map((item) => (
         <li
           key={item}
-          className="flex gap-3 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/65"
+          className="flex gap-3 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/60"
         >
           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-sky" />
           <span>{item}</span>
@@ -56,7 +56,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
 
   return (
     <div
-      className="fixed inset-0 z-[90] overflow-y-auto bg-brand-navy/80 p-3 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-[90] overflow-y-auto bg-brand-navy/100 p-3 backdrop-blur-md sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="case-study-modal-title"
@@ -64,7 +64,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
         if (event.target === event.currentTarget) onClose()
       }}
     >
-      <div className="mx-auto my-3 w-full max-w-6xl overflow-hidden rounded-[2rem] border border-brand-cream/15 bg-brand-cream shadow-[0_35px_120px_rgba(0,0,0,0.35)] dark:bg-brand-navy sm:my-8">
+      <div className="mx-auto my-3 w-full max-w-6xl overflow-hidden rounded-[2rem] border border-brand-cream/10 bg-brand-cream shadow-[0_35px_120px_rgba(0,0,0,0.35)] dark:bg-brand-navy sm:my-8">
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-brand-navy/10 bg-brand-cream/95 px-5 py-4 backdrop-blur-xl dark:border-brand-cream/10 dark:bg-brand-navy/95 sm:px-8">
           <button
             ref={closeRef}
@@ -78,7 +78,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           <button
             type="button"
             onClick={onClose}
-            className="grid h-10 w-10 place-items-center rounded-full border border-brand-navy/10 text-brand-navy transition hover:border-brand-sky dark:border-brand-cream/15 dark:text-brand-cream"
+            className="grid h-10 w-10 place-items-center rounded-full border border-brand-navy/10 text-brand-navy transition hover:border-brand-sky dark:border-brand-cream/10 dark:text-brand-cream"
             aria-label="Close case study"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -99,7 +99,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
                 {project.categories.map((category) => (
                   <span
                     key={category}
-                    className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/15 dark:text-brand-camel"
+                    className="rounded-full border border-brand-navy/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-camel"
                   >
                     {category}
                   </span>
@@ -124,13 +124,13 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
           <div className="mt-14 grid gap-8 lg:grid-cols-2">
             <section className="editorial-card p-6 sm:p-7">
               <p className="editorial-label">Problem</p>
-              <p className="mt-4 leading-7 text-brand-chocolate/75 dark:text-brand-cream/68">
+              <p className="mt-4 leading-7 text-brand-chocolate/75 dark:text-brand-cream/70">
                 {study.problem}
               </p>
             </section>
             <section className="editorial-card p-6 sm:p-7">
               <p className="editorial-label">Proposed solution</p>
-              <p className="mt-4 leading-7 text-brand-chocolate/75 dark:text-brand-cream/68">
+              <p className="mt-4 leading-7 text-brand-chocolate/75 dark:text-brand-cream/70">
                 {study.solution}
               </p>
             </section>
@@ -163,7 +163,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
                   ))}
                 </div>
               ) : (
-                <p className="mt-4 text-sm leading-6 text-brand-chocolate/65 dark:text-brand-cream/55">
+                <p className="mt-4 text-sm leading-6 text-brand-chocolate/60 dark:text-brand-cream/50">
                   Software-focused project; no dedicated hardware is required for the current
                   workflow.
                 </p>
@@ -184,7 +184,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
                   <span className="text-xs font-bold uppercase tracking-[0.16em] text-brand-sky">
                     Step {String(index + 1).padStart(2, '0')}
                   </span>
-                  <p className="mt-2 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/65">
+                  <p className="mt-2 text-sm leading-6 text-brand-chocolate/75 dark:text-brand-cream/60">
                     {step}
                   </p>
                 </li>
@@ -197,7 +197,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
               <h3 className="font-serif text-3xl font-semibold text-brand-navy dark:text-brand-cream">
                 My role
               </h3>
-              <p className="mt-4 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/65">
+              <p className="mt-4 text-sm leading-7 text-brand-chocolate/75 dark:text-brand-cream/60">
                 {study.role}
               </p>
             </section>
@@ -224,7 +224,7 @@ export default function CaseStudyModal({ project, onClose }: CaseStudyModalProps
               {project.screenItems.map((item) => (
                 <div
                   key={item}
-                  className="rounded-2xl border border-brand-navy/10 bg-white/70 p-4 text-sm font-semibold text-brand-navy dark:border-brand-cream/10 dark:bg-white/[0.04] dark:text-brand-cream"
+                  className="rounded-2xl border border-brand-navy/10 bg-white/70 p-4 text-sm font-semibold text-brand-navy dark:border-brand-cream/10 dark:bg-white/5 dark:text-brand-cream"
                 >
                   {item}
                 </div>
