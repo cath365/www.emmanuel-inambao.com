@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'\nimport { professionalRoles } from '@/data/portfolio'
 
 export interface Experience {
   id: string
