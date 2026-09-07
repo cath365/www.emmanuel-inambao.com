@@ -8,17 +8,10 @@ interface ProjectFilterProps {
   onChange: (filter: ProjectFilterValue) => void
 }
 
-export default function ProjectFilter({
-  filters,
-  activeFilter,
-  onChange,
-}: ProjectFilterProps) {
+export default function ProjectFilter({ filters, activeFilter, onChange }: ProjectFilterProps) {
   return (
-    <div
-      className="-mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0"
-      aria-label="Filter selected projects"
-    >
-      <div className="flex min-w-max gap-2" role="group" aria-label="Project categories">
+    <div className="-mx-4 overflow-x-auto border-b border-brand-navy/10 px-4 dark:border-brand-cream/10 sm:mx-0 sm:px-0" aria-label="Filter selected projects">
+      <div className="flex min-w-max gap-7" role="group" aria-label="Project categories">
         {filters.map((filter) => {
           const active = filter === activeFilter
           return (
@@ -28,10 +21,10 @@ export default function ProjectFilter({
               onClick={() => onChange(filter)}
               aria-pressed={active}
               className={
-                'min-h-10 rounded-full border px-4 text-sm font-semibold transition ' +
+                'border-b-2 py-3 text-sm font-semibold transition ' +
                 (active
-                  ? 'border-brand-navy bg-brand-navy text-brand-cream dark:border-brand-sky dark:bg-brand-sky dark:text-brand-navy'
-                  : 'border-brand-navy/10 bg-transparent text-brand-chocolate hover:border-brand-sky hover:text-brand-navy dark:border-brand-cream/10 dark:text-brand-cream/60 dark:hover:text-brand-sky')
+                  ? 'border-brand-sky text-brand-navy dark:text-brand-cream'
+                  : 'border-transparent text-brand-chocolate/55 hover:text-brand-navy dark:text-brand-cream/45 dark:hover:text-brand-cream')
               }
             >
               {filter}
