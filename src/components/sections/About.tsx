@@ -48,7 +48,7 @@ export default function About() {
               {focusAreas.map((area) => (
                 <div
                   key={area}
-                  className="flex items-center gap-3 rounded-2xl border border-brand-navy/8 px-4 py-3 text-sm font-medium text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-cream/70"
+                  className="flex items-center gap-3 rounded-2xl border border-brand-navy/10 px-4 py-3 text-sm font-medium text-brand-chocolate dark:border-brand-cream/10 dark:text-brand-cream/70"
                 >
                   <span className="h-2 w-2 rounded-full bg-brand-sky" aria-hidden="true" />
                   {area}
