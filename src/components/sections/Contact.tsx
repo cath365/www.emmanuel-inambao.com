@@ -126,7 +126,7 @@ export default function Contact() {
             >
               Build something useful.
             </h2>
-            <p className="mt-6 max-w-xl text-base leading-8 text-brand-cream/72 sm:text-lg">
+            <p className="mt-6 max-w-xl text-base leading-8 text-brand-cream/70 sm:text-lg">
               Tell me what you are building, the problem you want to solve and where you need
               engineering support. Written communication is preferred for project enquiries.
             </p>
@@ -134,9 +134,9 @@ export default function Contact() {
             <div className="mt-9 grid gap-3">
               <a
                 href={'mailto:' + profile.email}
-                className="group flex items-center gap-4 rounded-2xl border border-brand-cream/12 p-4 transition hover:border-brand-sky/50"
+                className="group flex items-center gap-4 rounded-2xl border border-brand-cream/10 p-4 transition hover:border-brand-sky/50"
               >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-sky/15 text-brand-sky">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-sky/10 text-brand-sky">
                   <Mail className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="min-w-0">
@@ -149,8 +149,8 @@ export default function Contact() {
                 </span>
               </a>
 
-              <div className="flex items-center gap-4 rounded-2xl border border-brand-cream/12 p-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-camel/15 text-brand-camel">
+              <div className="flex items-center gap-4 rounded-2xl border border-brand-cream/10 p-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-camel/10 text-brand-camel">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span>
@@ -166,7 +166,7 @@ export default function Contact() {
 
             {socialLinks.length ? (
               <div className="mt-7">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-cream/45">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-cream/40">
                   Professional links
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -178,7 +178,7 @@ export default function Contact() {
                         href={social.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-10 items-center gap-2 rounded-full border border-brand-cream/15 px-4 text-sm font-semibold text-brand-cream transition hover:border-brand-sky hover:text-brand-sky"
+                        className="inline-flex min-h-10 items-center gap-2 rounded-full border border-brand-cream/10 px-4 text-sm font-semibold text-brand-cream transition hover:border-brand-sky hover:text-brand-sky"
                       >
                         <Icon className="h-4 w-4" aria-hidden="true" />
                         {social.label}
@@ -226,7 +226,7 @@ export default function Contact() {
                     maxLength={120}
                     value={formData.name}
                     onChange={handleChange}
-                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/15 bg-white px-4 text-base outline-none transition placeholder:text-brand-chocolate/35 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
+                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/10 bg-white px-4 text-base outline-none transition placeholder:text-brand-chocolate/40 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
                     placeholder="Your name"
                   />
                 </div>
@@ -244,7 +244,7 @@ export default function Contact() {
                     maxLength={254}
                     value={formData.email}
                     onChange={handleChange}
-                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/15 bg-white px-4 text-base outline-none transition placeholder:text-brand-chocolate/35 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
+                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/10 bg-white px-4 text-base outline-none transition placeholder:text-brand-chocolate/40 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -261,7 +261,7 @@ export default function Contact() {
                     required
                     value={formData.projectType}
                     onChange={handleChange}
-                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/15 bg-white px-4 text-base outline-none transition focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
+                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/10 bg-white px-4 text-base outline-none transition focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
                   >
                     <option value="">Select project type</option>
                     {projectTypes.map((projectType) => (
@@ -282,7 +282,7 @@ export default function Contact() {
                     required
                     value={formData.budget}
                     onChange={handleChange}
-                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/15 bg-white px-4 text-base outline-none transition focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
+                    className="mt-2 min-h-12 w-full rounded-xl border border-brand-navy/10 bg-white px-4 text-base outline-none transition focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
                   >
                     <option value="">Select a range</option>
                     {budgetRanges.map((budget) => (
@@ -307,7 +307,7 @@ export default function Contact() {
                   rows={7}
                   value={formData.message}
                   onChange={handleChange}
-                  className="mt-2 w-full resize-y rounded-xl border border-brand-navy/15 bg-white px-4 py-3 text-base leading-7 outline-none transition placeholder:text-brand-chocolate/35 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
+                  className="mt-2 w-full resize-y rounded-xl border border-brand-navy/10 bg-white px-4 py-3 text-base leading-7 outline-none transition placeholder:text-brand-chocolate/40 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/25"
                   placeholder="What problem are you solving, what already exists, and what would you like me to help build?"
                 />
               </div>
