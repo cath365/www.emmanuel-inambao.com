@@ -34,23 +34,23 @@ export default function HowIWork() {
               From uncertainty to a working system.
             </h2>
           </div>
-          <p className="max-w-2xl text-base leading-7 text-[#F7F3EC]/68 lg:justify-self-end">
+          <p className="max-w-2xl text-base leading-7 text-[#F7F3EC]/70 lg:justify-self-end">
             The process is deliberately simple: reduce uncertainty early, prove the difficult parts first, and keep hardware, software and operations aligned throughout delivery.
           </p>
         </motion.div>
 
-        <div className="mt-14 grid border-l border-t border-[#F7F3EC]/18 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid border-l border-t border-[#F7F3EC]/20 sm:grid-cols-2 lg:grid-cols-3">
           {steps.map(([number, title, description], index) => (
             <motion.article
               key={number}
               initial={{ opacity: 0, y: 16 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.45, delay: index * 0.06 }}
-              className="min-h-[15rem] border-b border-r border-[#F7F3EC]/18 p-6 sm:p-7"
+              className="min-h-[15rem] border-b border-r border-[#F7F3EC]/20 p-6 sm:p-7"
             >
               <span className="text-xs font-bold tracking-[0.2em] text-[#CBB08A]">{number}</span>
               <h3 className="editorial-serif mt-8 text-3xl leading-none">{title}</h3>
-              <p className="mt-4 text-sm leading-6 text-[#F7F3EC]/62">{description}</p>
+              <p className="mt-4 text-sm leading-6 text-[#F7F3EC]/60">{description}</p>
             </motion.article>
           ))}
         </div>
