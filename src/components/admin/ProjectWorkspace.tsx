@@ -3,7 +3,9 @@
 import { ChangeEvent, FormEvent, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import {
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Bot,
   Check,
   Copy,
@@ -241,6 +243,21 @@ export default function ProjectWorkspace({
       ...previous,
       [field]: (previous[field] || []).filter(item => item !== value),
     }))
+  }
+
+  const moveMedia = (id: string, direction: -1 | 1) => {
+    setFormData(previous => {
+      const media = [...(previous.media || [])]
+      const index = media.findIndex(item => item.id === id)
+      const nextIndex = index + direction
+
+      if (index < 0 || nextIndex < 0 || nextIndex >= media.length) return previous
+
+      const [item] = media.splice(index, 1)
+      media.splice(nextIndex, 0, item)
+
+      return { ...previous, media }
+    })
   }
 
   const runAI = async (action: 'improve' | 'case-study' | 'cv') => {
@@ -658,16 +675,36 @@ export default function ProjectWorkspace({
                               className="w-full resize-none border border-white/10 bg-[#0B1120] px-3 py-2 text-xs leading-5 outline-none focus:border-[#7CA7EB]"
                               placeholder="Technical caption"
                             />
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
                               {item.type === 'image' && (
                                 <button
                                   onClick={() => setFormData(current => ({ ...current, image: item.url }))}
                                   type="button"
-                                  className="text-xs font-semibold text-[#7CA7EB]"
+                                  className="mr-auto text-xs font-semibold text-[#7CA7EB]"
                                 >
                                   Use as cover
                                 </button>
                               )}
+                              <button
+                                onClick={() => moveMedia(item.id, -1)}
+                                disabled={(formData.media || [])[0]?.id === item.id}
+                                type="button"
+                                className="border border-white/10 p-1.5 text-white/45 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
+                                aria-label="Move media up"
+                                title="Move earlier"
+                              >
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => moveMedia(item.id, 1)}
+                                disabled={(formData.media || [])[(formData.media || []).length - 1]?.id === item.id}
+                                type="button"
+                                className="border border-white/10 p-1.5 text-white/45 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
+                                aria-label="Move media down"
+                                title="Move later"
+                              >
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              </button>
                               <button
                                 onClick={() =>
                                   setFormData(current => ({
@@ -676,7 +713,7 @@ export default function ProjectWorkspace({
                                   }))
                                 }
                                 type="button"
-                                className="ml-auto text-xs font-semibold text-red-300"
+                                className="text-xs font-semibold text-red-300"
                               >
                                 Remove
                               </button>
