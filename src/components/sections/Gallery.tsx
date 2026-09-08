@@ -32,7 +32,7 @@ export default function Gallery() {
             <h2 id="gallery-heading" className="editorial-serif mt-4 text-4xl leading-none sm:text-5xl">
               The work should look real because it is real.
             </h2>
-            <p className="mt-5 max-w-xl text-sm leading-7 text-[#F7F3EC]/55 sm:text-base">
+            <p className="mt-5 max-w-xl text-sm leading-7 text-[#F7F3EC]/60 sm:text-base">
               Prototypes, electronics, robotics, testing sessions and technical workshops — the physical side of the systems behind the portfolio.
             </p>
 
@@ -45,7 +45,7 @@ export default function Gallery() {
                     'border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] transition ' +
                     (activeCategory === category.id
                       ? 'border-[#7CA7EB] bg-[#7CA7EB] text-[#000B26]'
-                      : 'border-white/15 text-white/45 hover:border-white/35 hover:text-white')
+                      : 'border-white/20 text-white/50 hover:border-white/40 hover:text-white')
                   }
                 >
                   {category.label}
@@ -59,7 +59,7 @@ export default function Gallery() {
               <div className="flex min-h-72 items-center justify-center border border-white/10 text-center">
                 <div>
                   <ImageIcon className="mx-auto h-7 w-7 text-white/25" />
-                  <p className="mt-3 text-sm text-white/35">Workshop media will appear here when added from the admin.</p>
+                  <p className="mt-3 text-sm text-white/40">Workshop media will appear here when added from the admin.</p>
                 </div>
               </div>
             ) : (
@@ -101,7 +101,7 @@ export default function Gallery() {
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#CBB08A]">{item.category}</p>
                         <h3 className="editorial-serif mt-2 text-2xl leading-tight">{item.title}</h3>
                         {item.description && (
-                          <p className="mt-2 line-clamp-2 text-xs leading-5 text-white/55">{item.description}</p>
+                          <p className="mt-2 line-clamp-2 text-xs leading-5 text-white/60">{item.description}</p>
                         )}
                       </div>
                     </div>
@@ -126,7 +126,7 @@ export default function Gallery() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
-              className="w-full max-w-5xl border border-white/15 bg-[#070B17]"
+              className="w-full max-w-5xl border border-white/20 bg-[#070B17]"
               onClick={event => event.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
@@ -136,7 +136,7 @@ export default function Gallery() {
                 </div>
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="border border-white/15 p-2 text-white/55 transition hover:text-white"
+                  className="border border-white/20 p-2 text-white/60 transition hover:text-white"
                   aria-label="Close media"
                 >
                   <X className="h-4 w-4" />
