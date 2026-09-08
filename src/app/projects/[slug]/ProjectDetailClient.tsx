@@ -5,10 +5,11 @@ import Image from 'next/image'
 import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench, FileText, Image as ImageIcon, Play } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { useProjects } from '@/lib/projects'
+import { isProjectPublished } from '@/lib/project-catalog'
 
 export default function ProjectDetailClient({ slug }: { slug: string }) {
   const { projects } = useProjects()
-  const project = projects.find(item => item.id === slug)
+  const project = projects.find(item => item.id === slug && isProjectPublished(item))
 
   if (!project) {
     return (
