@@ -58,7 +58,7 @@ export default function AdminOverview({
             <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-[#F7F3EC] sm:text-4xl">
               Manage the portfolio like a product, not a collection of pages.
             </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/55 sm:text-base">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60 sm:text-base">
               Priorities, business activity, content maintenance and audience performance are now separated so the work that matters is easier to see.
             </p>
           </div>
@@ -114,14 +114,14 @@ export default function AdminOverview({
                   <span className={'h-2 w-2 rounded-full ' + (item.priority ? 'bg-[#CBB08A]' : 'bg-white/20')} />
                   <span className="text-sm font-semibold text-white">{item.title}</span>
                 </div>
-                <p className="text-xs leading-5 text-white/45 sm:text-sm">{item.description}</p>
+                <p className="text-xs leading-5 text-white/50 sm:text-sm">{item.description}</p>
               </button>
             ))}
           </div>
         </div>
 
         <div className="border border-white/10 bg-[#CBB08A] p-6 text-[#402924]">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#402924]/55">Quick actions</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#402924]/60">Quick actions</p>
           <h3 className="mt-3 text-2xl font-semibold tracking-[-0.02em]">Keep the portfolio current.</h3>
           <div className="mt-6 space-y-2">
             {[
