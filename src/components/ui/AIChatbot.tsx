@@ -624,7 +624,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            className="fixed bottom-20 right-3 z-50 flex h-[72vh] max-h-[640px] w-[calc(100vw-24px)] flex-col overflow-hidden border border-white/15 bg-[#070B17] shadow-2xl sm:bottom-24 sm:right-6 sm:h-[600px] sm:w-[420px]"
+            className="fixed bottom-20 right-3 z-50 flex h-[72vh] max-h-[640px] w-[calc(100vw-24px)] flex-col overflow-hidden border border-white/20 bg-[#070B17] shadow-2xl sm:bottom-24 sm:right-6 sm:h-[600px] sm:w-[420px]"
             aria-label="Emmanuel portfolio AI assistant"
           >
             <header className="border-b border-white/10 bg-[#000B26] px-4 py-4">
@@ -638,7 +638,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                       <h2 className="text-sm font-semibold text-[#F7F3EC]">Emmanuel AI</h2>
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     </div>
-                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
                       Portfolio guide · verified project context
                     </p>
                   </div>
@@ -684,7 +684,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                               <button
                                 key={option}
                                 onClick={() => void sendMessage(option)}
-                                className="border border-white/15 px-3 py-2 text-left text-[11px] font-semibold text-white/60 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]"
+                                className="border border-white/20 px-3 py-2 text-left text-[11px] font-semibold text-white/60 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]"
                               >
                                 {option}
                               </button>
@@ -702,7 +702,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                         {[0, 1, 2].map(index => (
                           <span
                             key={index}
-                            className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#000B26]/45"
+                            className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#000B26]/50"
                             style={{ animationDelay: `${index * 140}ms` }}
                           />
                         ))}
@@ -729,7 +729,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                       <button
                         key={action.label}
                         onClick={() => void sendMessage(action.value)}
-                        className="flex items-center gap-2 bg-[#000B26] px-4 py-3 text-left text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
+                        className="flex items-center gap-2 bg-[#000B26] px-4 py-3 text-left text-xs font-semibold text-white/60 transition hover:bg-white/[0.04] hover:text-white"
                       >
                         <Icon className="h-3.5 w-3.5 text-[#CBB08A]" />
                         {action.label}
@@ -756,7 +756,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                       ? 'Type your answer…'
                       : 'Ask about a project, capability, or idea…'
                   }
-                  className="max-h-28 min-h-10 flex-1 resize-none border border-white/15 bg-[#070B17] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#7CA7EB]"
+                  className="max-h-28 min-h-10 flex-1 resize-none border border-white/20 bg-[#070B17] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#7CA7EB]"
                 />
                 <button
                   type="submit"
