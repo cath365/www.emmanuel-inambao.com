@@ -36,6 +36,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(null)
   }
   const data = await readSection(key)
+
+  if (key === 'projects' && Array.isArray(data) && !(await isAuthenticated())) {
+    const publishedProjects = data.filter(
+      (project: { publishStatus?: string } | null) =>
+        Boolean(project) && project?.publishStatus !== 'draft'
+    )
+    return NextResponse.json(publishedProjects)
+  }
+
   return NextResponse.json(data)
 }
 
