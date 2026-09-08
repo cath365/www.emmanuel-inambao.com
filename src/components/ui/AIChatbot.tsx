@@ -1,123 +1,171 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
+import { FormEvent, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowUpRight,
+  Bot,
+  BriefcaseBusiness,
+  CalendarDays,
+  FolderOpen,
+  RotateCcw,
+  Send,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import { useProfile } from '@/lib/profile'
-import { useServices } from '@/lib/services'
 import { useProjects } from '@/lib/projects'
+import { useServices } from '@/lib/services'
 import { useSkills } from '@/lib/skills'
 
 interface Message {
+  id: string
   role: 'user' | 'assistant'
   content: string
   options?: string[]
 }
 
+interface AIHistoryMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+interface BookingData {
+  name: string
+  email: string
+  phone: string
+  date: string
+  time: string
+  topic: string
+  notificationMethod: 'email' | 'whatsapp' | 'both' | null
+}
+
 interface BookingState {
   active: boolean
   step: 'name' | 'email' | 'phone' | 'date' | 'time' | 'topic' | 'notification' | 'confirm' | null
-  data: {
-    name: string
-    email: string
-    phone: string
-    date: string
-    time: string
-    topic: string
-    notificationMethod: 'email' | 'whatsapp' | 'both' | null
-  }
+  data: BookingData
+}
+
+interface LeadData {
+  name: string
+  email: string
+  service: string
+  details: string
 }
 
 interface LeadState {
   active: boolean
   step: 'name' | 'email' | 'service' | 'details' | 'confirm' | null
+  data: LeadData
+}
+
+interface AssistantReply {
+  response: string
+  options?: string[]
+}
+
+const emptyBooking: BookingState = {
+  active: false,
+  step: null,
   data: {
-    name: string
-    email: string
-    service: string
-    details: string
-  }
+    name: '',
+    email: '',
+    phone: '',
+    date: '',
+    time: '',
+    topic: '',
+    notificationMethod: null,
+  },
 }
 
-export interface ServiceLead {
-  id: string
-  name: string
-  email: string
-  service: string
-  details: string
-  submittedAt: string
-  status: 'new' | 'contacted' | 'closed'
+const emptyLead: LeadState = {
+  active: false,
+  step: null,
+  data: {
+    name: '',
+    email: '',
+    service: '',
+    details: '',
+  },
 }
 
-// Get available dates (next 14 business days)
-function getAvailableDates(): string[] {
+const initialMessage: Message = {
+  id: 'welcome',
+  role: 'assistant',
+  content:
+    "I'm Emmanuel's portfolio guide. I can explain his engineering work, match your problem to a relevant project, or help you start a project conversation.",
+  options: ['Find a relevant project', 'Explore projects', 'Start a project', 'Book a meeting'],
+}
+
+function getPreferredDates() {
   const dates: string[] = []
   const today = new Date()
-  
-  for (let i = 1; i <= 21 && dates.length < 7; i++) {
+
+  for (let offset = 1; offset <= 21 && dates.length < 7; offset += 1) {
     const date = new Date(today)
-    date.setDate(today.getDate() + i)
-    const day = date.getDay()
-    if (day !== 0 && day !== 6) {
-      const formatted = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-      dates.push(formatted)
+    date.setDate(today.getDate() + offset)
+
+    if (date.getDay() !== 0 && date.getDay() !== 6) {
+      dates.push(
+        date.toLocaleDateString('en-GB', {
+          weekday: 'short',
+          day: '2-digit',
+          month: 'short',
+        })
+      )
     }
   }
+
   return dates
 }
 
-// Get available times
-function getAvailableTimes(): string[] {
-  return ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00']
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
+function nextMessageId() {
+  return `message-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
 export default function AIChatbot({ floatingVisible = true }: { floatingVisible?: boolean }) {
   const { profile } = useProfile()
-  const { services } = useServices()
   const { projects } = useProjects()
+  const { services } = useServices()
   const { skillCategories } = useSkills()
 
-  const dynamicSkills = Array.from(
-    new Set(skillCategories.flatMap(cat => cat.skills.map(s => s.name)).filter(Boolean))
-  )
-  const dynamicServices = services.map(s => s.title).filter(Boolean)
-  const dynamicProjects = projects.map(p => p.title).filter(Boolean)
-  const skillLines = (dynamicSkills.length ? dynamicSkills : ['IoT Development', 'Embedded Systems', 'Full-Stack Development'])
-    .slice(0, 18)
-    .map(s => `• ${s}`)
-    .join('\n')
-  const serviceLines = (dynamicServices.length ? dynamicServices : ['IoT Development', 'Robotics Solutions', 'Full-Stack Development'])
-    .map(s => `• ${s}`)
-    .join('\n')
-  const projectLines = (dynamicProjects.length ? dynamicProjects : ['Smart Irrigation System', 'ESP32 Cutter Robot', 'Automated Bottle Sorting'])
-    .slice(0, 6)
-    .map((p, i) => `${i + 1}. ${p}`)
-    .join('\n')
-
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: "Hi! 👋 I'm Emmanuel's AI assistant. I can help you:\n\n• Learn about his skills & projects\n• Book a meeting with him\n• Get contact information\n\nWhat would you like to do?",
-      options: ['Book a meeting', 'View skills', 'See projects', 'Contact info'],
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([initialMessage])
+  const [aiHistory, setAiHistory] = useState<AIHistoryMessage[]>([])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [booking, setBooking] = useState<BookingState>({
-    active: false,
-    step: null,
-    data: { name: '', email: '', phone: '', date: '', time: '', topic: '', notificationMethod: null }
-  })
-  const [lead, setLead] = useState<LeadState>({
-    active: false,
-    step: null,
-    data: { name: '', email: '', service: '', details: '' }
-  })
+  const [booking, setBooking] = useState<BookingState>(emptyBooking)
+  const [lead, setLead] = useState<LeadState>(emptyLead)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const trackEvent = (page: string, referrer: string) => {
+  const dynamicServices = services.map(service => service.title).filter(Boolean)
+  const serviceChoices = (dynamicServices.length
+    ? dynamicServices
+    : ['Embedded Systems', 'IoT Development', 'Robotics', 'Full-Stack Development']
+  ).slice(0, 6)
+
+  const dynamicSkills = Array.from(
+    new Set(skillCategories.flatMap(category => category.skills.map(skill => skill.name)).filter(Boolean))
+  )
+
+  const featuredProjects = projects.filter(project => project.featured).slice(0, 4)
+  const projectChoices = (featuredProjects.length ? featuredProjects : projects.slice(0, 4)).map(project => project.title)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isTyping])
+
+  useEffect(() => {
+    if (!floatingVisible) setIsOpen(false)
+  }, [floatingVisible])
+
+  const trackEvent = (page: string) => {
     let sessionId = sessionStorage.getItem('_vsid')
+
     if (!sessionId) {
       sessionId = `s-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
       sessionStorage.setItem('_vsid', sessionId)
@@ -128,539 +176,603 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         page,
-        referrer,
+        referrer: 'portfolio-ai',
         sessionId,
         screenWidth: window.innerWidth,
       }),
     }).catch(() => {})
   }
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const resetConversation = () => {
+    setMessages([{ ...initialMessage, id: nextMessageId() }])
+    setAiHistory([])
+    setBooking(emptyBooking)
+    setLead(emptyLead)
+    setInput('')
   }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  // Handle booking flow
-  const processBookingStep = (userInput: string): { response: string; options?: string[]; nextStep: BookingState['step'] } => {
-    const input = userInput.toLowerCase().trim()
-    
-    switch (booking.step) {
-      case 'name':
-        setBooking(prev => ({ ...prev, data: { ...prev.data, name: userInput } }))
-        return {
-          response: `Nice to meet you, ${userInput}! 📧\n\nWhat's your email address?`,
-          nextStep: 'email'
-        }
-      
-      case 'email':
-        if (!userInput.includes('@')) {
-          return { response: "That doesn't look like a valid email. Please enter your email address:", nextStep: 'email' }
-        }
-        setBooking(prev => ({ ...prev, data: { ...prev.data, email: userInput } }))
-        return {
-          response: `Great! 📱\n\nWhat's your phone number? (Include country code, e.g., +260973XXXXXX)\n\nOr type "skip" if you prefer not to share.`,
-          nextStep: 'phone'
-        }
-      
-      case 'phone':
-        const phone = input === 'skip' ? '' : userInput
-        setBooking(prev => ({ ...prev, data: { ...prev.data, phone } }))
-        return {
-          response: `📅 When would you like to meet?\n\nSelect a date:`,
-          options: getAvailableDates(),
-          nextStep: 'date'
-        }
-      
-      case 'date':
-        setBooking(prev => ({ ...prev, data: { ...prev.data, date: userInput } }))
-        return {
-          response: `⏰ What time works best for you?\n\nAll times are in Central Africa Time (CAT):`,
-          options: getAvailableTimes(),
-          nextStep: 'time'
-        }
-      
-      case 'time':
-        setBooking(prev => ({ ...prev, data: { ...prev.data, time: userInput } }))
-        return {
-          response: `📝 What would you like to discuss in the meeting?\n\n(e.g., IoT project, consulting, collaboration)`,
-          nextStep: 'topic'
-        }
-      
-      case 'topic':
-        setBooking(prev => ({ ...prev, data: { ...prev.data, topic: userInput } }))
-        const hasPhone = booking.data.phone && booking.data.phone !== ''
-        if (hasPhone) {
-          return {
-            response: `📬 How would you like to receive the meeting confirmation?`,
-            options: ['Email only', 'WhatsApp only', 'Both Email & WhatsApp'],
-            nextStep: 'notification'
-          }
-        }
-        setBooking(prev => ({ ...prev, data: { ...prev.data, notificationMethod: 'email' } }))
-        return {
-          response: `Perfect! Here's your booking summary:\n\n👤 Name: ${booking.data.name}\n📧 Email: ${booking.data.email}\n📅 Date: ${booking.data.date}\n⏰ Time: ${userInput}\n📝 Topic: ${userInput}\n\nShall I confirm this booking?`,
-          options: ['✅ Confirm Booking', '❌ Cancel'],
-          nextStep: 'confirm'
-        }
-      
-      case 'notification':
-        let method: 'email' | 'whatsapp' | 'both' = 'email'
-        if (input.includes('whatsapp') && input.includes('email')) method = 'both'
-        else if (input.includes('whatsapp')) method = 'whatsapp'
-        else method = 'email'
-        
-        setBooking(prev => ({ ...prev, data: { ...prev.data, notificationMethod: method } }))
-        
-        const methodText = method === 'both' ? 'Email & WhatsApp' : method === 'whatsapp' ? 'WhatsApp' : 'Email'
-        return {
-          response: `Perfect! Here's your booking summary:\n\n👤 Name: ${booking.data.name}\n📧 Email: ${booking.data.email}\n📱 Phone: ${booking.data.phone}\n📅 Date: ${booking.data.date}\n⏰ Time: ${booking.data.time}\n📝 Topic: ${booking.data.topic}\n📬 Confirmation via: ${methodText}\n\nShall I confirm this booking?`,
-          options: ['✅ Confirm Booking', '❌ Cancel'],
-          nextStep: 'confirm'
-        }
-      
-      case 'confirm':
-        if (input.includes('confirm') || input.includes('yes') || input.includes('✅')) {
-          // Submit the booking
-          submitBooking()
-          return {
-            response: `🎉 Booking confirmed!\n\nYou'll receive a confirmation ${booking.data.notificationMethod === 'both' ? 'via email and WhatsApp' : booking.data.notificationMethod === 'whatsapp' ? 'on WhatsApp' : 'via email'}.\n\nEmmanuel will be in touch soon. Is there anything else I can help with?`,
-            options: ['Book another meeting', 'View projects', 'Contact info'],
-            nextStep: null
-          }
-        } else {
-          setBooking({ active: false, step: null, data: { name: '', email: '', phone: '', date: '', time: '', topic: '', notificationMethod: null } })
-          return {
-            response: `No problem! The booking has been cancelled.\n\nIs there anything else I can help you with?`,
-            options: ['Book a meeting', 'View skills', 'See projects'],
-            nextStep: null
-          }
-        }
-      
-      default:
-        return { response: '', nextStep: null }
-    }
-  }
-
-  // Submit booking to API (saves to Vercel Blob + sends email)
-  const submitBooking = async () => {
-    const newBooking = {
-      id: `booking-${Date.now()}`,
-      name: booking.data.name,
-      email: booking.data.email,
-      phone: booking.data.phone,
-      date: booking.data.date,
-      time: booking.data.time,
-      timezone: 'Africa/Lusaka',
-      duration: 30,
-      topic: booking.data.topic,
-      notificationMethod: booking.data.notificationMethod,
-      submittedAt: new Date().toISOString(),
-      status: 'pending' as const,
-    }
-
-    // Save server-side via API (stores in Vercel Blob + sends email)
+  const submitBooking = async (data: BookingData) => {
     try {
-      await fetch('/api/booking', {
+      const response = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: booking.data.name,
-          email: booking.data.email,
-          phone: booking.data.phone,
-          date: booking.data.date,
-          time: booking.data.time,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          date: data.date,
+          time: data.time,
           timezone: 'Africa/Lusaka',
           duration: 30,
-          topic: booking.data.topic,
-          whatsappConsent: booking.data.notificationMethod === 'whatsapp' || booking.data.notificationMethod === 'both',
+          topic: data.topic,
+          whatsappConsent: data.notificationMethod === 'whatsapp' || data.notificationMethod === 'both',
           source: 'chatbot',
         }),
       })
 
-      trackEvent('/intent/booking', 'ai-chatbot')
-    } catch (error) {
-      console.error('Booking submission error:', error)
+      if (response.ok) {
+        trackEvent('/intent/booking')
+        return true
+      }
+
+      return false
+    } catch {
+      return false
     }
   }
 
-  // Process lead capture steps
-  const processLeadStep = (userInput: string): { response: string; options?: string[]; nextStep: LeadState['step'] } => {
-    switch (lead.step) {
-      case 'name':
-        setLead(prev => ({ ...prev, data: { ...prev.data, name: userInput } }))
-        return {
-          response: `Nice to meet you, ${userInput}! 📧\n\nWhat's your email address so Emmanuel can reach you?`,
-          nextStep: 'email'
-        }
-
-      case 'email':
-        if (!userInput.includes('@')) {
-          return { response: "That doesn't look like a valid email. Please enter your email:", nextStep: 'email' }
-        }
-        setLead(prev => ({ ...prev, data: { ...prev.data, email: userInput } }))
-        return {
-          response: `Which service are you interested in?`,
-          options: ['IoT Development', 'Robotics Solutions', 'Full-Stack Development', 'PCB Design', 'Embedded Systems', 'AI/ML Integration', 'Other'],
-          nextStep: 'service'
-        }
-
-      case 'service':
-        setLead(prev => ({ ...prev, data: { ...prev.data, service: userInput } }))
-        return {
-          response: `Tell me briefly about your project or what you need help with:`,
-          nextStep: 'details'
-        }
-
-      case 'details':
-        setLead(prev => ({ ...prev, data: { ...prev.data, details: userInput } }))
-        return {
-          response: `Here's a summary of your inquiry:\n\n👤 Name: ${lead.data.name}\n📧 Email: ${lead.data.email}\n🔧 Service: ${lead.data.service}\n📝 Details: ${userInput}\n\nShall I send this to Emmanuel?`,
-          options: ['✅ Yes, send it', '❌ Cancel'],
-          nextStep: 'confirm'
-        }
-
-      case 'confirm':
-        if (userInput.toLowerCase().includes('yes') || userInput.includes('✅')) {
-          submitLead()
-          return {
-            response: `🎉 Your inquiry has been sent!\n\nEmmanuel has been notified via email and will get back to you soon at ${lead.data.email}.\n\nIs there anything else I can help with?`,
-            options: ['Book a meeting', 'View skills', 'See projects'],
-            nextStep: null
-          }
-        } else {
-          setLead({ active: false, step: null, data: { name: '', email: '', service: '', details: '' } })
-          return {
-            response: `No problem! Your inquiry has been cancelled.\n\nAnything else I can help with?`,
-            options: ['Book a meeting', 'View skills', 'See projects'],
-            nextStep: null
-          }
-        }
-
-      default:
-        return { response: '', nextStep: null }
-    }
-  }
-
-  // Submit lead to API (saves to Vercel Blob + sends email)
-  const submitLead = async () => {
-    const newLead: ServiceLead = {
-      id: `lead-${Date.now()}`,
-      name: lead.data.name,
-      email: lead.data.email,
-      service: lead.data.service,
-      details: lead.data.details,
-      submittedAt: new Date().toISOString(),
-      status: 'new',
-    }
-
-    // Save server-side via API (stores in Vercel Blob + sends email)
+  const submitLead = async (data: LeadData) => {
     try {
-      await fetch('/api/service-inquiry', {
+      const response = await fetch('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newLead),
+        body: JSON.stringify({
+          id: `lead-${Date.now()}`,
+          ...data,
+          submittedAt: new Date().toISOString(),
+          status: 'new',
+        }),
       })
 
-      trackEvent('/intent/service-inquiry', 'ai-chatbot')
-    } catch (error) {
-      console.error('Lead submission error:', error)
+      if (response.ok) {
+        trackEvent('/intent/service-inquiry')
+        return true
+      }
+
+      return false
+    } catch {
+      return false
     }
   }
 
-  // Generate response based on query
-  function generateResponse(query: string): { response: string; options?: string[] } {
-    const lowerQuery = query.toLowerCase()
-    
-    // Check if lead capture flow is active
-    if (lead.active && lead.step) {
-      const result = processLeadStep(query)
-      if (result.nextStep === null) {
-        setLead(prev => ({ ...prev, active: false, step: null }))
-      } else {
-        setLead(prev => ({ ...prev, step: result.nextStep }))
+  const processBookingStep = async (userInput: string): Promise<AssistantReply> => {
+    const normalized = userInput.trim().toLowerCase()
+
+    switch (booking.step) {
+      case 'name': {
+        const nextData = { ...booking.data, name: userInput.trim() }
+        setBooking({ active: true, step: 'email', data: nextData })
+        return { response: `Thanks, ${nextData.name}. What email address should Emmanuel use for the meeting request?` }
       }
-      return { response: result.response, options: result.options }
+
+      case 'email': {
+        if (!isValidEmail(userInput)) {
+          return { response: 'Please enter a valid email address so the meeting request can be followed up.' }
+        }
+
+        const nextData = { ...booking.data, email: userInput.trim() }
+        setBooking({ active: true, step: 'phone', data: nextData })
+        return {
+          response: 'What phone or WhatsApp number should be included? You can type “skip” if you prefer email only.',
+        }
+      }
+
+      case 'phone': {
+        const nextData = {
+          ...booking.data,
+          phone: normalized === 'skip' ? '' : userInput.trim(),
+        }
+        setBooking({ active: true, step: 'date', data: nextData })
+        return {
+          response: 'Choose a preferred meeting date. This is a request, not confirmed calendar availability.',
+          options: getPreferredDates(),
+        }
+      }
+
+      case 'date': {
+        const nextData = { ...booking.data, date: userInput.trim() }
+        setBooking({ active: true, step: 'time', data: nextData })
+        return {
+          response: 'Choose a preferred time in Central Africa Time (CAT). Emmanuel will confirm the final slot.',
+          options: ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'],
+        }
+      }
+
+      case 'time': {
+        const nextData = { ...booking.data, time: userInput.trim() }
+        setBooking({ active: true, step: 'topic', data: nextData })
+        return { response: 'What would you like to discuss during the meeting?' }
+      }
+
+      case 'topic': {
+        const nextData = { ...booking.data, topic: userInput.trim() }
+
+        if (nextData.phone) {
+          setBooking({ active: true, step: 'notification', data: nextData })
+          return {
+            response: 'How would you prefer to receive follow-up about the meeting request?',
+            options: ['Email only', 'WhatsApp only', 'Email & WhatsApp'],
+          }
+        }
+
+        nextData.notificationMethod = 'email'
+        setBooking({ active: true, step: 'confirm', data: nextData })
+        return {
+          response:
+            `Please review your meeting request:\n\nName: ${nextData.name}\nEmail: ${nextData.email}\nPreferred date: ${nextData.date}\nPreferred time: ${nextData.time} CAT\nTopic: ${nextData.topic}\n\nSend this request to Emmanuel?`,
+          options: ['Send meeting request', 'Cancel'],
+        }
+      }
+
+      case 'notification': {
+        let method: BookingData['notificationMethod'] = 'email'
+
+        if (normalized.includes('whatsapp') && normalized.includes('email')) method = 'both'
+        else if (normalized.includes('whatsapp')) method = 'whatsapp'
+
+        const nextData = { ...booking.data, notificationMethod: method }
+        setBooking({ active: true, step: 'confirm', data: nextData })
+
+        return {
+          response:
+            `Please review your meeting request:\n\nName: ${nextData.name}\nEmail: ${nextData.email}\nPhone: ${nextData.phone}\nPreferred date: ${nextData.date}\nPreferred time: ${nextData.time} CAT\nTopic: ${nextData.topic}\n\nSend this request to Emmanuel?`,
+          options: ['Send meeting request', 'Cancel'],
+        }
+      }
+
+      case 'confirm': {
+        if (normalized.includes('send') || normalized.includes('confirm') || normalized === 'yes') {
+          const submitted = await submitBooking(booking.data)
+          setBooking(emptyBooking)
+
+          return submitted
+            ? {
+                response:
+                  'Your meeting request has been submitted. It is still pending until Emmanuel confirms the date and time.',
+                options: ['Explore projects', 'Start a project'],
+              }
+            : {
+                response:
+                  'I could not submit the meeting request right now. Please use the contact section or WhatsApp instead.',
+                options: ['Contact Emmanuel', 'Try booking again'],
+              }
+        }
+
+        setBooking(emptyBooking)
+        return {
+          response: 'The meeting request was cancelled. Nothing was submitted.',
+          options: ['Explore projects', 'Start a project'],
+        }
+      }
+
+      default:
+        return { response: 'The booking workflow has been reset.' }
+    }
+  }
+
+  const processLeadStep = async (userInput: string): Promise<AssistantReply> => {
+    const normalized = userInput.trim().toLowerCase()
+
+    switch (lead.step) {
+      case 'name': {
+        const nextData = { ...lead.data, name: userInput.trim() }
+        setLead({ active: true, step: 'email', data: nextData })
+        return { response: `Thanks, ${nextData.name}. What email address should Emmanuel use to reply?` }
+      }
+
+      case 'email': {
+        if (!isValidEmail(userInput)) {
+          return { response: 'Please enter a valid email address.' }
+        }
+
+        const nextData = { ...lead.data, email: userInput.trim() }
+        setLead({ active: true, step: 'service', data: nextData })
+        return {
+          response: 'Which area best matches what you need?',
+          options: [...serviceChoices, 'Other'],
+        }
+      }
+
+      case 'service': {
+        const nextData = { ...lead.data, service: userInput.trim() }
+        setLead({ active: true, step: 'details', data: nextData })
+        return {
+          response:
+            'Describe the problem, operating environment, expected outcome, and any important constraints. A few sentences are enough.',
+        }
+      }
+
+      case 'details': {
+        const nextData = { ...lead.data, details: userInput.trim() }
+        setLead({ active: true, step: 'confirm', data: nextData })
+        return {
+          response:
+            `Please review your project inquiry:\n\nName: ${nextData.name}\nEmail: ${nextData.email}\nArea: ${nextData.service}\nBrief: ${nextData.details}\n\nSend this to Emmanuel?`,
+          options: ['Send project inquiry', 'Cancel'],
+        }
+      }
+
+      case 'confirm': {
+        if (normalized.includes('send') || normalized === 'yes') {
+          const submitted = await submitLead(lead.data)
+          setLead(emptyLead)
+
+          return submitted
+            ? {
+                response: 'Your project inquiry has been sent to Emmanuel for review.',
+                options: ['Explore projects', 'Book a meeting'],
+              }
+            : {
+                response:
+                  'I could not submit the inquiry right now. Please use the contact section or WhatsApp instead.',
+                options: ['Contact Emmanuel', 'Try again'],
+              }
+        }
+
+        setLead(emptyLead)
+        return {
+          response: 'The project inquiry was cancelled. Nothing was submitted.',
+          options: ['Explore projects', 'Book a meeting'],
+        }
+      }
+
+      default:
+        return { response: 'The project inquiry workflow has been reset.' }
+    }
+  }
+
+  const localIntent = async (text: string): Promise<AssistantReply | null> => {
+    const normalized = text.trim().toLowerCase()
+
+    if (booking.active && booking.step) return processBookingStep(text)
+    if (lead.active && lead.step) return processLeadStep(text)
+
+    if (
+      normalized.includes('book a meeting') ||
+      normalized.includes('book meeting') ||
+      normalized.includes('schedule a meeting') ||
+      normalized === 'try booking again'
+    ) {
+      setBooking({ ...emptyBooking, active: true, step: 'name' })
+      return {
+        response:
+          "I can collect a preferred date and time for Emmanuel to confirm. First, what's your name?",
+      }
     }
 
-    // Check if booking flow is active
-    if (booking.active && booking.step) {
-      const result = processBookingStep(query)
-      if (result.nextStep === null) {
-        setBooking(prev => ({ ...prev, active: false, step: null }))
-      } else {
-        setBooking(prev => ({ ...prev, step: result.nextStep }))
-      }
-      return { response: result.response, options: result.options }
-    }
-
-    // Start booking flow
-    if (lowerQuery.includes('book') || lowerQuery.includes('meeting') || lowerQuery.includes('schedule') || lowerQuery.includes('appointment')) {
-      setBooking(prev => ({ ...prev, active: true, step: 'name' }))
+    if (
+      normalized === 'start a project' ||
+      normalized.includes('send inquiry') ||
+      normalized === 'send project inquiry' ||
+      normalized === 'try again'
+    ) {
+      setLead({ ...emptyLead, active: true, step: 'name' })
       return {
-        response: "Great! Let's schedule a meeting with Emmanuel. 📅\n\nFirst, what's your name?"
-      }
-    }
-    
-    // Greetings
-    if (lowerQuery.match(/^(hi|hello|hey|greetings)/)) {
-      return {
-        response: `Hello! 👋 I'm Emmanuel's AI assistant. How can I help you today?`,
-        options: ['Book a meeting', 'View skills', 'See projects', 'Contact info']
-      }
-    }
-    
-    // Skills
-    if (lowerQuery.includes('skill') || lowerQuery.includes('know') || lowerQuery.includes('tech')) {
-      return {
-        response: `Emmanuel's current skills include:\n\n${skillLines}\n\nWant to discuss a project using these skills?`,
-        options: ['Book a meeting', 'See projects', 'Contact info']
-      }
-    }
-    
-    // Projects
-    if (lowerQuery.includes('project') || lowerQuery.includes('work') || lowerQuery.includes('built')) {
-      return {
-        response: `Emmanuel's current featured projects:\n\n${projectLines}\n\nInterested in discussing a similar project?`,
-        options: ['Book a meeting', 'View skills', 'Contact info']
-      }
-    }
-    
-    // Services / Hire / Need help - trigger lead capture
-    if (lowerQuery.includes('service') || lowerQuery.includes('offer') || lowerQuery.includes('hire') || lowerQuery.includes('help') || lowerQuery.includes('need') || lowerQuery.includes('interested') || lowerQuery.includes('quote') || lowerQuery.includes('price') || lowerQuery.includes('cost')) {
-      return {
-        response: `Emmanuel currently offers:\n\n${serviceLines}\n\nWould you like to send an inquiry? Emmanuel will get back to you personally!`,
-        options: ['📩 Send inquiry', 'Book a meeting', 'See projects']
+        response:
+          "I'll turn this into a structured project inquiry for Emmanuel. First, what's your name?",
       }
     }
 
-    // Start lead capture flow
-    if (lowerQuery.includes('inquiry') || lowerQuery.includes('send inquiry') || lowerQuery.includes('get started') || lowerQuery.includes('interested in')) {
-      setLead(prev => ({ ...prev, active: true, step: 'name' }))
+    if (normalized === 'explore projects' || normalized === 'see projects' || normalized === 'view projects') {
       return {
-        response: "Great! Let's get your inquiry to Emmanuel. 📩\n\nFirst, what's your name?"
+        response:
+          projectChoices.length > 0
+            ? `Selected engineering work:\n\n${projectChoices.map((project, index) => `${index + 1}. ${project}`).join('\n')}\n\nAsk me what problem you are trying to solve and I can help match it to a project.`
+            : 'Project details are available in the Projects section of the portfolio.',
+        options: ['Find a relevant project', 'Start a project', 'Book a meeting'],
       }
     }
-    
-    // Contact
-    if (lowerQuery.includes('contact') || lowerQuery.includes('email') || lowerQuery.includes('reach')) {
+
+    if (normalized === 'view skills' || normalized === 'skills & capabilities') {
+      const skills = dynamicSkills.length
+        ? dynamicSkills.slice(0, 14)
+        : ['Embedded Systems', 'IoT', 'Robotics', 'Full-Stack Development']
+
       return {
-        response: `You can reach Emmanuel at:\n\n📧 Email: ${profile.email}\n📱 WhatsApp: ${profile.phone}\n🔗 Direct WhatsApp: https://wa.me/${profile.phone.replace(/\D/g, '')}\n\nOr book a meeting directly!`,
-        options: ['Book a meeting', 'View skills', 'See projects']
+        response: `Core capabilities currently shown in the portfolio:\n\n${skills.map(skill => `• ${skill}`).join('\n')}`,
+        options: ['Find a relevant project', 'Start a project'],
       }
     }
-    
-    // Default
+
+    if (normalized === 'services' || normalized === 'view services') {
+      return {
+        response: `Current service areas:\n\n${serviceChoices.map(service => `• ${service}`).join('\n')}\n\nFor an accurate scope, the best next step is a short project brief.`,
+        options: ['Start a project', 'Book a meeting'],
+      }
+    }
+
+    if (
+      normalized === 'contact emmanuel' ||
+      normalized === 'contact info' ||
+      normalized === 'contact information'
+    ) {
+      return {
+        response: `Public contact details:\n\nEmail: ${profile.email}\nWhatsApp: ${profile.phone}\nLocation: ${profile.location}`,
+        options: ['Start a project', 'Book a meeting'],
+      }
+    }
+
+    return null
+  }
+
+  const fallbackResponse = (text: string): AssistantReply => {
+    const normalized = text.toLowerCase()
+
+    if (normalized.includes('skill') || normalized.includes('technology') || normalized.includes('stack')) {
+      return {
+        response:
+          'I can show the portfolio capability list, but deeper conversational matching is temporarily unavailable.',
+        options: ['Skills & capabilities', 'Explore projects'],
+      }
+    }
+
+    if (normalized.includes('project') || normalized.includes('build') || normalized.includes('work')) {
+      return {
+        response:
+          'I can still show Emmanuel’s verified projects and collect a project brief while conversational AI is unavailable.',
+        options: ['Explore projects', 'Start a project'],
+      }
+    }
+
     return {
-      response: `I can help you with:\n\n• 📅 **Book a meeting** with Emmanuel\n• 💡 Learn about his **skills**\n• 🚀 See his **projects**\n• 📧 Get **contact info**\n\nWhat would you like?`,
-      options: ['Book a meeting', 'View skills', 'See projects', 'Contact info']
+      response:
+        'Conversational AI is temporarily unavailable, but the portfolio actions still work. You can explore projects, start a project inquiry, or request a meeting.',
+      options: ['Explore projects', 'Start a project', 'Book a meeting'],
     }
   }
 
-  const handleSend = (messageText?: string) => {
-    const text = messageText || input.trim()
+  const askAI = async (text: string): Promise<AssistantReply> => {
+    const nextHistory: AIHistoryMessage[] = [
+      ...aiHistory,
+      { role: 'user', content: text },
+    ].slice(-8)
+
+    try {
+      const response = await fetch('/api/assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: nextHistory }),
+      })
+
+      if (!response.ok) return fallbackResponse(text)
+
+      const data = await response.json()
+
+      if (typeof data.response !== 'string' || !data.response.trim()) {
+        return fallbackResponse(text)
+      }
+
+      const assistantMessage = data.response.trim()
+      setAiHistory(
+        [...nextHistory, { role: 'assistant', content: assistantMessage }].slice(-8)
+      )
+
+      trackEvent('/intent/ai-assistant')
+
+      return {
+        response: assistantMessage,
+        options: ['Explore projects', 'Start a project', 'Book a meeting'],
+      }
+    } catch {
+      return fallbackResponse(text)
+    }
+  }
+
+  const sendMessage = async (messageText?: string) => {
+    const text = (messageText ?? input).trim()
     if (!text || isTyping) return
 
     setInput('')
-    
-    // Add user message
-    setMessages((prev) => [...prev, { role: 'user', content: text }])
+    setMessages(current => [
+      ...current,
+      { id: nextMessageId(), role: 'user', content: text },
+    ])
     setIsTyping(true)
 
-    // Generate response
-    const delay = 600 + Math.random() * 500
-    setTimeout(() => {
-      const { response, options } = generateResponse(text)
-      setMessages((prev) => [...prev, { role: 'assistant', content: response, options }])
+    try {
+      const local = await localIntent(text)
+      const reply = local ?? (await askAI(text))
+
+      setMessages(current => [
+        ...current,
+        {
+          id: nextMessageId(),
+          role: 'assistant',
+          content: reply.response,
+          options: reply.options,
+        },
+      ])
+    } finally {
       setIsTyping(false)
-    }, delay)
+    }
   }
 
-  const handleOptionClick = (option: string) => {
-    handleSend(option)
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    void sendMessage()
   }
-
-  useEffect(() => {
-    if (!floatingVisible) setIsOpen(false)
-  }, [floatingVisible])
 
   if (!floatingVisible) return null
 
   return (
     <>
-      {/* Chat Button */}
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform overflow-hidden border-2 border-white/20"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        aria-label="Open AI Chat"
+        onClick={() => setIsOpen(current => !current)}
+        whileTap={{ scale: 0.97 }}
+        className="fixed bottom-4 right-4 z-50 flex h-12 items-center gap-2 border border-[#7CA7EB]/50 bg-[#000B26] px-4 text-[#F7F3EC] shadow-2xl transition hover:border-[#7CA7EB] sm:bottom-6 sm:right-6"
+        aria-label={isOpen ? 'Close portfolio AI' : 'Open portfolio AI'}
       >
-        {profile.image ? (
-          <Image
-            src={profile.image}
-            alt={profile.name}
-            fill
-            className={`object-cover transition-all ${isOpen ? 'opacity-40' : 'opacity-100'}`}
-            sizes="56px"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600" />
-        )}
-
-        <AnimatePresence mode="wait">
-          {isOpen ? (
-            <motion.svg
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              className="w-6 h-6 relative z-10"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </motion.svg>
-          ) : (
-            <motion.svg
-              key="chat"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              className="w-6 h-6 relative z-10"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </motion.svg>
-          )}
-        </AnimatePresence>
+        {isOpen ? <X className="h-4 w-4" /> : <Sparkles className="h-4 w-4 text-[#7CA7EB]" />}
+        <span className="hidden text-xs font-bold uppercase tracking-[0.14em] sm:inline">
+          {isOpen ? 'Close' : 'Ask AI'}
+        </span>
       </motion.button>
 
-      {/* Notification Badge */}
-      {!isOpen && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="fixed bottom-[3.5rem] right-4 sm:bottom-[4.5rem] sm:right-6 z-50 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-        >
-          1
-        </motion.div>
-      )}
-
-      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          <motion.section
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-20 sm:bottom-24 right-2 sm:right-6 z-50 w-[calc(100vw-16px)] sm:w-[360px] max-w-[400px] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700"
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            className="fixed bottom-20 right-3 z-50 flex h-[72vh] max-h-[640px] w-[calc(100vw-24px)] flex-col overflow-hidden border border-white/15 bg-[#070B17] shadow-2xl sm:bottom-24 sm:right-6 sm:h-[600px] sm:w-[420px]"
+            aria-label="Emmanuel portfolio AI assistant"
           >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+            <header className="border-b border-white/10 bg-[#000B26] px-4 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#7CA7EB]/40 text-[#7CA7EB]">
+                    <Bot className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-semibold text-[#F7F3EC]">Emmanuel AI</h2>
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    </div>
+                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                      Portfolio guide · verified project context
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">AI Assistant</h3>
-                  <p className="text-xs text-white/80">Ask me about Emmanuel</p>
-                </div>
+
+                <button
+                  onClick={resetConversation}
+                  className="border border-white/10 p-2 text-white/40 transition hover:border-white/25 hover:text-white"
+                  aria-label="Reset conversation"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </header>
+
+            <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-4">
+              <div className="space-y-4">
+                {messages.map((message, index) => (
+                  <motion.div
+                    key={message.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}
+                  >
+                    <div className={message.role === 'user' ? 'max-w-[86%]' : 'max-w-[92%]'}>
+                      <div
+                        className={
+                          'px-4 py-3 text-sm leading-6 whitespace-pre-wrap ' +
+                          (message.role === 'user'
+                            ? 'bg-[#7CA7EB] text-[#000B26]'
+                            : 'border border-white/10 bg-[#F7F3EC] text-[#000B26]')
+                        }
+                      >
+                        {message.content}
+                      </div>
+
+                      {message.role === 'assistant' &&
+                        message.options &&
+                        index === messages.length - 1 &&
+                        !isTyping && (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {message.options.map(option => (
+                              <button
+                                key={option}
+                                onClick={() => void sendMessage(option)}
+                                className="border border-white/15 px-3 py-2 text-left text-[11px] font-semibold text-white/60 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]"
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                  </motion.div>
+                ))}
+
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="border border-white/10 bg-[#F7F3EC] px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        {[0, 1, 2].map(index => (
+                          <span
+                            key={index}
+                            className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#000B26]/45"
+                            style={{ animationDelay: `${index * 140}ms` }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="h-[300px] sm:h-[350px] overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
-              {messages.map((message, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
-                >
-                  <div
-                    className={`max-w-[85%] p-3 rounded-2xl ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white rounded-br-none'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                  
-                  {/* Quick reply options */}
-                  {message.role === 'assistant' && message.options && index === messages.length - 1 && !isTyping && (
-                    <div className="flex flex-wrap gap-2 mt-2 max-w-[90%]">
-                      {message.options.map((option, optIdx) => (
-                        <button
-                          key={optIdx}
-                          onClick={() => handleOptionClick(option)}
-                          className="px-3 py-1.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-
-              {isTyping && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-2xl rounded-bl-none">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  </div>
-                </motion.div>
+            <div className="border-t border-white/10 bg-[#000B26]">
+              {!booking.active && !lead.active && messages.length <= 2 && (
+                <div className="grid grid-cols-2 gap-px border-b border-white/10 bg-white/10">
+                  {[
+                    { label: 'Projects', value: 'Explore projects', icon: FolderOpen },
+                    { label: 'Services', value: 'Services', icon: BriefcaseBusiness },
+                    { label: 'Project brief', value: 'Start a project', icon: ArrowUpRight },
+                    { label: 'Meeting', value: 'Book a meeting', icon: CalendarDays },
+                  ].map(action => {
+                    const Icon = action.icon
+                    return (
+                      <button
+                        key={action.label}
+                        onClick={() => void sendMessage(action.value)}
+                        className="flex items-center gap-2 bg-[#000B26] px-4 py-3 text-left text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
+                      >
+                        <Icon className="h-3.5 w-3.5 text-[#CBB08A]" />
+                        {action.label}
+                      </button>
+                    )
+                  })}
+                </div>
               )}
-              <div ref={messagesEndRef} />
-            </div>
 
-            {/* Input */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  handleSend()
-                }}
-                className="flex gap-2"
-              >
-                <input
-                  type="text"
+              <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3">
+                <textarea
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder={booking.active ? "Type your answer..." : "Ask about skills, projects..."}
-                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 dark:text-gray-200"
+                  onChange={event => setInput(event.target.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                      event.preventDefault()
+                      if (input.trim()) void sendMessage()
+                    }
+                  }}
+                  rows={1}
                   disabled={isTyping}
+                  placeholder={
+                    booking.active || lead.active
+                      ? 'Type your answer…'
+                      : 'Ask about a project, capability, or idea…'
+                  }
+                  className="max-h-28 min-h-10 flex-1 resize-none border border-white/15 bg-[#070B17] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#7CA7EB]"
                 />
-                <motion.button
+                <button
                   type="submit"
                   disabled={!input.trim() || isTyping}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#F7F3EC] text-[#000B26] transition hover:bg-[#7CA7EB] disabled:cursor-not-allowed disabled:opacity-35"
+                  aria-label="Send message"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                </motion.button>
+                  <Send className="h-4 w-4" />
+                </button>
               </form>
+
+              <p className="px-3 pb-3 text-[9px] leading-4 text-white/25">
+                AI answers are grounded in public portfolio data. Booking and inquiry details use separate submission workflows.
+              </p>
             </div>
-          </motion.div>
+          </motion.section>
         )}
       </AnimatePresence>
     </>

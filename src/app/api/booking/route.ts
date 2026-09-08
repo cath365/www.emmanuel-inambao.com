@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Booking confirmed! Check your email for details.',
+      message: 'Meeting request received. Emmanuel will confirm the final date and time.',
     })
 
   } catch (error) {
