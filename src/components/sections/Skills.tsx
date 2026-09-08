@@ -1,196 +1,84 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState } from 'react'
-import dynamic from 'next/dynamic'
-import { useLanguage } from '@/lib/i18n'
-import { useSkills, SkillCategory } from '@/lib/skills'
-
-const SkillGlobe = dynamic(() => import('@/components/ui/SkillGlobe'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[500px] flex items-center justify-center">
-      <div className="text-dark-500 text-sm">Loading 3D Globe...</div>
-    </div>
-  ),
-})
-import { 
-  Cpu, 
-  Globe, 
-  Code, 
-  Shield, 
-  Radio, 
-  Cog,
-  Database,
-  Wifi,
-  Lock,
-  Server
-} from 'lucide-react'
+import { useRef } from 'react'
+import { Cpu, Code2, Wifi, Shield, Cog } from 'lucide-react'
+import { useSkills } from '@/lib/skills'
 
 const iconMap = {
   hardware: Cpu,
-  software: Code,
+  software: Code2,
   iot: Wifi,
   security: Shield,
   default: Cog,
 }
 
-// Skill badge component
-function SkillBadge({ name, level }: { name: string; level: number }) {
-  return (
-    <div className="group relative">
-      <div className="flex items-center justify-between p-3 bg-dark-800/50 rounded-lg border border-dark-700 hover:border-primary-500/50 transition-all duration-300">
-        <span className="text-dark-200 text-sm font-medium">{name}</span>
-        <span className="text-primary-400 text-xs font-mono">{level}%</span>
-      </div>
-      {/* Skill level bar */}
-      <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-b-lg transition-all duration-500 group-hover:h-1" 
-           style={{ width: `${level}%` }} 
-      />
-    </div>
-  )
-}
-
-// Skill category card component
-function SkillCard({ 
-  category, 
-  index 
-}: { 
-  category: SkillCategory
-  index: number 
-}) {
-  const Icon = iconMap[category.id as keyof typeof iconMap] || iconMap.default
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="card relative overflow-hidden"
-    >
-      {/* Gradient accent line */}
-      <div 
-        className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${category.color}`}
-        aria-hidden="true"
-      />
-      
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-6">
-        <div className={`p-3 rounded-lg bg-gradient-to-br ${category.color} bg-opacity-10`}>
-          <Icon className="w-6 h-6 text-white" aria-hidden="true" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-white">{category.title}</h3>
-          <p className="text-dark-400 text-sm mt-1">{category.description}</p>
-        </div>
-      </div>
-      
-      {/* Skills grid */}
-      <div className="grid gap-2">
-        {category.skills.map((skill) => (
-          <SkillBadge key={skill.name} name={skill.name} level={skill.level} />
-        ))}
-      </div>
-    </motion.div>
-  )
-}
+const tools = [
+  'Arduino IDE', 'PlatformIO', 'VS Code', 'Git', 'Postman', 'Figma',
+  'Firebase', 'Vercel', 'GitHub', 'Multimeter', 'Oscilloscope',
+]
 
 export default function Skills() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const { t } = useLanguage()
-  const [showGlobe, setShowGlobe] = useState(false)
   const { skillCategories } = useSkills()
 
   return (
-    <section
-      id="skills"
-      ref={ref}
-      className="py-20 lg:py-32"
-      aria-labelledby="skills-heading"
-    >
+    <section id="skills" ref={ref} className="bg-[#7CA7EB] py-20 text-[#000B26] lg:py-28" aria-labelledby="skills-heading">
       <div className="section-container">
-        {/* Section header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.55 }}
+          className="grid gap-8 border-b border-[#000B26]/25 pb-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end"
         >
-          <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-            {t('skills.title')}
-          </span>
-          <h2 id="skills-heading" className="section-heading mt-2">
-            {t('skills.heading')}
-          </h2>
-          <p className="section-subheading mx-auto mt-4">
-            {t('skills.subtitle')}
+          <div>
+            <p className="eyebrow text-[#000B26]/60">03 / Capability stack</p>
+            <h2 id="skills-heading" className="editorial-serif mt-4 text-5xl leading-none tracking-[-0.025em] text-[#000B26] sm:text-6xl">
+              One engineer, multiple layers.
+            </h2>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-[#000B26]/70 lg:justify-self-end">
+            My work crosses the boundaries between electronics and software. Instead of presenting ability as decorative percentages, this section shows the actual disciplines and technologies I use to build complete systems.
           </p>
         </motion.div>
 
-        {/* Skills grid */}
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
-          {skillCategories.map((category, index) => (
-            <SkillCard key={category.id} category={category} index={index} />
-          ))}
+        <div className="mt-2">
+          {skillCategories.map((category, index) => {
+            const Icon = iconMap[category.id as keyof typeof iconMap] || iconMap.default
+            return (
+              <motion.article
+                key={category.id}
+                initial={{ opacity: 0, y: 18 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.45, delay: index * 0.07 }}
+                className="grid gap-5 border-b border-[#000B26]/20 py-8 md:grid-cols-[4rem_0.72fr_1.28fr] md:items-start md:gap-8"
+              >
+                <div className="flex h-11 w-11 items-center justify-center border border-[#000B26]/30">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="editorial-serif text-2xl leading-tight">{category.title}</h3>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#000B26]/60">{category.description}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 md:pt-1">
+                  {category.skills.map(skill => (
+                    <span key={skill.name} className="border border-[#000B26]/30 bg-[#F7F3EC]/25 px-3 py-2 text-xs font-semibold text-[#000B26] sm:text-sm">
+                      {skill.name}
+                    </span>
+                  ))}
+                </div>
+              </motion.article>
+            )
+          })}
         </div>
 
-        {/* 3D Interactive Globe */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-12 text-center"
-        >
-          {!showGlobe ? (
-            <button
-              onClick={() => setShowGlobe(true)}
-              className="btn-secondary text-sm"
-            >
-              View Interactive 3D Skill Globe
-            </button>
-          ) : (
-            <SkillGlobe />
-          )}
-        </motion.div>
-
-        {/* Additional tools section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 text-center"
-        >
-          <h3 className="text-lg font-semibold text-white mb-6">
-            Tools & Platforms I Work With
-          </h3>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-            {[
-              'Arduino IDE',
-              'VS Code',
-              'Git',
-              'Postman',
-              'Figma',
-              'Fritzing',
-              'PlatformIO',
-              'Firebase Console',
-              'Vercel',
-              'GitHub',
-              'Multimeter',
-              'Oscilloscope',
-            ].map((tool) => (
-              <span
-                key={tool}
-                className="tech-badge hover:border-primary-500/50 hover:text-primary-400 transition-all duration-200"
-              >
-                {tool}
-              </span>
-            ))}
+        <div className="mt-10 grid gap-5 lg:grid-cols-[0.55fr_1.45fr] lg:items-start">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#000B26]/60">Tools & platforms</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {tools.map(tool => <span key={tool} className="text-sm font-medium text-[#000B26]/80">{tool}</span>)}
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
