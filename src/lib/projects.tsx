@@ -31,8 +31,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     fetch('/api/portfolio-data?key=projects')
       .then(response => response.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProjects(mergeWithCurrentCatalog(data))
+        if (Array.isArray(data)) {
+          setProjects(data)
           return
         }
 
