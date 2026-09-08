@@ -1,3 +1,20 @@
+export interface ProjectMedia {
+  id: string
+  type: 'image' | 'video'
+  url: string
+  title?: string
+  caption?: string
+}
+
+export interface ProjectDocument {
+  id: string
+  title: string
+  url: string
+  type: 'case-study' | 'technical' | 'presentation' | 'report' | 'other'
+  fileName?: string
+  fileSize?: string
+}
+
 export interface Project {
   id: string
   title: string
@@ -19,6 +36,13 @@ export interface Project {
   websiteUrl?: string
   docsUrl?: string
   videoUrl?: string
+  media?: ProjectMedia[]
+  documents?: ProjectDocument[]
+  publishStatus?: 'draft' | 'published'
+  caseStudy?: string
+  cvHighlights?: string[]
+  createdAt?: string
+  updatedAt?: string
 }
 
 export const defaultProjects: Project[] = [
@@ -139,11 +163,27 @@ export const legacyProjectIds = new Set([
   'smart-walking-stick',
 ])
 
+export function isProjectPublished(project: Project) {
+  return project.publishStatus !== 'draft'
+}
+
 export function mergeWithCurrentCatalog(data: unknown): Project[] {
   if (!Array.isArray(data)) return defaultProjects
 
-  const incoming = data.filter((item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item))
-  const customProjects = incoming.filter(project => !legacyProjectIds.has(project.id) && !defaultProjects.some(current => current.id === project.id))
+  const incoming = data.filter(
+    (item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item)
+  )
 
-  return [...defaultProjects, ...customProjects]
+  const mergedDefaults = defaultProjects.map(current => {
+    const saved = incoming.find(project => project.id === current.id)
+    return saved ? { ...current, ...saved } : current
+  })
+
+  const customProjects = incoming.filter(
+    project =>
+      !legacyProjectIds.has(project.id) &&
+      !defaultProjects.some(current => current.id === project.id)
+  )
+
+  return [...mergedDefaults, ...customProjects]
 }
