@@ -146,22 +146,36 @@ export default function AdminDashboard() {
     router.push('/admin/login')
   }
 
-  const handleSaveProject = (project: Project) => {
-    if (isCreating) {
-      addProject(project)
-      setNotification({ type: 'success', message: 'Project created successfully!' })
-    } else {
-      updateProject(project.id, project)
-      setNotification({ type: 'success', message: 'Project updated successfully!' })
+  const handleSaveProject = async (project: Project) => {
+    try {
+      if (isCreating) {
+        await addProject(project)
+        setNotification({ type: 'success', message: project.publishStatus === 'draft' ? 'Draft project saved.' : 'Project published successfully!' })
+      } else {
+        await updateProject(project.id, project)
+        setNotification({ type: 'success', message: project.publishStatus === 'draft' ? 'Project saved as draft.' : 'Project updated successfully!' })
+      }
+      setEditingProject(null)
+      setIsCreating(false)
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Project could not be saved.',
+      })
     }
-    setEditingProject(null)
-    setIsCreating(false)
   }
 
-  const handleDeleteProject = (id: string) => {
-    deleteProject(id)
-    setDeleteConfirm(null)
-    setNotification({ type: 'success', message: 'Project deleted successfully!' })
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProject(id)
+      setDeleteConfirm(null)
+      setNotification({ type: 'success', message: 'Project deleted successfully!' })
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Project could not be deleted.',
+      })
+    }
   }
 
   const handleCreateNew = () => {
