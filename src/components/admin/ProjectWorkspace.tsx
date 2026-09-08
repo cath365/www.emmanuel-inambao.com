@@ -324,6 +324,22 @@ export default function ProjectWorkspace({
       return
     }
 
+    if (formData.publishStatus === 'published') {
+      const missing = [
+        !formData.purpose.trim() ? 'purpose' : '',
+        !formData.problemSolved.trim() ? 'problem' : '',
+        !formData.systemLogic.trim() ? 'system logic' : '',
+        !formData.outcome.trim() ? 'outcome' : '',
+        formData.techStack.length === 0 ? 'technology' : '',
+      ].filter(Boolean)
+
+      if (missing.length > 0) {
+        setActiveTab('details')
+        notify('error', `Complete the core project details before publishing: ${missing.join(', ')}.`)
+        return
+      }
+    }
+
     const finalProject: Project = {
       ...formData,
       updatedAt: new Date().toISOString(),
@@ -1042,6 +1058,16 @@ export default function ProjectWorkspace({
               {published ? 'Published project' : 'Private draft'} · {mediaCount} media · {documentCount} documents
             </p>
             <div className="flex items-center gap-2">
+              {!isNew && published && (
+                <a
+                  href={`/projects/${formData.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="border border-white/10 px-4 py-2 text-xs font-semibold text-white/60 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]"
+                >
+                  Preview
+                </a>
+              )}
               <button onClick={onClose} type="button" className="px-4 py-2 text-xs font-semibold text-white/50 hover:text-white">
                 Cancel
               </button>
