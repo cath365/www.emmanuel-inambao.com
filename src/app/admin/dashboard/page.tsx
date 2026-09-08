@@ -231,10 +231,10 @@ export default function AdminDashboard() {
       <header className="sticky top-0 z-30 hidden border-b border-white/10 bg-[#070B17]/95 backdrop-blur lg:block">
         <div className="flex h-20 items-center justify-between px-8 xl:px-10">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Portfolio Control</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Portfolio Control</p>
             <h1 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-white">{tabTitles[activeTab]}</h1>
           </div>
-          <Link href="/" target="_blank" className="border border-white/15 px-4 py-2 text-xs font-semibold text-white/65 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]">
+          <Link href="/" target="_blank" className="border border-white/20 px-4 py-2 text-xs font-semibold text-white/70 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]">
             View live portfolio
           </Link>
         </div>
@@ -1625,7 +1625,7 @@ function AnalyticsPanel() {
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7CA7EB]">Insights</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">Audience Analytics</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/50">
             Understand portfolio traffic by session, content, location, device and source. Identity is only known when someone submits their details.
           </p>
         </div>
@@ -1638,7 +1638,7 @@ function AnalyticsPanel() {
                 'border px-3 py-2 text-xs font-bold transition ' +
                 (days === range
                   ? 'border-[#7CA7EB] bg-[#7CA7EB] text-[#000B26]'
-                  : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white')
+                  : 'border-white/10 text-white/50 hover:border-white/25 hover:text-white')
               }
             >
               {range} days
@@ -1646,7 +1646,7 @@ function AnalyticsPanel() {
           ))}
           <button
             onClick={() => load(days)}
-            className="border border-white/10 p-2 text-white/45 transition hover:border-white/25 hover:text-white"
+            className="border border-white/10 p-2 text-white/50 transition hover:border-white/25 hover:text-white"
             aria-label="Refresh analytics"
           >
             <RefreshCw className="h-4 w-4" />
@@ -1666,7 +1666,7 @@ function AnalyticsPanel() {
                 <span className="text-3xl font-semibold tracking-[-0.04em] text-white">{metric.value}</span>
               </div>
               <p className="mt-5 text-sm font-semibold text-white">{metric.label}</p>
-              <p className="mt-1 text-xs text-white/35">{metric.detail}</p>
+              <p className="mt-1 text-xs text-white/40">{metric.detail}</p>
             </div>
           )
         })}
@@ -1677,7 +1677,7 @@ function AnalyticsPanel() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="text-sm font-semibold text-white">Traffic trend</h3>
-              <p className="mt-1 text-xs text-white/35">Daily visits across the selected period.</p>
+              <p className="mt-1 text-xs text-white/40">Daily visits across the selected period.</p>
             </div>
             <div className="text-right">
               <p className={'text-lg font-semibold ' + (trend >= 0 ? 'text-[#7CA7EB]' : 'text-red-300')}>
@@ -1729,7 +1729,7 @@ function AnalyticsPanel() {
 
         <div className="border border-white/10 bg-[#000B26] p-5 sm:p-6">
           <h3 className="text-sm font-semibold text-white">Device mix</h3>
-          <p className="mt-1 text-xs text-white/35">How visitors access the portfolio.</p>
+          <p className="mt-1 text-xs text-white/40">How visitors access the portfolio.</p>
 
           <div className="mt-6 space-y-5">
             {deviceCounts.length === 0 ? (
@@ -1740,7 +1740,7 @@ function AnalyticsPanel() {
               return (
                 <div key={device}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 capitalize text-white/65">
+                    <span className="flex items-center gap-2 capitalize text-white/70">
                       <DeviceIcon className="h-4 w-4 text-[#CBB08A]" />
                       {device}
                     </span>
@@ -1768,7 +1768,7 @@ function AnalyticsPanel() {
                 return (
                   <div key={label}>
                     <div className="flex items-center justify-between gap-3 text-xs">
-                      <span className="min-w-0 truncate text-white/55">
+                      <span className="min-w-0 truncate text-white/60">
                         <span className="mr-2 text-white/20">{String(index + 1).padStart(2, '0')}</span>
                         {label || 'Direct'}
                       </span>
@@ -1789,7 +1789,7 @@ function AnalyticsPanel() {
         <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
           <div>
             <h3 className="text-sm font-semibold text-white">Recent sessions</h3>
-            <p className="mt-1 text-xs text-white/35">Session activity, not verified visitor identity.</p>
+            <p className="mt-1 text-xs text-white/40">Session activity, not verified visitor identity.</p>
           </div>
           <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/25">Latest 30</span>
         </div>
