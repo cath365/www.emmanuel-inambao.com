@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Noto_Sans_Arabic, Noto_Sans_SC } from 'next/font/google'
+import { DM_Serif_Display, Inter, Noto_Sans_Arabic, Noto_Sans_SC } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 import Providers from '@/components/Providers'
@@ -7,6 +7,7 @@ import VisitorTracker from '@/components/ui/VisitorTracker'
 import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const editorial = DM_Serif_Display({ subsets: ['latin'], variable: '--font-editorial', weight: '400' })
 const notoArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font-arabic', weight: ['400', '500', '600', '700'] })
 const notoSC = Noto_Sans_SC({ subsets: ['latin'], variable: '--font-chinese', weight: ['400', '500', '600', '700'] })
 
@@ -85,15 +86,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={'scroll-smooth dark overflow-x-hidden ' + inter.variable + ' ' + notoArabic.variable + ' ' + notoSC.variable} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={'scroll-smooth dark overflow-x-hidden ' + inter.variable + ' ' + editorial.variable + ' ' + notoArabic.variable + ' ' + notoSC.variable}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0b1220" />
+        <meta name="theme-color" content="#000B26" />
         <link rel="alternate" type="application/rss+xml" title="Emmanuel Inambao Blog" href="/api/rss" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonSchema()) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateWebsiteSchema()) }} />
       </head>
-      <body className={inter.className + ' bg-dark-950 text-dark-100 light:bg-slate-50 light:text-slate-900'}>
+      <body className={inter.className}>
         <Providers>
           {children}
           <VisitorTracker />

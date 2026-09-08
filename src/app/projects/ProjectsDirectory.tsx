@@ -3,13 +3,15 @@
 import Link from 'next/link'
 import { ArrowUpRight, ExternalLink } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
+import { isProjectPublished } from '@/lib/project-catalog'
 
 export default function ProjectsDirectory() {
   const { projects } = useProjects()
+  const publishedProjects = projects.filter(isProjectPublished)
 
   return (
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-      {projects.map(project => (
+      {publishedProjects.map(project => (
         <article key={project.id} className="group flex min-h-[330px] flex-col rounded-2xl border border-dark-800 bg-dark-900/60 p-6 transition hover:-translate-y-1 hover:border-primary-500/40">
           <div className="flex items-start justify-between gap-4">
             <div>

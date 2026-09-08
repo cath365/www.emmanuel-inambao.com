@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
+import { isProjectPublished, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 
 const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills']
 
@@ -27,6 +28,7 @@ async function writeSection(key: string, data: unknown) {
   await put(blobPath(key), JSON.stringify(data), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   })
 }
 
@@ -36,6 +38,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(null)
   }
   const data = await readSection(key)
+
+  if (key === 'projects') {
+    const projects = mergeWithCurrentCatalog(data)
+
+    if (!(await isAuthenticated())) {
+      return NextResponse.json(projects.filter(isProjectPublished))
+    }
+
+    return NextResponse.json(projects)
+  }
+
   return NextResponse.json(data)
 }
 

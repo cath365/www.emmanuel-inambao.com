@@ -1,229 +1,133 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Download, Mail, ChevronDown, MapPin, Users, Briefcase } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, Download, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useProfile } from '@/lib/profile'
-import { useLanguage } from '@/lib/i18n'
-import TypeWriter from '@/components/ui/TypeWriter'
-import AudioIntroduction from '@/components/ui/AudioIntroduction'
-import StatsCounter from '@/components/ui/StatsCounter'
+
+const disciplines = ['Embedded Systems', 'IoT', 'Robotics', 'AI', 'Full-Stack']
 
 export default function Hero() {
   const { profile } = useProfile()
-  const { t } = useLanguage()
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
-    },
-  }
-
-  const nameParts = profile.name.split(' ')
-  const firstName = nameParts.slice(0, -1).join(' ')
-  const lastName = nameParts[nameParts.length - 1]
+  const displayName = profile.name.replace(/^Prof\.\s*/i, '')
 
   return (
-    <section id="hero" className="relative" aria-label="Introduction">
-      {/* Cover Banner - LinkedIn style */}
-      <div className="relative w-full h-48 sm:h-56 md:h-72 lg:h-80 overflow-hidden">
-        {profile.coverImage ? (
-          <Image
-            src={profile.coverImage}
-            alt="Cover"
-            fill
-            className="object-cover"
-            priority
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950">
-            {/* Default cover pattern */}
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-              }}
-            />
-            {/* Gradient overlay for depth */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-dark-950/80 to-transparent" />
-          </div>
-        )}
-        {/* Bottom gradient fade into profile section */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-dark-950 to-transparent" />
+    <section
+      id="hero"
+      className="relative min-h-[92vh] overflow-hidden bg-[#000B26] text-[#F7F3EC]"
+      aria-label="Introduction"
+    >
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute -right-24 top-24 h-72 w-72 rounded-full border border-[#7CA7EB]/25 sm:h-[28rem] sm:w-[28rem]" />
+        <div className="absolute -right-8 top-40 h-52 w-52 rounded-full bg-[#7CA7EB]/10 sm:h-80 sm:w-80" />
+        <div className="absolute bottom-0 left-[6%] h-px w-[88%] bg-[#F7F3EC]/15" />
+        <div className="absolute left-[8%] top-0 h-full w-px bg-[#F7F3EC]/[0.06]" />
       </div>
 
-      {/* Profile Card - overlapping the cover */}
-      <div className="relative section-container -mt-16 sm:-mt-20 z-10">
-        <div className="bg-dark-900/90 backdrop-blur-sm border border-dark-700 rounded-2xl p-4 sm:p-6 md:p-8">
-          {/* Top row: Profile photo + name + status */}
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-            {/* Profile Photo */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex-shrink-0 -mt-16 sm:-mt-20 self-center sm:self-start"
-            >
-              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-dark-900 shadow-2xl bg-dark-800">
-                {profile.image ? (
-                  <Image
-                    src={profile.image}
-                    alt={profile.name}
-                    width={160}
-                    height={160}
-                    className="w-full h-full object-cover"
-                    priority
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-dark-500 text-4xl font-bold">
-                    {profile.name.charAt(0)}
-                  </div>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Name + Title + Status */}
-            <div className="flex-1 text-center sm:text-left pt-0 sm:pt-2">
-              <motion.div initial="hidden" animate="visible" variants={itemVariants}>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
-                  {firstName}{' '}
-                  <span className="gradient-text">{lastName}</span>
-                </h1>
-              </motion.div>
-
-              <motion.p
-                initial="hidden"
-                animate="visible"
-                variants={itemVariants}
-                className="text-base sm:text-lg md:text-xl text-dark-300 font-medium mt-1"
-              >
-                <TypeWriter
-                  words={[
-                    'Electronic Engineer',
-                    'IoT Developer',
-                    'Robotics Expert',
-                    'Full-Stack Engineer',
-                    'AI/ML Enthusiast',
-                  ]}
-                  className="text-primary-400"
-                />
-              </motion.p>
-
-              {/* Meta info row - like LinkedIn */}
-              <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={itemVariants}
-                className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 mt-3 text-sm text-dark-400"
-              >
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {profile.location}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Briefcase className="w-4 h-4" />
-                  5+ years experience
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  500+ connections
-                </span>
-              </motion.div>
-
-              {/* Status badge */}
-              <motion.div initial="hidden" animate="visible" variants={itemVariants} className="mt-3">
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-full text-sm text-green-400">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  {profile.status || 'Available for Engineering Projects'}
-                </span>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Bio */}
-          <motion.p
-            initial="hidden"
-            animate="visible"
-            variants={itemVariants}
-            className="text-sm sm:text-base text-dark-400 mt-4 sm:mt-6 leading-relaxed max-w-3xl"
-          >
-            {profile.bio}
-          </motion.p>
-
-          {/* CTA Buttons - like LinkedIn action buttons */}
+      <div className="section-container relative flex min-h-[92vh] flex-col justify-center pb-14 pt-28 lg:pb-20 lg:pt-32">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.08fr_0.72fr] lg:gap-20">
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={itemVariants}
-            className="flex flex-wrap items-center gap-3 mt-5 sm:mt-6"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
           >
-            <Link href="/start-project" className="btn-primary group text-sm sm:text-base">
-              Start Your Project
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link href="#projects" className="btn-primary group text-sm sm:text-base">
-              {t('hero.cta.projects')}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            {profile.cv && (
-              <a
-                href={profile.cv}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary group text-sm sm:text-base"
+            <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#7CA7EB] sm:text-xs">
+              <span className="inline-flex items-center gap-2">
+                <MapPin className="h-3.5 w-3.5" />
+                {profile.location}
+              </span>
+              <span className="h-1 w-1 rounded-full bg-[#CBB08A]" />
+              <span>Systems Engineer</span>
+            </div>
+
+            <h1 className="editorial-serif mt-7 max-w-5xl text-[3.25rem] leading-[0.94] tracking-[-0.035em] text-[#F7F3EC] sm:text-6xl md:text-7xl lg:text-[5.9rem]">
+              I build intelligent systems that connect the
+              <span className="text-[#7CA7EB]"> physical </span>
+              and digital world.
+            </h1>
+
+            <div className="mt-8 max-w-3xl border-l border-[#CBB08A] pl-5 sm:pl-7">
+              <p className="text-base leading-7 text-[#F7F3EC]/70 sm:text-lg sm:leading-8">
+                {profile.bio}
+              </p>
+            </div>
+
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 border border-[#F7F3EC] bg-[#F7F3EC] px-5 py-3 text-sm font-semibold text-[#000B26] transition hover:bg-[#7CA7EB] hover:border-[#7CA7EB]"
               >
-                <Download className="w-4 h-4" />
-                {t('hero.cta.cv')}
-              </a>
-            )}
-            <Link href="#contact" className="btn-accent text-sm sm:text-base">
-              <Mail className="w-4 h-4" />
-              {t('hero.cta.contact')}
-            </Link>
+                Explore selected work
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/start-project"
+                className="inline-flex items-center gap-2 border border-[#F7F3EC]/30 px-5 py-3 text-sm font-semibold text-[#F7F3EC] transition hover:border-[#F7F3EC] hover:bg-[#F7F3EC]/5"
+              >
+                Start a project
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              {profile.cv && (
+                <a
+                  href={profile.cv}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-2 py-3 text-sm font-medium text-[#CBB08A] transition hover:text-[#F7F3EC]"
+                >
+                  <Download className="h-4 w-4" />
+                  CV
+                </a>
+              )}
+            </div>
           </motion.div>
 
-          {/* Audio Introduction */}
-          <motion.div initial="hidden" animate="visible" variants={itemVariants} className="mt-4">
-            <AudioIntroduction />
+          <motion.div
+            initial={{ opacity: 0, x: 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, delay: 0.1 }}
+            className="relative mx-auto w-full max-w-[31rem] lg:mx-0 lg:justify-self-end"
+          >
+            <div className="absolute -left-5 -top-5 h-[74%] w-[78%] bg-[#7CA7EB]" aria-hidden="true" />
+            <div className="absolute -bottom-5 -right-5 h-[54%] w-[58%] bg-[#CBB08A]" aria-hidden="true" />
+
+            <div className="relative aspect-[4/5] overflow-hidden bg-[#402924]">
+              {profile.image ? (
+                <Image
+                  src={profile.image}
+                  alt={displayName}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 88vw, 31rem"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center editorial-serif text-8xl text-[#F7F3EC]">
+                  {displayName.charAt(0)}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#000B26]/60 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#CBB08A]">Engineer / Developer</p>
+                <p className="editorial-serif mt-2 text-3xl leading-none text-[#F7F3EC] sm:text-4xl">{displayName}</p>
+              </div>
+            </div>
           </motion.div>
         </div>
 
-        {/* Stats counters - below the card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="mt-6 sm:mt-8"
-        >
-          <StatsCounter />
-        </motion.div>
+        <div className="mt-16 grid gap-8 border-t border-[#F7F3EC]/15 pt-7 lg:grid-cols-[auto_1fr_auto] lg:items-center">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#CBB08A]">Core disciplines</span>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {disciplines.map(item => (
+              <span key={item} className="text-sm text-[#F7F3EC]/60">{item}</span>
+            ))}
+          </div>
+          <Link href="#about" className="inline-flex items-center gap-2 text-sm font-semibold text-[#7CA7EB] hover:text-[#F7F3EC]">
+            Continue
+            <ArrowDownRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
-        className="flex justify-center mt-6 sm:mt-8 pb-4"
-      >
-        <Link
-          href="#about"
-          className="flex flex-col items-center gap-2 text-dark-500 hover:text-primary-400 transition-colors"
-          aria-label="Scroll to About section"
-        >
-          <span className="text-sm font-medium">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            <ChevronDown className="w-5 h-5" />
-          </motion.div>
-        </Link>
-      </motion.div>
     </section>
   )
 }
