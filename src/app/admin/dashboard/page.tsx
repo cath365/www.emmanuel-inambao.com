@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Plus, Edit2, Trash2, Save, X,
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
-  User, Upload, Camera, Check, AlertCircle, Briefcase,
-  Quote, Award, Settings, Video, FileText, GalleryHorizontal,
+  User, Upload, Camera, Check, AlertCircle,
+  Settings, Video, FileText,
   Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
