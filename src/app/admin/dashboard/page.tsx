@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Plus, Edit2, Trash2, LogOut, Save, X, Cpu,
+  Plus, Edit2, Trash2, Save, X,
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
@@ -22,9 +22,26 @@ import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
-import SkillsEditor from '@/components/admin/SkillsEditor'
+import SkillsEditor from '@/components/admin/SkillsEditor'\nimport AdminSidebar, { type AdminTab } from '@/components/admin/AdminSidebar'\nimport AdminOverview from '@/components/admin/AdminOverview'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = AdminTab
+
+const tabTitles: Record<TabType, string> = {
+  overview: 'Overview',
+  projects: 'Projects',
+  profile: 'Profile',
+  experience: 'Experience',
+  testimonials: 'Testimonials',
+  certifications: 'Certifications',
+  services: 'Services',
+  skills: 'Skills',
+  media: 'Media',
+  resources: 'Resources',
+  gallery: 'Gallery',
+  leads: 'Leads',
+  bookings: 'Bookings',
+  analytics: 'Audience Analytics',
+}
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -32,7 +49,7 @@ export default function AdminDashboard() {
   const { projects, addProject, updateProject, deleteProject } = useProjects()
   const { profile, updateProfile } = useProfile()
   
-  const [activeTab, setActiveTab] = useState<TabType>('projects')
+  const [activeTab, setActiveTab] = useState<TabType>('overview')
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -40,8 +57,6 @@ export default function AdminDashboard() {
   const [newLeadsCount, setNewLeadsCount] = useState(0)
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0)
   const [todayVisitsCount, setTodayVisitsCount] = useState(0)
-
-  const formatBadge = (value: number) => (value > 99 ? '99+' : String(value))
 
   const loadLiveBadges = async () => {
     try {
@@ -170,7 +185,17 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-950">
+    <div className="min-h-screen bg-[#070B17] text-white">
+      <AdminSidebar
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        userEmail={user?.email}
+        newLeadsCount={newLeadsCount}
+        pendingBookingsCount={pendingBookingsCount}
+        todayVisitsCount={todayVisitsCount}
+        onLogout={handleLogout}
+      />
+      <div className="min-h-screen pt-16 lg:pl-72 lg:pt-0">
       {/* Notification Toast */}
       <AnimatePresence>
         {notification && (
@@ -192,201 +217,38 @@ export default function AdminDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <header className="bg-dark-900 border-b border-dark-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2 text-white font-bold text-lg">
-              <Cpu className="w-6 h-6 text-primary-500" />
-              Admin Dashboard
-            </Link>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-dark-400 text-sm hidden sm:block">
-                Welcome, {user?.email}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-dark-400 hover:text-white transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="hidden sm:block">Logout</span>
-              </button>
-            </div>
+      <header className="sticky top-0 z-30 hidden border-b border-white/10 bg-[#070B17]/95 backdrop-blur lg:block">
+        <div className="flex h-20 items-center justify-between px-8 xl:px-10">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">Portfolio Control</p>
+            <h1 className="mt-1 text-xl font-semibold tracking-[-0.02em] text-white">{tabTitles[activeTab]}</h1>
           </div>
+          <Link href="/" target="_blank" className="border border-white/15 px-4 py-2 text-xs font-semibold text-white/65 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]">
+            View live portfolio
+          </Link>
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="bg-dark-900/50 border-b border-dark-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto pb-px">
-            <button
-              onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'projects'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <FolderOpen className="w-5 h-5" />
-              Projects
-            </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'profile'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <User className="w-5 h-5" />
-              Profile
-            </button>
-            <button
-              onClick={() => setActiveTab('experience')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'experience'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Briefcase className="w-5 h-5" />
-              Experience
-            </button>
-            <button
-              onClick={() => setActiveTab('testimonials')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'testimonials'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Quote className="w-5 h-5" />
-              Testimonials
-            </button>
-            <button
-              onClick={() => setActiveTab('certifications')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'certifications'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Award className="w-5 h-5" />
-              Certifications
-            </button>
-            <button
-              onClick={() => setActiveTab('services')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'services'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Settings className="w-5 h-5" />
-              Services
-            </button>
-            <button
-              onClick={() => setActiveTab('media')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'media'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Video className="w-5 h-5" />
-              Media
-            </button>
-            <button
-              onClick={() => setActiveTab('skills')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'skills'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Cpu className="w-5 h-5" />
-              Skills
-            </button>
-            <button
-              onClick={() => setActiveTab('resources')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'resources'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <FileText className="w-5 h-5" />
-              Resources
-            </button>
-            <button
-              onClick={() => setActiveTab('gallery')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'gallery'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <GalleryHorizontal className="w-5 h-5" />
-              Gallery
-            </button>
-            <button
-              onClick={() => setActiveTab('leads')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'leads'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Bell className="w-5 h-5" />
-              Leads
-              {newLeadsCount > 0 && (
-                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-red-500 text-white text-xs px-1.5">
-                  {formatBadge(newLeadsCount)}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('bookings')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'bookings'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <Calendar className="w-5 h-5" />
-              Bookings
-              {pendingBookingsCount > 0 && (
-                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-yellow-500 text-dark-950 text-xs px-1.5">
-                  {formatBadge(pendingBookingsCount)}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
-                activeTab === 'analytics'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
-              }`}
-            >
-              <BarChart2 className="w-5 h-5" />
-              Analytics
-              {todayVisitsCount > 0 && (
-                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs px-1.5">
-                  {formatBadge(todayVisitsCount)}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-[100rem] px-4 py-6 sm:px-6 lg:px-8 lg:py-8 xl:px-10">
         <AnimatePresence mode="wait">
-          {activeTab === 'projects' ? (
+          {activeTab === 'overview' ? (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+            >
+              <AdminOverview
+                projectsCount={projects.length}
+                newLeadsCount={newLeadsCount}
+                pendingBookingsCount={pendingBookingsCount}
+                todayVisitsCount={todayVisitsCount}
+                onNavigate={setActiveTab}
+                onCreateProject={handleCreateNew}
+              />
+            </motion.div>
+          ) : activeTab === 'projects' ? (
             <motion.div
               key="projects"
               initial={{ opacity: 0, x: -20 }}
@@ -752,15 +614,6 @@ export default function AdminDashboard() {
           ) : null}
         </AnimatePresence>
 
-        {/* Quick links */}
-        <div className="mt-8 pt-8 border-t border-dark-700">
-          <Link 
-            href="/" 
-            className="text-primary-400 hover:text-primary-300 transition-colors"
-          >
-            ← View Portfolio
-          </Link>
-        </div>
       </main>
 
       {/* Edit/Create Project Modal */}
@@ -777,6 +630,7 @@ export default function AdminDashboard() {
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   )
 }
@@ -2056,220 +1910,310 @@ function AnalyticsPanel() {
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(7)
 
-  const load = (d: number) => {
+  const load = (range: number) => {
     setLoading(true)
-    fetch(`/api/analytics?days=${d}`)
+    fetch(`/api/analytics?days=${range}`, { credentials: 'include' })
       .then(r => r.json())
-      .then(data => setVisits(data.visits || []))
+      .then(data => setVisits(Array.isArray(data.visits) ? data.visits : []))
       .catch(() => setVisits([]))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load(days) }, [days])
+  useEffect(() => {
+    load(days)
+  }, [days])
 
   const uniqueSessions = new Set(visits.map(v => v.sessionId)).size
   const today = new Date().toISOString().split('T')[0]
   const todayVisits = visits.filter(v => v.timestamp.startsWith(today)).length
+  const countries = new Set(visits.map(v => v.country).filter(Boolean)).size
 
   const dailyMap: Record<string, number> = {}
   for (let i = 0; i < days; i++) {
-    const d = new Date(); d.setDate(d.getDate() - i)
+    const d = new Date()
+    d.setDate(d.getDate() - i)
     dailyMap[d.toISOString().split('T')[0]] = 0
   }
-  visits.forEach(v => {
-    const day = v.timestamp.split('T')[0]
-    if (day in dailyMap) dailyMap[day] = (dailyMap[day] || 0) + 1
-  })
-  const dailyData = Object.entries(dailyMap).sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({ date, count }))
-  const maxDaily = Math.max(...dailyData.map(d => d.count), 1)
 
-  function topN(field: keyof Visit, n = 5) {
+  visits.forEach(v => {
+    const date = v.timestamp.split('T')[0]
+    if (date in dailyMap) dailyMap[date] += 1
+  })
+
+  const dailyData = Object.entries(dailyMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, count]) => ({ date, count }))
+
+  const maxDaily = Math.max(...dailyData.map(item => item.count), 1)
+  const splitPoint = Math.max(Math.floor(dailyData.length / 2), 1)
+  const previousTotal = dailyData.slice(0, splitPoint).reduce((sum, item) => sum + item.count, 0)
+  const currentTotal = dailyData.slice(splitPoint).reduce((sum, item) => sum + item.count, 0)
+  const trend = previousTotal === 0
+    ? (currentTotal > 0 ? 100 : 0)
+    : Math.round(((currentTotal - previousTotal) / previousTotal) * 100)
+
+  const topN = (field: keyof Visit, limit = 5) => {
     const counts: Record<string, number> = {}
-    visits.forEach(v => { const val = v[field] as string; counts[val] = (counts[val] || 0) + 1 })
-    return Object.entries(counts).sort(([, a], [, b]) => b - a).slice(0, n)
+    visits.forEach(visit => {
+      const value = String(visit[field] || 'Unknown')
+      counts[value] = (counts[value] || 0) + 1
+    })
+    return Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, limit)
   }
 
   const topPages = topN('page')
   const topCountries = topN('country')
   const topReferrers = topN('referrer')
   const deviceCounts = topN('device')
-  const deviceIcons: Record<string, string> = { desktop: '🖥️', mobile: '📱', tablet: '📟' }
-  const countryFlags: Record<string, string> = {
-    ZM: '🇿🇲', US: '🇺🇸', GB: '🇬🇧', ZA: '🇿🇦', NG: '🇳🇬', IN: '🇮🇳',
-    DE: '🇩🇪', FR: '🇫🇷', KE: '🇰🇪', CA: '🇨🇦', AU: '🇦🇺', Unknown: '🌍',
+
+  const chartWidth = 720
+  const chartHeight = 180
+  const padding = 12
+  const chartPoints = dailyData.map((item, index) => {
+    const x = dailyData.length <= 1
+      ? chartWidth / 2
+      : padding + (index / (dailyData.length - 1)) * (chartWidth - padding * 2)
+    const y = chartHeight - padding - (item.count / maxDaily) * (chartHeight - padding * 2)
+    return `${x},${y}`
+  })
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[28rem] items-center justify-center border border-white/10 bg-[#0B1120]">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[#7CA7EB] border-t-transparent" />
+          <p className="mt-4 text-sm text-white/40">Loading audience data…</p>
+        </div>
+      </div>
+    )
   }
 
-  if (loading) return (
-    <div className="text-center py-20">
-      <div className="animate-spin w-10 h-10 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-4" />
-      <p className="text-dark-400">Loading analytics...</p>
-    </div>
-  )
+  const metrics = [
+    { label: 'Total visits', value: visits.length, detail: `Last ${days} days`, icon: BarChart2 },
+    { label: 'Unique sessions', value: uniqueSessions, detail: 'Distinct sessions', icon: User },
+    { label: 'Visitors today', value: todayVisits, detail: 'Current day', icon: Clock },
+    { label: 'Countries', value: countries, detail: 'Audience reach', icon: Globe },
+  ]
+
+  const rankedGroups = [
+    { title: 'Top pages', items: topPages, accent: '#7CA7EB' },
+    { title: 'Top countries', items: topCountries, accent: '#CBB08A' },
+    { title: 'Traffic sources', items: topReferrers, accent: '#F7F3EC' },
+  ]
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="space-y-6">
+      <section className="flex flex-col gap-5 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Visitor Analytics</h2>
-          <p className="text-dark-400 text-sm mt-1">Who is visiting your portfolio</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7CA7EB]">Insights</p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.03em] text-white">Audience Analytics</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+            Understand portfolio traffic by session, content, location, device and source. Identity is only known when someone submits their details.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          {[7, 14, 30].map(d => (
-            <button key={d} onClick={() => setDays(d)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${days === d ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-300 hover:text-white'}`}>
-              {d}d
+        <div className="flex flex-wrap items-center gap-2">
+          {[7, 14, 30].map(range => (
+            <button
+              key={range}
+              onClick={() => setDays(range)}
+              className={
+                'border px-3 py-2 text-xs font-bold transition ' +
+                (days === range
+                  ? 'border-[#7CA7EB] bg-[#7CA7EB] text-[#000B26]'
+                  : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white')
+              }
+            >
+              {range} days
             </button>
           ))}
-          <button onClick={() => load(days)} className="ml-2 p-1.5 bg-dark-800 text-dark-300 rounded-lg hover:text-white transition-colors">
-            <RefreshCw className="w-4 h-4" />
+          <button
+            onClick={() => load(days)}
+            className="border border-white/10 p-2 text-white/45 transition hover:border-white/25 hover:text-white"
+            aria-label="Refresh analytics"
+          >
+            <RefreshCw className="h-4 w-4" />
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total Visits', value: visits.length, sub: `Last ${days} days`, icon: '👁️' },
-          { label: 'Today', value: todayVisits, sub: 'Visits today', icon: '📅' },
-          { label: 'Unique Visitors', value: uniqueSessions, sub: 'By session', icon: '👤' },
-          { label: 'Countries', value: new Set(visits.map(v => v.country)).size, sub: 'Reached', icon: '🌍' },
-        ].map(card => (
-          <div key={card.label} className="bg-dark-900/60 border border-dark-700 rounded-xl p-4">
-            <div className="text-2xl mb-1">{card.icon}</div>
-            <div className="text-2xl font-bold text-white">{card.value}</div>
-            <div className="text-sm font-medium text-dark-200">{card.label}</div>
-            <div className="text-xs text-dark-500">{card.sub}</div>
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {metrics.map(metric => {
+          const Icon = metric.icon
+          return (
+            <div key={metric.label} className="border border-white/10 bg-[#0B1120] p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex h-10 w-10 items-center justify-center border border-white/10 text-[#7CA7EB]">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <span className="text-3xl font-semibold tracking-[-0.04em] text-white">{metric.value}</span>
+              </div>
+              <p className="mt-5 text-sm font-semibold text-white">{metric.label}</p>
+              <p className="mt-1 text-xs text-white/35">{metric.detail}</p>
+            </div>
+          )
+        })}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+        <div className="border border-white/10 bg-[#0B1120] p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Traffic trend</h3>
+              <p className="mt-1 text-xs text-white/35">Daily visits across the selected period.</p>
+            </div>
+            <div className="text-right">
+              <p className={'text-lg font-semibold ' + (trend >= 0 ? 'text-[#7CA7EB]' : 'text-red-300')}>
+                {trend > 0 ? '+' : ''}{trend}%
+              </p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-white/25">period change</p>
+            </div>
+          </div>
+
+          <div className="mt-7">
+            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="h-52 w-full" role="img" aria-label="Daily portfolio visits">
+              <line
+                x1="0"
+                y1={chartHeight - padding}
+                x2={chartWidth}
+                y2={chartHeight - padding}
+                stroke="rgba(255,255,255,0.08)"
+                strokeWidth="1"
+              />
+              <polyline
+                points={chartPoints.join(' ')}
+                fill="none"
+                stroke="#7CA7EB"
+                strokeWidth="4"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              {chartPoints.map((point, index) => {
+                const [x, y] = point.split(',')
+                return (
+                  <circle
+                    key={dailyData[index]?.date || index}
+                    cx={x}
+                    cy={y}
+                    r="4"
+                    fill="#F7F3EC"
+                    stroke="#7CA7EB"
+                    strokeWidth="2"
+                  />
+                )
+              })}
+            </svg>
+            <div className="mt-1 flex justify-between text-[10px] text-white/25">
+              <span>{dailyData[0]?.date.slice(5) || '—'}</span>
+              <span>{dailyData[dailyData.length - 1]?.date.slice(5) || '—'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-white/10 bg-[#000B26] p-5 sm:p-6">
+          <h3 className="text-sm font-semibold text-white">Device mix</h3>
+          <p className="mt-1 text-xs text-white/35">How visitors access the portfolio.</p>
+
+          <div className="mt-6 space-y-5">
+            {deviceCounts.length === 0 ? (
+              <p className="text-sm text-white/30">No device data yet.</p>
+            ) : deviceCounts.map(([device, count]) => {
+              const percentage = visits.length ? Math.round((count / visits.length) * 100) : 0
+              const DeviceIcon = device === 'mobile' ? Smartphone : Monitor
+              return (
+                <div key={device}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 capitalize text-white/65">
+                      <DeviceIcon className="h-4 w-4 text-[#CBB08A]" />
+                      {device}
+                    </span>
+                    <span className="font-semibold text-white">{percentage}%</span>
+                  </div>
+                  <div className="mt-2 h-1.5 bg-white/[0.06]">
+                    <div className="h-full bg-[#CBB08A]" style={{ width: `${percentage}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        {rankedGroups.map(group => (
+          <div key={group.title} className="border border-white/10 bg-[#0B1120] p-5">
+            <h3 className="text-sm font-semibold text-white">{group.title}</h3>
+            <div className="mt-5 space-y-4">
+              {group.items.length === 0 ? (
+                <p className="text-sm text-white/30">No data yet.</p>
+              ) : group.items.map(([label, count], index) => {
+                const width = visits.length ? Math.max((count / visits.length) * 100, 3) : 3
+                return (
+                  <div key={label}>
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                      <span className="min-w-0 truncate text-white/55">
+                        <span className="mr-2 text-white/20">{String(index + 1).padStart(2, '0')}</span>
+                        {label || 'Direct'}
+                      </span>
+                      <span className="font-semibold text-white">{count}</span>
+                    </div>
+                    <div className="mt-2 h-px bg-white/[0.06]">
+                      <div className="h-px" style={{ width: `${width}%`, backgroundColor: group.accent }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         ))}
-      </div>
+      </section>
 
-      <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-6 mb-8">
-        <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-          <BarChart2 className="w-5 h-5 text-primary-400" /> Visits Per Day
-        </h3>
-        <div className="flex items-end gap-1 h-32">
-          {dailyData.map(({ date, count }) => (
-            <div key={date} className="flex-1 flex flex-col items-center gap-1 group">
-              <div className="text-xs text-dark-500 opacity-0 group-hover:opacity-100 transition-opacity">{count}</div>
-              <div className="w-full bg-primary-600/80 hover:bg-primary-500 rounded-t transition-colors cursor-default"
-                style={{ height: `${Math.max((count / maxDaily) * 100, 4)}%` }} />
-              <div className="text-dark-600" style={{ fontSize: '9px' }}>{date.slice(5)}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-400" /> Top Pages</h3>
-          <div className="space-y-3">
-            {topPages.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
-            {topPages.map(([key, count]) => (
-              <div key={key} className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-dark-200 truncate">{key || '/'}</div>
-                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-white shrink-0">{count}</span>
-              </div>
-            ))}
+      <section className="border border-white/10 bg-[#0B1120]">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Recent sessions</h3>
+            <p className="mt-1 text-xs text-white/35">Session activity, not verified visitor identity.</p>
           </div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/25">Latest 30</span>
         </div>
 
-        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Globe className="w-4 h-4 text-green-400" /> Top Countries</h3>
-          <div className="space-y-3">
-            {topCountries.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
-            {topCountries.map(([key, count]) => (
-              <div key={key} className="flex items-center gap-3">
-                <span className="text-base shrink-0">{countryFlags[key] || '🌍'}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-dark-200 truncate">{key}</div>
-                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-white shrink-0">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><ExternalLink className="w-4 h-4 text-yellow-400" /> Traffic Sources</h3>
-          <div className="space-y-3">
-            {topReferrers.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
-            {topReferrers.map(([key, count]) => (
-              <div key={key} className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-dark-200 truncate">{key}</div>
-                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
-                    <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-white shrink-0">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
-          <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Monitor className="w-4 h-4 text-purple-400" /> Devices</h3>
-          <div className="space-y-3">
-            {deviceCounts.length === 0 && <p className="text-dark-500 text-sm">No data yet</p>}
-            {deviceCounts.map(([key, count]) => (
-              <div key={key} className="flex items-center gap-3">
-                <span className="text-base shrink-0">{deviceIcons[key] || '💻'}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm text-dark-200 capitalize">{key}</div>
-                  <div className="h-1.5 bg-dark-700 rounded-full mt-1">
-                    <div className="h-full bg-purple-500 rounded-full" style={{ width: `${visits.length ? (count / visits.length) * 100 : 0}%` }} />
-                  </div>
-                </div>
-                <span className="text-sm font-medium text-white shrink-0">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-dark-900/60 border border-dark-700 rounded-xl p-5">
-        <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-primary-400" /> Recent Visitors
-          <span className="ml-auto text-xs text-dark-500">Latest 30</span>
-        </h3>
         {visits.length === 0 ? (
-          <p className="text-dark-500 text-sm text-center py-6">No visits recorded yet. They will appear here as visitors arrive.</p>
+          <p className="px-5 py-10 text-center text-sm text-white/30">No visits recorded yet.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-dark-500 border-b border-dark-700 text-xs">
-                  <th className="text-left py-2 pr-4 font-medium">Time</th>
-                  <th className="text-left py-2 pr-4 font-medium">Page</th>
-                  <th className="text-left py-2 pr-4 font-medium">Country</th>
-                  <th className="text-left py-2 pr-4 font-medium">Device</th>
-                  <th className="text-left py-2 font-medium">Source</th>
+            <table className="w-full min-w-[760px] text-left text-xs">
+              <thead className="border-b border-white/10 text-[10px] uppercase tracking-[0.12em] text-white/30">
+                <tr>
+                  <th className="px-5 py-3 font-semibold">Time</th>
+                  <th className="px-5 py-3 font-semibold">Page</th>
+                  <th className="px-5 py-3 font-semibold">Location</th>
+                  <th className="px-5 py-3 font-semibold">Device</th>
+                  <th className="px-5 py-3 font-semibold">Source</th>
                 </tr>
               </thead>
               <tbody>
-                {visits.slice(0, 30).map(v => (
-                  <tr key={v.id} className="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
-                    <td className="py-2 pr-4 text-dark-400 whitespace-nowrap text-xs">
-                      {new Date(v.timestamp).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                {visits.slice(0, 30).map(visit => (
+                  <tr key={visit.id} className="border-b border-white/[0.06] text-white/50 last:border-b-0 hover:bg-white/[0.02]">
+                    <td className="whitespace-nowrap px-5 py-3">
+                      {new Date(visit.timestamp).toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </td>
-                    <td className="py-2 pr-4 text-dark-200 max-w-xs truncate text-xs">{v.page || '/'}</td>
-                    <td className="py-2 pr-4 text-dark-200 text-xs"><span className="mr-1">{countryFlags[v.country] || '🌍'}</span>{v.country}</td>
-                    <td className="py-2 pr-4 text-dark-300 text-xs">{deviceIcons[v.device] || '💻'} <span className="capitalize">{v.device}</span></td>
-                    <td className="py-2 text-dark-400 text-xs">{v.referrer}</td>
+                    <td className="max-w-xs truncate px-5 py-3 text-white/70">{visit.page || '/'}</td>
+                    <td className="px-5 py-3">{[visit.city, visit.country].filter(Boolean).join(', ') || 'Unknown'}</td>
+                    <td className="px-5 py-3 capitalize">{visit.device || 'Unknown'}</td>
+                    <td className="max-w-xs truncate px-5 py-3">{visit.referrer || 'Direct'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }
