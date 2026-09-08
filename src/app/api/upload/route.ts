@@ -180,20 +180,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate file size (max 100MB for videos, 50MB for resources, 10MB for audio/CV, 5MB for images)
+    // Validate file size. Project gallery videos use the video limit even when
+    // uploaded with type=project so media uploads behave consistently.
+    const isVideoUpload = isVideo || file.type.startsWith('video/')
     let maxSize: number
-    if (isVideo) {
-      maxSize = 100 * 1024 * 1024 // 100MB for videos
+    if (isVideoUpload) {
+      maxSize = 100 * 1024 * 1024
     } else if (isResource) {
-      maxSize = 50 * 1024 * 1024 // 50MB for resources
+      maxSize = 50 * 1024 * 1024
     } else if (isCV || isAudio) {
-      maxSize = 10 * 1024 * 1024 // 10MB for CV and audio
+      maxSize = 10 * 1024 * 1024
     } else {
-      maxSize = 10 * 1024 * 1024 // 10MB for images (increased from 5MB)
+      maxSize = 10 * 1024 * 1024
     }
     
     if (file.size > maxSize) {
-      const maxSizeStr = isVideo ? '100MB' : (isResource ? '50MB' : ((isCV || isAudio) ? '10MB' : '10MB'))
+      const maxSizeStr = isVideoUpload ? '100MB' : (isResource ? '50MB' : '10MB')
       return NextResponse.json(
         { error: `File too large. Maximum size is ${maxSizeStr}` },
         { status: 400 }
