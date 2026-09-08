@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { CircuitBoard, Lightbulb, Rocket, Users } from 'lucide-react'
 
 const programs = [
