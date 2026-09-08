@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench, FileText, Image as ImageIcon, Play } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 import { useProjects } from '@/lib/projects'
 
 export default function ProjectDetailClient({ slug }: { slug: string }) {
@@ -70,6 +71,47 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           {project.techStack.map(tech => <span key={tech} className="tech-badge">{tech}</span>)}
         </div>
 
+        {project.media && project.media.length > 0 && (
+          <section className="mt-12">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Project media</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">Inside the build</h2>
+              </div>
+              <span className="text-xs text-dark-500">{project.media.length} item{project.media.length === 1 ? '' : 's'}</span>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {project.media.map(item => (
+                <article key={item.id} className="overflow-hidden rounded-2xl border border-dark-800 bg-dark-900/60">
+                  <div className="relative aspect-video bg-dark-950">
+                    {item.type === 'image' ? (
+                      <Image
+                        src={item.url}
+                        alt={item.title || project.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    ) : (
+                      <video src={item.url} className="h-full w-full object-cover" controls />
+                    )}
+                    <div className="pointer-events-none absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white">
+                      {item.type === 'video' ? <Play className="h-3.5 w-3.5" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                    </div>
+                  </div>
+                  {(item.title || item.caption) && (
+                    <div className="p-4">
+                      {item.title && <h3 className="font-semibold text-white">{item.title}</h3>}
+                      {item.caption && <p className="mt-2 text-sm leading-6 text-dark-400">{item.caption}</p>}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
           <section className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6 lg:col-span-1">
             <div className="flex items-center gap-3"><Wrench className="h-5 w-5 text-red-400" /><h2 className="text-xl font-bold text-white">Problem</h2></div>
@@ -113,6 +155,44 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
             </ul>
           </div>
         </section>
+
+        {project.caseStudy && (
+          <section className="mt-8 rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-400">Case study</p>
+            <div className="prose prose-invert mt-5 max-w-none prose-headings:text-white prose-p:text-dark-300 prose-li:text-dark-300">
+              <ReactMarkdown>{project.caseStudy}</ReactMarkdown>
+            </div>
+          </section>
+        )}
+
+        {project.documents && project.documents.length > 0 && (
+          <section className="mt-8 rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
+            <div className="flex items-center gap-3">
+              <FileText className="h-5 w-5 text-accent-400" />
+              <h2 className="text-2xl font-bold text-white">Project documents</h2>
+            </div>
+            <div className="mt-5 divide-y divide-dark-800 border-y border-dark-800">
+              {project.documents.map(document => (
+                <a
+                  key={document.id}
+                  href={document.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-4 py-4 text-sm transition hover:text-primary-300"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-white">{document.title}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-dark-500">
+                      {document.type.replace('-', ' ')}
+                      {document.fileSize ? ` · ${document.fileSize}` : ''}
+                    </p>
+                  </div>
+                  <ExternalLink className="h-4 w-4 shrink-0 text-dark-500" />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-12 rounded-2xl border border-primary-500/20 bg-primary-950/30 p-7 sm:p-9">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400">Build something similar</p>

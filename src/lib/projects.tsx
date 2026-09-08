@@ -7,7 +7,7 @@ export type { Project } from '@/lib/project-catalog'
 
 interface ProjectsContextType {
   projects: Project[]
-  addProject: (project: Omit<Project, 'id'>) => void
+  addProject: (project: Project) => void
   updateProject: (id: string, project: Partial<Project>) => void
   deleteProject: (id: string) => void
   getProject: (id: string) => Project | undefined
@@ -61,8 +61,14 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     if (isLoaded) localStorage.setItem('portfolio_projects', JSON.stringify(projects))
   }, [projects, isLoaded])
 
-  const addProject = (project: Omit<Project, 'id'>) => {
-    const newProject: Project = { ...project, id: 'project-' + Date.now() }
+  const addProject = (project: Project) => {
+    const newProject: Project = {
+      ...project,
+      id: project.id || 'project-' + Date.now(),
+      createdAt: project.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
     setProjects(previous => {
       const updated = [...previous, newProject]
       saveToServer(updated)
@@ -72,7 +78,11 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
 
   const updateProject = (id: string, updates: Partial<Project>) => {
     setProjects(previous => {
-      const updated = previous.map(project => project.id === id ? { ...project, ...updates } : project)
+      const updated = previous.map(project =>
+        project.id === id
+          ? { ...project, ...updates, updatedAt: new Date().toISOString() }
+          : project
+      )
       saveToServer(updated)
       return updated
     })

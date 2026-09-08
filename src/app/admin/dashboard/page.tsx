@@ -22,7 +22,10 @@ import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
-import SkillsEditor from '@/components/admin/SkillsEditor'\nimport AdminSidebar, { type AdminTab } from '@/components/admin/AdminSidebar'\nimport AdminOverview from '@/components/admin/AdminOverview'
+import SkillsEditor from '@/components/admin/SkillsEditor'
+import AdminSidebar, { type AdminTab } from '@/components/admin/AdminSidebar'
+import AdminOverview from '@/components/admin/AdminOverview'
+import ProjectWorkspace from '@/components/admin/ProjectWorkspace'
 
 type TabType = AdminTab
 
@@ -178,7 +181,15 @@ export default function AdminDashboard() {
       playStoreUrl: '',
       websiteUrl: '',
       docsUrl: '',
-      videoUrl: ''
+      videoUrl: '',
+      media: [],
+      documents: [],
+      architecture: [],
+      highlights: [],
+      cvHighlights: [],
+      publishStatus: 'draft',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
     setEditingProject(newProject)
     setIsCreating(true)
@@ -309,11 +320,23 @@ export default function AdminDashboard() {
                               <h3 className="text-lg font-semibold text-white truncate">
                                 {project.title || 'Untitled Project'}
                               </h3>
-                              {project.featured && (
-                                <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded mt-1">
-                                  Featured
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span
+                                  className={
+                                    'inline-block border px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ' +
+                                    (project.publishStatus === 'draft'
+                                      ? 'border-[#CBB08A]/30 bg-[#CBB08A]/10 text-[#CBB08A]'
+                                      : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300')
+                                  }
+                                >
+                                  {project.publishStatus === 'draft' ? 'Draft' : 'Published'}
                                 </span>
-                              )}
+                                {project.featured && (
+                                  <span className="inline-block border border-[#7CA7EB]/30 bg-[#7CA7EB]/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#7CA7EB]">
+                                    Featured
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Actions */}
@@ -619,7 +642,7 @@ export default function AdminDashboard() {
       {/* Edit/Create Project Modal */}
       <AnimatePresence>
         {editingProject && (
-          <ProjectModal
+          <ProjectWorkspace
             project={editingProject}
             isNew={isCreating}
             onSave={handleSaveProject}
@@ -1073,413 +1096,6 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
         </div>
       </form>
     </div>
-  )
-}
-
-// Project Edit/Create Modal Component
-interface ProjectModalProps {
-  project: Project
-  isNew: boolean
-  onSave: (project: Project) => void
-  onClose: () => void
-}
-
-function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
-  const [formData, setFormData] = useState<Project>(project)
-  const [techInput, setTechInput] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'project')
-    form.append('projectId', formData.id)
-
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
-      const data = await res.json()
-      if (data.success) {
-        setFormData({ ...formData, image: data.url })
-      } else {
-        alert(data.error || 'Upload failed')
-      }
-    } catch (err) {
-      console.error('Project image upload error:', err)
-      alert('Upload failed. Check console for details.')
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave(formData)
-  }
-
-  const addTechnology = () => {
-    if (techInput.trim() && !formData.techStack.includes(techInput.trim())) {
-      setFormData({
-        ...formData,
-        techStack: [...formData.techStack, techInput.trim()]
-      })
-      setTechInput('')
-    }
-  }
-
-  const removeTechnology = (tech: string) => {
-    setFormData({
-      ...formData,
-      techStack: formData.techStack.filter((t: string) => t !== tech)
-    })
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-dark-800 border border-dark-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal header */}
-        <div className="flex items-center justify-between p-6 border-b border-dark-700">
-          <h2 className="text-xl font-semibold text-white">
-            {isNew ? 'Add New Project' : 'Edit Project'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Modal form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Project Image */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              Project Image
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="w-32 h-24 bg-dark-700 rounded-lg overflow-hidden relative flex-shrink-0">
-                {formData.image && formData.image !== '/images/projects/default.jpg' ? (
-                  <Image
-                    src={formData.image}
-                    alt="Project"
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-dark-500">
-                    <ImageIcon className="w-8 h-8" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2 bg-dark-700 hover:bg-dark-600 text-white rounded-lg transition-colors"
-                >
-                  {uploading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4" />
-                      Upload Image
-                    </>
-                  )}
-                </button>
-                <p className="text-dark-500 text-xs mt-1">JPG, PNG, WebP (max 5MB)</p>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              Project Title *
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-              placeholder="Enter project title"
-            />
-          </div>
-
-          {/* Purpose */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              Purpose *
-            </label>
-            <input
-              type="text"
-              value={formData.purpose}
-              onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-              required
-              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-              placeholder="Brief purpose of the project"
-            />
-          </div>
-
-          {/* Problem Solved */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              Problem Solved *
-            </label>
-            <textarea
-              value={formData.problemSolved}
-              onChange={(e) => setFormData({ ...formData, problemSolved: e.target.value })}
-              required
-              rows={3}
-              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
-              placeholder="Describe the problem this project solves"
-            />
-          </div>
-
-          {/* System Logic */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              System Logic *
-            </label>
-            <textarea
-              value={formData.systemLogic}
-              onChange={(e) => setFormData({ ...formData, systemLogic: e.target.value })}
-              required
-              rows={3}
-              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
-              placeholder="Explain how the system works"
-            />
-          </div>
-
-          {/* Outcome */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              Outcome *
-            </label>
-            <textarea
-              value={formData.outcome}
-              onChange={(e) => setFormData({ ...formData, outcome: e.target.value })}
-              required
-              rows={2}
-              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
-              placeholder="Results and achievements"
-            />
-          </div>
-
-          {/* Featured */}
-          <div className="flex items-center">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.featured}
-                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                className="w-5 h-5 rounded border-dark-600 bg-dark-900 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-800"
-              />
-              <span className="text-dark-300">Featured Project</span>
-            </label>
-          </div>
-
-          {/* Technologies */}
-          <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">
-              Tech Stack
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={techInput}
-                onChange={(e) => setTechInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())}
-                className="flex-1 px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="Add technology (press Enter)"
-              />
-              <button
-                type="button"
-                onClick={addTechnology}
-                className="px-4 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-              </button>
-            </div>
-            {formData.techStack.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.techStack.map((tech: string, index: number) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-dark-700 text-dark-300 text-sm rounded-lg"
-                  >
-                    {tech}
-                    <button
-                      type="button"
-                      onClick={() => removeTechnology(tech)}
-                      className="text-dark-500 hover:text-red-400 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Links Section */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-dark-300 flex items-center gap-2">
-              <ExternalLink className="w-4 h-4" />
-              Project Links
-            </h4>
-            
-            {/* Row 1: GitHub & Live Demo */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">
-                  <Github className="w-4 h-4 inline mr-1" /> GitHub URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.githubUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
-                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                  placeholder="https://github.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">
-                  <ExternalLink className="w-4 h-4 inline mr-1" /> Live Demo URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.liveUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
-                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                  placeholder="https://demo.example.com"
-                />
-              </div>
-            </div>
-
-            {/* Row 2: Website & Documentation */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">
-                  <Globe className="w-4 h-4 inline mr-1" /> Website URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.websiteUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                  placeholder="https://www.example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">
-                  <FileText className="w-4 h-4 inline mr-1" /> Documentation URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.docsUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, docsUrl: e.target.value })}
-                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                  placeholder="https://docs.example.com"
-                />
-              </div>
-            </div>
-
-            {/* Row 3: App Store & Play Store */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">
-                  <Smartphone className="w-4 h-4 inline mr-1" /> App Store URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.appStoreUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, appStoreUrl: e.target.value })}
-                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                  placeholder="https://apps.apple.com/..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">
-                  <Smartphone className="w-4 h-4 inline mr-1" /> Play Store URL
-                </label>
-                <input
-                  type="url"
-                  value={formData.playStoreUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, playStoreUrl: e.target.value })}
-                  className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                  placeholder="https://play.google.com/store/apps/..."
-                />
-              </div>
-            </div>
-
-            {/* Row 4: Video */}
-            <div>
-              <label className="block text-sm font-medium text-dark-400 mb-2">
-                <Play className="w-4 h-4 inline mr-1" /> Video URL (YouTube, Vimeo, etc.)
-              </label>
-              <input
-                type="url"
-                value={formData.videoUrl || ''}
-                onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="https://youtube.com/watch?v=..."
-              />
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t border-dark-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-dark-300 hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn-primary flex items-center gap-2"
-            >
-              <Save className="w-5 h-5" />
-              {isNew ? 'Create Project' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </motion.div>
   )
 }
 

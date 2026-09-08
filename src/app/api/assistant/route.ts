@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { defaultProjects } from '@/lib/project-catalog'
+import { list } from '@vercel/blob'
+import { defaultProjects, isProjectPublished, mergeWithCurrentCatalog, type Project } from '@/lib/project-catalog'
 
 export const runtime = 'nodejs'
 
@@ -57,30 +58,72 @@ function sanitizeMessages(input: unknown): ChatMessage[] {
     }))
 }
 
-const projectContext = defaultProjects
-  .map(project => {
-    const links = [
-      project.liveUrl ? `Live: ${project.liveUrl}` : '',
-      project.websiteUrl ? `Website: ${project.websiteUrl}` : '',
-      `Portfolio detail: /projects/${project.id}`,
-    ]
-      .filter(Boolean)
-      .join(' | ')
+const PROJECTS_BLOB_PATH = 'data/portfolio/projects.json'
 
-    return [
-      `PROJECT: ${project.title}`,
-      `Purpose: ${project.purpose}`,
-      `Role: ${project.role || 'Engineering role not specified'}`,
-      `Status: ${project.status || 'Status not specified'}`,
-      `Problem: ${project.problemSolved}`,
-      `Outcome: ${project.outcome}`,
-      `Technology: ${project.techStack.join(', ')}`,
-      links,
-    ].join('\n')
-  })
-  .join('\n\n')
+async function loadPublishedProjects(): Promise<Project[]> {
+  try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return defaultProjects.filter(isProjectPublished)
+    }
 
-const systemPrompt = `You are Emmanuel Inambao's portfolio AI guide.
+    const { blobs } = await list({ prefix: PROJECTS_BLOB_PATH })
+    if (blobs.length === 0) return defaultProjects.filter(isProjectPublished)
+
+    const response = await fetch(blobs[0].url, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) return defaultProjects.filter(isProjectPublished)
+
+    const saved = await response.json()
+    return mergeWithCurrentCatalog(saved).filter(isProjectPublished)
+  } catch (error) {
+    console.error('Assistant project sync failed:', error)
+    return defaultProjects.filter(isProjectPublished)
+  }
+}
+
+function buildProjectContext(projects: Project[]) {
+  return projects
+    .map(project => {
+      const links = [
+        project.liveUrl ? `Live: ${project.liveUrl}` : '',
+        project.websiteUrl ? `Website: ${project.websiteUrl}` : '',
+        project.docsUrl ? `Documentation: ${project.docsUrl}` : '',
+        `Portfolio detail: /projects/${project.id}`,
+      ]
+        .filter(Boolean)
+        .join(' | ')
+
+      const documents = (project.documents || [])
+        .map(document => `${document.type}: ${document.title}`)
+        .join('; ')
+
+      return [
+        `PROJECT: ${project.title}`,
+        `Purpose: ${project.purpose}`,
+        `Role: ${project.role || 'Engineering role not specified'}`,
+        `Status: ${project.status || 'Status not specified'}`,
+        `Problem: ${project.problemSolved}`,
+        `System logic: ${project.systemLogic}`,
+        `Outcome: ${project.outcome}`,
+        `Technology: ${project.techStack.join(', ')}`,
+        project.architecture?.length ? `Architecture: ${project.architecture.join(' -> ')}` : '',
+        project.highlights?.length ? `Highlights: ${project.highlights.join('; ')}` : '',
+        documents ? `Attached public documents: ${documents}` : '',
+        links,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    })
+    .join('\n\n')
+}
+
+function buildSystemPrompt(projectContext: string) {
+  return `You are Emmanuel Inambao's portfolio AI guide.
 
 IDENTITY
 - You are an AI assistant on Emmanuel's portfolio. You are not Emmanuel.
@@ -91,6 +134,7 @@ TRUTHFULNESS
 - Use only the verified portfolio context below.
 - Never invent clients, employers, certifications, awards, deployment counts, revenue, performance percentages, years of experience, project results or partnerships.
 - If a fact is not in the context, say it is not documented in the portfolio.
+- Only published projects are included below. Never claim knowledge of private drafts.
 - Do not claim that a visitor has booked a meeting, submitted an inquiry, or contacted Emmanuel. Those actions are handled by separate UI workflows.
 - Do not claim calendar availability. The booking flow collects a preferred date and time for confirmation.
 
@@ -109,9 +153,10 @@ STYLE
 CAPABILITIES
 Emmanuel's public capability areas include embedded systems, ESP32/microcontrollers, sensors and actuators, IoT architecture, robotics, offline-first device control, REST APIs, dashboards, Next.js/React/TypeScript, deployment workflows, technical prototyping and robotics education.
 
-VERIFIED PROJECT CONTEXT
+VERIFIED PUBLISHED PROJECT CONTEXT
 
 ${projectContext}`
+}
 
 export async function POST(request: NextRequest) {
   const key = clientKey(request)
@@ -139,6 +184,10 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       )
     }
+
+    const publishedProjects = await loadPublishedProjects()
+    const projectContext = buildProjectContext(publishedProjects)
+    const systemPrompt = buildSystemPrompt(projectContext)
 
     const response = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
       method: 'POST',

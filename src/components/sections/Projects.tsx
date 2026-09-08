@@ -6,12 +6,13 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import ProjectCard from '@/components/ui/ProjectCard'
 import { useProjects } from '@/lib/projects'
+import { isProjectPublished } from '@/lib/project-catalog'
 
 export default function Projects() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { projects } = useProjects()
-  const featuredProjects = projects.filter(project => project.featured).slice(0, 4)
+  const featuredProjects = projects.filter(project => isProjectPublished(project) && project.featured).slice(0, 4)
 
   return (
     <section id="projects" ref={ref} className="bg-[#000B26] py-20 text-[#F7F3EC] lg:py-28" aria-labelledby="projects-heading">

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useProfile } from '@/lib/profile'
 import { useProjects } from '@/lib/projects'
+import { isProjectPublished } from '@/lib/project-catalog'
 import { useServices } from '@/lib/services'
 import { useSkills } from '@/lib/skills'
 
@@ -152,8 +153,9 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     new Set(skillCategories.flatMap(category => category.skills.map(skill => skill.name)).filter(Boolean))
   )
 
-  const featuredProjects = projects.filter(project => project.featured).slice(0, 4)
-  const projectChoices = (featuredProjects.length ? featuredProjects : projects.slice(0, 4)).map(project => project.title)
+  const publicProjects = projects.filter(isProjectPublished)
+  const featuredProjects = publicProjects.filter(project => project.featured).slice(0, 4)
+  const projectChoices = (featuredProjects.length ? featuredProjects : publicProjects.slice(0, 4)).map(project => project.title)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
