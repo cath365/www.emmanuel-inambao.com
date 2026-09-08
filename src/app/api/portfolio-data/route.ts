@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
+import { isProjectPublished, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 
 const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills']
 
@@ -38,12 +39,14 @@ export async function GET(request: NextRequest) {
   }
   const data = await readSection(key)
 
-  if (key === 'projects' && Array.isArray(data) && !(await isAuthenticated())) {
-    const publishedProjects = data.filter(
-      (project: { publishStatus?: string } | null) =>
-        Boolean(project) && project?.publishStatus !== 'draft'
-    )
-    return NextResponse.json(publishedProjects)
+  if (key === 'projects') {
+    const projects = mergeWithCurrentCatalog(data)
+
+    if (!(await isAuthenticated())) {
+      return NextResponse.json(projects.filter(isProjectPublished))
+    }
+
+    return NextResponse.json(projects)
   }
 
   return NextResponse.json(data)
