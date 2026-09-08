@@ -27,38 +27,7 @@ interface TestimonialContextType {
   rejectTestimonial: (id: string) => void
 }
 
-const defaultTestimonials: Testimonial[] = [
-  {
-    id: 'testimonial-1',
-    name: 'James Mwanza',
-    position: 'Farm Manager',
-    company: 'Green Valley Farms',
-    content: 'Emmanuel\'s smart irrigation system transformed our farming operations. We\'ve cut water usage by 40% and our crop yield has improved significantly. The remote monitoring dashboard is incredibly useful — I can check everything from my phone.',
-    rating: 5,
-    featured: true,
-    status: 'approved',
-  },
-  {
-    id: 'testimonial-2',
-    name: 'Sarah Banda',
-    position: 'Operations Director',
-    company: 'Lusaka Recycling Co.',
-    content: 'The automated bottle sorting system exceeded our expectations. Processing over 1,000 bottles daily with 98% accuracy has completely changed our throughput. Emmanuel delivered on time and provided excellent post-installation support.',
-    rating: 5,
-    featured: true,
-    status: 'approved',
-  },
-  {
-    id: 'testimonial-3',
-    name: 'David Chisanga',
-    position: 'Maintenance Supervisor',
-    company: 'ZamOil Industrial',
-    content: 'The oil level monitoring system gives us real-time visibility into all 12 tanks. We haven\'t had a single unexpected shortage since deployment. The predictive alerts save us significant downtime and costs.',
-    rating: 5,
-    featured: true,
-    status: 'approved',
-  },
-]
+const defaultTestimonials: Testimonial[] = []
 
 const TestimonialContext = createContext<TestimonialContextType | undefined>(undefined)
 
