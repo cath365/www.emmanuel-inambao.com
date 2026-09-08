@@ -170,20 +170,14 @@ export function isProjectPublished(project: Project) {
 export function mergeWithCurrentCatalog(data: unknown): Project[] {
   if (!Array.isArray(data)) return defaultProjects
 
-  const incoming = data.filter(
-    (item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item)
-  )
-
-  const mergedDefaults = defaultProjects.map(current => {
-    const saved = incoming.find(project => project.id === current.id)
-    return saved ? { ...current, ...saved } : current
-  })
-
-  const customProjects = incoming.filter(
-    project =>
-      !legacyProjectIds.has(project.id) &&
-      !defaultProjects.some(current => current.id === project.id)
-  )
-
-  return [...mergedDefaults, ...customProjects]
+  return data
+    .filter(
+      (item): item is Project =>
+        Boolean(item && typeof item === 'object' && 'id' in item) &&
+        !legacyProjectIds.has((item as Project).id)
+    )
+    .map(project => {
+      const catalogueProject = defaultProjects.find(current => current.id === project.id)
+      return catalogueProject ? { ...catalogueProject, ...project } : project
+    })
 }
