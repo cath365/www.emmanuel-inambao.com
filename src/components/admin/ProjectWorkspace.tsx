@@ -362,7 +362,7 @@ export default function ProjectWorkspace({
           <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
             <button
               onClick={onClose}
-              className="flex items-center gap-2 text-xs font-semibold text-white/55 transition hover:text-white"
+              className="flex items-center gap-2 text-xs font-semibold text-white/60 transition hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to projects
@@ -396,7 +396,7 @@ export default function ProjectWorkspace({
                     'border-b-2 py-3 text-xs font-bold uppercase tracking-[0.12em] transition ' +
                     (activeTab === tab.id
                       ? 'border-[#7CA7EB] text-[#7CA7EB]'
-                      : 'border-transparent text-white/35 hover:text-white/70')
+                      : 'border-transparent text-white/40 hover:text-white/70')
                   }
                 >
                   {tab.label}
@@ -420,7 +420,7 @@ export default function ProjectWorkspace({
                     <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">
                       Define the engineering story.
                     </h2>
-                    <p className="mt-3 text-sm leading-6 text-white/45">
+                    <p className="mt-3 text-sm leading-6 text-white/50">
                       Keep the language factual. The public AI assistant will use this same record when the project is published.
                     </p>
                   </div>
@@ -530,7 +530,7 @@ export default function ProjectWorkspace({
 
                       <div className="mt-4 space-y-2">
                         {(formData[group.field] || []).map(item => (
-                          <div key={item} className="flex items-start justify-between gap-3 border-t border-white/[0.06] pt-2 text-xs text-white/55">
+                          <div key={item} className="flex items-start justify-between gap-3 border-t border-white/[0.06] pt-2 text-xs text-white/60">
                             <span>{item}</span>
                             <button
                               onClick={() => removeListItem(group.field, item)}
@@ -580,7 +580,7 @@ export default function ProjectWorkspace({
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#7CA7EB]">Project media</p>
                     <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">Show the system, not just the description.</h2>
-                    <p className="mt-3 text-sm leading-6 text-white/45">
+                    <p className="mt-3 text-sm leading-6 text-white/50">
                       Upload the primary cover plus prototype photos, diagrams, field images and demo videos.
                     </p>
                   </div>
@@ -614,7 +614,7 @@ export default function ProjectWorkspace({
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="text-sm font-semibold">Project gallery</p>
-                      <p className="mt-1 text-xs text-white/35">Images and videos can be uploaded together.</p>
+                      <p className="mt-1 text-xs text-white/40">Images and videos can be uploaded together.</p>
                     </div>
                     <button
                       onClick={() => mediaInputRef.current?.click()}
@@ -689,7 +689,7 @@ export default function ProjectWorkspace({
                                 onClick={() => moveMedia(item.id, -1)}
                                 disabled={(formData.media || [])[0]?.id === item.id}
                                 type="button"
-                                className="border border-white/10 p-1.5 text-white/45 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
+                                className="border border-white/10 p-1.5 text-white/50 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
                                 aria-label="Move media up"
                                 title="Move earlier"
                               >
@@ -699,7 +699,7 @@ export default function ProjectWorkspace({
                                 onClick={() => moveMedia(item.id, 1)}
                                 disabled={(formData.media || [])[(formData.media || []).length - 1]?.id === item.id}
                                 type="button"
-                                className="border border-white/10 p-1.5 text-white/45 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
+                                className="border border-white/10 p-1.5 text-white/50 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
                                 aria-label="Move media down"
                                 title="Move later"
                               >
@@ -733,7 +733,7 @@ export default function ProjectWorkspace({
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#CBB08A]">Project documents</p>
                     <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">Attach the engineering evidence.</h2>
-                    <p className="mt-3 text-sm leading-6 text-white/45">
+                    <p className="mt-3 text-sm leading-6 text-white/50">
                       Case studies, technical specifications, presentations and reports stay attached to the project record.
                     </p>
                   </div>
@@ -758,7 +758,7 @@ export default function ProjectWorkspace({
                       onClick={() => documentInputRef.current?.click()}
                       disabled={uploadingDocument}
                       type="button"
-                      className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-white/20 px-4 py-8 text-sm font-semibold text-white/55 transition hover:border-[#CBB08A] hover:text-[#CBB08A]"
+                      className="mt-4 flex w-full items-center justify-center gap-2 border border-dashed border-white/20 px-4 py-8 text-sm font-semibold text-white/60 transition hover:border-[#CBB08A] hover:text-[#CBB08A]"
                     >
                       {uploadingDocument ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
                       {uploadingDocument ? 'Uploading documents…' : 'Upload PDF, Word, PowerPoint, spreadsheet or archive'}
@@ -827,7 +827,7 @@ export default function ProjectWorkspace({
                         </select>
 
                         <div className="flex items-center gap-2">
-                          <a href={document.url} target="_blank" rel="noopener noreferrer" className="border border-white/10 p-2 text-white/45 hover:text-white">
+                          <a href={document.url} target="_blank" rel="noopener noreferrer" className="border border-white/10 p-2 text-white/50 hover:text-white">
                             <Globe className="h-4 w-4" />
                           </a>
                           <button
@@ -856,7 +856,7 @@ export default function ProjectWorkspace({
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#7CA7EB]">Project AI</p>
                     <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">Use AI to edit, not invent.</h2>
-                    <p className="mt-3 text-sm leading-6 text-white/45">
+                    <p className="mt-3 text-sm leading-6 text-white/50">
                       Every AI action is restricted to the facts already present in this project record.
                     </p>
                   </div>
@@ -904,7 +904,7 @@ export default function ProjectWorkspace({
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold">Generated case study</p>
-                        <p className="mt-1 text-xs text-white/35">Editable before saving.</p>
+                        <p className="mt-1 text-xs text-white/40">Editable before saving.</p>
                       </div>
                       <Bot className="h-4 w-4 text-[#7CA7EB]" />
                     </div>
@@ -938,7 +938,7 @@ export default function ProjectWorkspace({
 
                     <ul className="mt-5 border-t border-[#402924]/20">
                       {(formData.cvHighlights || []).map((item, index) => (
-                        <li key={index} className="grid grid-cols-[1.5rem_1fr] gap-3 border-b border-[#402924]/15 py-3 text-sm leading-6">
+                        <li key={index} className="grid grid-cols-[1.5rem_1fr] gap-3 border-b border-[#402924]/20 py-3 text-sm leading-6">
                           <span>→</span>
                           <textarea
                             value={item}
@@ -967,7 +967,7 @@ export default function ProjectWorkspace({
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#CBB08A]">Publishing</p>
                     <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em]">Control what becomes public.</h2>
-                    <p className="mt-3 text-sm leading-6 text-white/45">
+                    <p className="mt-3 text-sm leading-6 text-white/50">
                       Draft projects remain visible in Admin only. Published projects become available to the portfolio and the public AI assistant.
                     </p>
                   </div>
@@ -1020,15 +1020,15 @@ export default function ProjectWorkspace({
                 <section className="grid gap-4 sm:grid-cols-3">
                   <div className="border border-white/10 bg-[#0B1120] p-5">
                     <p className="text-3xl font-semibold">{completion}%</p>
-                    <p className="mt-2 text-xs text-white/35">Core record complete</p>
+                    <p className="mt-2 text-xs text-white/40">Core record complete</p>
                   </div>
                   <div className="border border-white/10 bg-[#0B1120] p-5">
                     <p className="text-3xl font-semibold">{mediaCount}</p>
-                    <p className="mt-2 text-xs text-white/35">Gallery media</p>
+                    <p className="mt-2 text-xs text-white/40">Gallery media</p>
                   </div>
                   <div className="border border-white/10 bg-[#0B1120] p-5">
                     <p className="text-3xl font-semibold">{documentCount}</p>
-                    <p className="mt-2 text-xs text-white/35">Attached documents</p>
+                    <p className="mt-2 text-xs text-white/40">Attached documents</p>
                   </div>
                 </section>
               </div>
@@ -1042,7 +1042,7 @@ export default function ProjectWorkspace({
               {published ? 'Published project' : 'Private draft'} · {mediaCount} media · {documentCount} documents
             </p>
             <div className="flex items-center gap-2">
-              <button onClick={onClose} type="button" className="px-4 py-2 text-xs font-semibold text-white/45 hover:text-white">
+              <button onClick={onClose} type="button" className="px-4 py-2 text-xs font-semibold text-white/50 hover:text-white">
                 Cancel
               </button>
               <button
