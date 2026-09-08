@@ -123,7 +123,7 @@ export default function AdminSidebar({
           <div className="mt-2 flex items-center justify-between gap-3">
             <div>
               <p className="text-lg font-semibold leading-tight">Emmanuel Inambao</p>
-              <p className="mt-1 text-xs text-white/45">Engineering workspace</p>
+              <p className="mt-1 text-xs text-white/50">Engineering workspace</p>
             </div>
             <div className="flex h-9 w-9 items-center justify-center border border-[#CBB08A]/40 text-[#CBB08A]">
               EI
@@ -136,7 +136,7 @@ export default function AdminSidebar({
         <div className="space-y-6">
           {groups.map(group => (
             <div key={group.label}>
-              <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">{group.label}</p>
+              <p className="px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">{group.label}</p>
               <div className="mt-2 space-y-1">
                 {group.items.map(item => {
                   const Icon = item.icon
@@ -149,7 +149,7 @@ export default function AdminSidebar({
                         'group flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition ' +
                         (active
                           ? 'bg-[#F7F3EC] text-[#000B26]'
-                          : 'text-white/62 hover:bg-white/[0.06] hover:text-white')
+                          : 'text-white/60 hover:bg-white/[0.06] hover:text-white')
                       }
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -182,13 +182,13 @@ export default function AdminSidebar({
           <Link
             href="/"
             target="_blank"
-            className="border border-white/15 px-3 py-2 text-center text-xs font-semibold text-white/70 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]"
+            className="border border-white/20 px-3 py-2 text-center text-xs font-semibold text-white/70 transition hover:border-[#7CA7EB] hover:text-[#7CA7EB]"
           >
             View site
           </Link>
           <button
             onClick={onLogout}
-            className="flex items-center justify-center gap-2 border border-white/15 px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-red-400/60 hover:text-red-300"
+            className="flex items-center justify-center gap-2 border border-white/20 px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-red-400/60 hover:text-red-300"
           >
             <LogOut className="h-3.5 w-3.5" />
             Logout
@@ -203,7 +203,7 @@ export default function AdminSidebar({
       <div className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-white/10 bg-[#000B26]/95 px-4 backdrop-blur lg:hidden">
         <button
           onClick={() => setMobileOpen(true)}
-          className="border border-white/15 p-2 text-[#F7F3EC]"
+          className="border border-white/20 p-2 text-[#F7F3EC]"
           aria-label="Open admin navigation"
         >
           <Menu className="h-5 w-5" />
@@ -212,7 +212,7 @@ export default function AdminSidebar({
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7CA7EB]">Portfolio Control</p>
           <p className="text-sm font-semibold text-[#F7F3EC]">Admin</p>
         </div>
-        <Link href="/" target="_blank" className="border border-white/15 p-2 text-[#F7F3EC]" aria-label="View portfolio">
+        <Link href="/" target="_blank" className="border border-white/20 p-2 text-[#F7F3EC]" aria-label="View portfolio">
           <Settings className="h-5 w-5" />
         </Link>
       </div>
@@ -231,7 +231,7 @@ export default function AdminSidebar({
           <aside className="absolute inset-y-0 left-0 w-[86%] max-w-80 border-r border-white/10 shadow-2xl">
             <button
               onClick={() => setMobileOpen(false)}
-              className="absolute right-4 top-4 z-10 border border-white/15 bg-[#000B26] p-2 text-white"
+              className="absolute right-4 top-4 z-10 border border-white/20 bg-[#000B26] p-2 text-white"
               aria-label="Close navigation"
             >
               <X className="h-4 w-4" />
