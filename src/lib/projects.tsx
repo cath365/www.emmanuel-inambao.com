@@ -7,20 +7,26 @@ export type { Project } from '@/lib/project-catalog'
 
 interface ProjectsContextType {
   projects: Project[]
-  addProject: (project: Project) => void
-  updateProject: (id: string, project: Partial<Project>) => void
-  deleteProject: (id: string) => void
+  addProject: (project: Project) => Promise<void>
+  updateProject: (id: string, project: Partial<Project>) => Promise<void>
+  deleteProject: (id: string) => Promise<void>
   getProject: (id: string) => Project | undefined
 }
 
 const ProjectsContext = createContext<ProjectsContextType | undefined>(undefined)
 
-function saveToServer(data: Project[]) {
-  fetch('/api/portfolio-data', {
+async function saveToServer(data: Project[]) {
+  const response = await fetch('/api/portfolio-data', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ key: 'projects', data }),
-  }).catch(error => console.error('Failed to save projects:', error))
+  })
+
+  if (!response.ok) {
+    const result = await response.json().catch(() => ({}))
+    throw new Error(result.error || 'Failed to save projects')
+  }
 }
 
 export function ProjectsProvider({ children }: { children: ReactNode }) {
@@ -61,39 +67,35 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     if (isLoaded) localStorage.setItem('portfolio_projects', JSON.stringify(projects))
   }, [projects, isLoaded])
 
-  const addProject = (project: Project) => {
+  const addProject = async (project: Project) => {
     const newProject: Project = {
       ...project,
       id: project.id || 'project-' + Date.now(),
       createdAt: project.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
+    const updated = [...projects, newProject]
 
-    setProjects(previous => {
-      const updated = [...previous, newProject]
-      saveToServer(updated)
-      return updated
-    })
+    await saveToServer(updated)
+    setProjects(updated)
   }
 
-  const updateProject = (id: string, updates: Partial<Project>) => {
-    setProjects(previous => {
-      const updated = previous.map(project =>
-        project.id === id
-          ? { ...project, ...updates, updatedAt: new Date().toISOString() }
-          : project
-      )
-      saveToServer(updated)
-      return updated
-    })
+  const updateProject = async (id: string, updates: Partial<Project>) => {
+    const updated = projects.map(project =>
+      project.id === id
+        ? { ...project, ...updates, updatedAt: new Date().toISOString() }
+        : project
+    )
+
+    await saveToServer(updated)
+    setProjects(updated)
   }
 
-  const deleteProject = (id: string) => {
-    setProjects(previous => {
-      const updated = previous.filter(project => project.id !== id)
-      saveToServer(updated)
-      return updated
-    })
+  const deleteProject = async (id: string) => {
+    const updated = projects.filter(project => project.id !== id)
+
+    await saveToServer(updated)
+    setProjects(updated)
   }
 
   const getProject = (id: string) => projects.find(project => project.id === id)
