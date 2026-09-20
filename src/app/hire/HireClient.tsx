@@ -85,7 +85,14 @@ const engagementOptions = [
     title: 'Government / institutional ICT',
     text: 'For public institutions, statutory bodies, universities, NGOs and programs needing ICT systems, digital services, integration, support or field technology.',
     action: 'Review public-sector fit',
-    href: '#public-sector',
+    href: '/capabilities/government',
+  },
+  {
+    icon: Globe2,
+    title: 'Aviation / transport technology',
+    text: 'For aviation and transport teams evaluating ground-equipment telemetry, asset tracking, operational software or non-flight-critical connected systems.',
+    action: 'Review aviation fit',
+    href: '/capabilities/aviation',
   },
 ]
 
@@ -264,7 +271,7 @@ export default function HireClient() {
           </div>
         </section>
 
-        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {engagementOptions.map(option => {
             const Icon = option.icon
             return (
@@ -321,9 +328,14 @@ export default function HireClient() {
               <p className="mt-4 leading-relaxed text-dark-400">
                 Government departments, statutory bodies, universities, NGOs and development programs often need engineers who can support day-to-day ICT operations while also helping modernize digital services. My portfolio is strongest where infrastructure, applications, connected systems and practical field constraints overlap.
               </p>
-              <Link href="/hire/dossier" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-300 hover:text-primary-200">
-                Open institutional dossier <ArrowRight className="h-4 w-4" />
-              </Link>
+              <div className="mt-6 flex flex-wrap gap-4">
+                <Link href="/capabilities/government" className="inline-flex items-center gap-2 text-sm font-semibold text-primary-300 hover:text-primary-200">
+                  Government capability <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href="/capabilities" className="inline-flex items-center gap-2 text-sm font-semibold text-dark-300 hover:text-white">
+                  Institutional capability statement →
+                </Link>
+              </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
