@@ -7,6 +7,7 @@ import { useProfile } from '@/lib/profile'
 import { useServices } from '@/lib/services'
 import { useProjects } from '@/lib/projects'
 import { useSkills } from '@/lib/skills'
+import { answerPortfolioQuestion } from '@/lib/local-portfolio-assistant'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -104,6 +105,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   ])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null)
   const [booking, setBooking] = useState<BookingState>({
     active: false,
     step: null,
@@ -376,27 +378,23 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     }
   }
 
-  const askPortfolioAI = async (conversation: Message[]): Promise<string | null> => {
-    try {
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: conversation
-            .filter(message => message.content.trim())
-            .slice(-12)
-            .map(({ role, content }) => ({ role, content })),
-        }),
-      })
+  const getSmartLocalAnswer = (text: string) => {
+    const answer = answerPortfolioQuestion(text, {
+      profile,
+      projects,
+      services,
+      skillCategories,
+      activeProjectId,
+    })
 
-      if (!response.ok) return null
-      const data = await response.json()
-      return typeof data?.answer === 'string' && data.answer.trim() ? data.answer.trim() : null
-    } catch (error) {
-      console.error('Portfolio AI request error:', error)
-      return null
+    if (answer.activeProjectId !== undefined) {
+      setActiveProjectId(answer.activeProjectId ?? null)
     }
+
+    return answer
   }
+
+  const thinkingDelay = () => new Promise(resolve => window.setTimeout(resolve, 550))
 
   const resetBookingFlow = () => {
     setBooking({
@@ -572,21 +570,13 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       if (booking.active) resetBookingFlow()
       if (lead.active) resetLeadFlow()
 
-      const aiAnswer = await askPortfolioAI(conversation)
-      if (aiAnswer) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: aiAnswer,
-          options: ['Book a meeting', '📩 Send inquiry'],
-        }])
-      } else {
-        const { response, options } = generateResponse(text)
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `${response}\n\nI stopped the previous form so your question would not be treated as booking or inquiry data.`,
-          options,
-        }])
-      }
+      await thinkingDelay()
+      const answer = getSmartLocalAnswer(text)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: answer.response,
+        options: answer.options,
+      }])
       setIsTyping(false)
       return
     }
@@ -643,24 +633,13 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       return
     }
 
-    // All open-ended questions go to the grounded server-side AI.
-    const aiAnswer = await askPortfolioAI(conversation)
-    if (aiAnswer) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: aiAnswer,
-        options: ['Book a meeting', '📩 Send inquiry'],
-      }])
-      setIsTyping(false)
-      return
-    }
-
-    // Graceful fallback: visitors can still use the portfolio if the AI provider is unavailable.
-    const { response, options } = generateResponse(text)
+    // Zero-cost smart mode: answer from the live portfolio data in the browser.
+    await thinkingDelay()
+    const answer = getSmartLocalAnswer(text)
     setMessages(prev => [...prev, {
       role: 'assistant',
-      content: `${response}\n\nMy advanced answer service is temporarily unavailable, but the portfolio actions still work.`,
-      options,
+      content: answer.response,
+      options: answer.options,
     }])
     setIsTyping(false)
   }
@@ -751,14 +730,16 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white/40 bg-white/20 shrink-0">
+                  {profile.image ? (
+                    <Image src={profile.image} alt={profile.name} fill className="object-cover" sizes="40px" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-semibold">E</div>
+                  )}
                 </div>
                 <div>
-                  <h3 className="font-semibold">AI Assistant</h3>
-                  <p className="text-xs text-white/80">Ask me about Emmanuel</p>
+                  <h3 className="font-semibold">Portfolio Assistant</h3>
+                  <p className="text-xs text-white/80">Powered by Emmanuel's portfolio data</p>
                 </div>
               </div>
             </div>
@@ -770,50 +751,71 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                   key={index}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}
+                  className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    className={`max-w-[85%] p-3 rounded-2xl ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white rounded-br-none'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  </div>
-                  
-                  {/* Quick reply options */}
-                  {message.role === 'assistant' && message.options && index === messages.length - 1 && !isTyping && (
-                    <div className="flex flex-wrap gap-2 mt-2 max-w-[90%]">
-                      {message.options.map((option, optIdx) => (
-                        <button
-                          key={optIdx}
-                          onClick={() => handleOptionClick(option)}
-                          className="px-3 py-1.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                        >
-                          {option}
-                        </button>
-                      ))}
+                  {message.role === 'assistant' && (
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden border border-blue-200 dark:border-blue-700 bg-blue-100 dark:bg-blue-900/40 shrink-0 mt-1">
+                      {profile.image ? (
+                        <Image src={profile.image} alt={profile.name} fill className="object-cover" sizes="32px" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-blue-700 dark:text-blue-300">E</div>
+                      )}
                     </div>
                   )}
+
+                  <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%]`}>
+                    <div
+                      className={`p-3 rounded-2xl ${
+                        message.role === 'user'
+                          ? 'bg-blue-600 text-white rounded-br-none'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </div>
+
+                    {message.role === 'assistant' && message.options && index === messages.length - 1 && !isTyping && (
+                      <div className="flex flex-wrap gap-2 mt-2 max-w-full">
+                        {message.options.map((option, optIdx) => (
+                          <button
+                            key={optIdx}
+                            onClick={() => handleOptionClick(option)}
+                            className="px-3 py-1.5 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               ))}
 
               {isTyping && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center gap-2 justify-start"
                 >
-                  <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-2xl rounded-bl-none">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-blue-200 dark:border-blue-700 bg-blue-100 dark:bg-blue-900/40 shrink-0">
+                    {profile.image ? (
+                      <Image src={profile.image} alt={profile.name} fill className="object-cover" sizes="32px" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-blue-700 dark:text-blue-300">E</div>
+                    )}
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-2xl rounded-bl-none">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 dark:text-gray-300">Thinking</span>
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
                     </div>
                   </div>
                 </motion.div>
-              )}
+              ))}
               <div ref={messagesEndRef} />
             </div>
 
