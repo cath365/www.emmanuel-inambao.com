@@ -21,10 +21,10 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
               </svg>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  GitHub Activity
+                  Active GitHub Engineering Activity
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-500">
-                  @{username}
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  @{username} · public contribution activity
                 </p>
               </div>
             </div>
@@ -34,7 +34,7 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
           <div className="overflow-x-auto">
             <img
               src={`https://ghchart.rshah.org/${username}`}
-              alt={`${username}'s GitHub contribution chart`}
+              alt={`GitHub contribution activity for @${username}`}
               className="w-full max-w-[750px] mx-auto dark:invert dark:hue-rotate-180"
               loading="lazy"
             />
@@ -48,7 +48,7 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
-              View full profile on GitHub
+              View @${username} on GitHub
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
