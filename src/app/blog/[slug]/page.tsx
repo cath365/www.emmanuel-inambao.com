@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   }
   
   return {
-    title: `${post.title} | Blog | Prof. Emmanuel Inambao`,
+    title: `${post.title} | Blog | Emmanuel Inambao`,
     description: post.content[0],
   }
 }
