@@ -111,36 +111,36 @@ function projectSummary(project: Project) {
     ? `\n\nKey points: ${project.highlights.slice(0, 4).join(' • ')}.`
     : ''
 
-  return `**${project.title}** — ${project.purpose}.${role}${status}\n\nHow it works: ${project.systemLogic}${tech}${highlights}`
+  return `${project.title} — ${project.purpose}.${role}${status}\n\nHow it works: ${project.systemLogic}${tech}${highlights}`
 }
 
 function projectSpecificAnswer(query: string, project: Project) {
   const q = normalize(query)
 
   if (includesAny(q, ['how does it work', 'how it works', 'how does this work', 'explain how', 'system logic'])) {
-    return `For **${project.title}**, the documented system flow is:\n\n${project.systemLogic}${project.architecture?.length ? `\n\nArchitecture: ${project.architecture.join(' → ')}.` : ''}`
+    return `For ${project.title}, the documented system flow is:\n\n${project.systemLogic}${project.architecture?.length ? `\n\nArchitecture: ${project.architecture.join(' → ')}.` : ''}`
   }
 
   if (includesAny(q, ['technology', 'technologies', 'tech stack', 'what tech', 'hardware', 'components', 'sensors'])) {
-    return `**${project.title}** uses: ${project.techStack.join(', ')}.${project.architecture?.length ? `\n\nIts architecture includes ${project.architecture.join(', ')}.` : ''}`
+    return `${project.title} uses: ${project.techStack.join(', ')}.${project.architecture?.length ? `\n\nIts architecture includes ${project.architecture.join(', ')}.` : ''}`
   }
 
   if (includesAny(q, ['offline', 'internet', 'connectivity'])) {
     const source = normalize([project.systemLogic, project.highlights?.join(' '), project.purpose].filter(Boolean).join(' '))
     if (source.includes('offline')) {
-      return `Yes—offline operation is documented for **${project.title}**. ${project.systemLogic}`
+      return `Yes—offline operation is documented for ${project.title}. ${project.systemLogic}`
     }
-    return `The portfolio does not specifically document offline operation for **${project.title}**. Its recorded architecture is: ${project.architecture?.join(', ') || project.systemLogic}`
+    return `The portfolio does not specifically document offline operation for ${project.title}. Its recorded architecture is: ${project.architecture?.join(', ') || project.systemLogic}`
   }
 
   if (includesAny(q, ['role', 'what did emmanuel do', 'what did he do', 'responsible', 'responsibility'])) {
     return project.role
-      ? `On **${project.title}**, Emmanuel's documented role is **${project.role}**. ${project.outcome}`
-      : `The portfolio documents **${project.title}** and its implementation, but it does not specify a separate role label for Emmanuel.`
+      ? `On ${project.title}, Emmanuel's documented role is ${project.role}. ${project.outcome}`
+      : `The portfolio documents ${project.title} and its implementation, but it does not specify a separate role label for Emmanuel.`
   }
 
   if (includesAny(q, ['status', 'live', 'deployed', 'production', 'prototype'])) {
-    return `**${project.title}** is listed as **${project.status || 'status not specified'}**. ${project.outcome}`
+    return `${project.title} is listed as ${project.status || 'status not specified'}. ${project.outcome}`
   }
 
   return projectSummary(project)
@@ -171,7 +171,7 @@ function capabilityAnswer(query: string, context: LocalAssistantContext): LocalA
 
   if (ranked.length > 0) {
     const evidence = ranked
-      .map(({ project }) => `• **${project.title}** — ${project.purpose}`)
+      .map(({ project }) => `• ${project.title} — ${project.purpose}`)
       .join('\n')
 
     const skillText = matchedSkills.length
@@ -243,7 +243,7 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
 
   if (includesAny(q, ['who is emmanuel', 'about emmanuel', 'tell me about emmanuel', 'what does emmanuel do'])) {
     return {
-      response: `**${context.profile.name}** is presented in this portfolio as **${context.profile.title}** and **${context.profile.subtitle}**. ${context.profile.bio} He is based in ${context.profile.location}.`,
+      response: `${context.profile.name} is presented in this portfolio as ${context.profile.title} and ${context.profile.subtitle}. ${context.profile.bio} He is based in ${context.profile.location}.`,
       options: ['See projects', 'View skills', 'Contact info'],
     }
   }
@@ -270,15 +270,6 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
     }
   }
 
-  const directMatch = findBestProject(query, context.projects)
-  if (directMatch) {
-    return {
-      response: projectSpecificAnswer(query, directMatch.project),
-      options: ['How does it work?', 'What technology does it use?', '📩 Send inquiry'],
-      activeProjectId: directMatch.project.id,
-    }
-  }
-
   const normalizedTechQuery = q.replace(/[^a-z0-9+#. -]/g, ' ')
   const techProjects = context.projects.filter(project =>
     project.techStack.some(tech => {
@@ -287,11 +278,28 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
     })
   )
 
-  if (techProjects.length > 0 && includesAny(q, ['built with', 'uses', 'use', 'project', 'projects', 'esp32', 'arduino', 'react', 'next.js', 'iot', 'sensor'])) {
+  const technologyListIntent =
+    includesAny(q, ['built with', 'projects with', 'projects using', 'what did emmanuel build with', 'what has emmanuel built with']) ||
+    /\b(esp32|arduino|react|next\.js|iot|sensor|sim800|bluetooth|wifi|wi-fi)\b/.test(q)
+
+  if (techProjects.length > 0 && technologyListIntent) {
+    const technology = tokens(query)
+      .filter(token => !['built','emmanuel','uses','using','use','project','projects'].includes(token))
+      .join(' ')
+
     return {
-      response: `Projects in the portfolio related to **${tokens(query).filter(token => !['built','uses','use','project','projects'].includes(token)).join(' ') || 'that technology'}** include:\n\n${techProjects.slice(0, 6).map(project => `• **${project.title}** — ${project.purpose}`).join('\n')}\n\nAsk me about any one of them and I can explain its architecture and Emmanuel's documented role.`,
+      response: `Projects in the portfolio related to ${technology || 'that technology'} include:\n\n${techProjects.slice(0, 6).map(project => `• ${project.title} — ${project.purpose}`).join('\n')}\n\nAsk me about any one of them and I can explain how it works, its architecture, and Emmanuel's documented role.`,
       options: techProjects.slice(0, 3).map(project => project.title),
       activeProjectId: techProjects[0].id,
+    }
+  }
+
+  const directMatch = findBestProject(query, context.projects)
+  if (directMatch) {
+    return {
+      response: projectSpecificAnswer(query, directMatch.project),
+      options: ['How does it work?', 'What technology does it use?', '📩 Send inquiry'],
+      activeProjectId: directMatch.project.id,
     }
   }
 
@@ -303,27 +311,27 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
     const matched = relevantSkills(query, context.skillCategories)
     if (matched.length > 0) {
       return {
-        response: `Relevant documented skills include:\n\n${matched.slice(0, 12).map(skill => `• **${skill.name}** — ${skill.category}`).join('\n')}`,
+        response: `Relevant documented skills include:\n\n${matched.slice(0, 12).map(skill => `• ${skill.name} — ${skill.category}`).join('\n')}`,
         options: ['See projects', '📩 Send inquiry', 'Book a meeting'],
       }
     }
 
     return {
-      response: `Emmanuel's documented technical areas include:\n\n${context.skillCategories.map(category => `• **${category.title}** — ${category.skills.slice(0, 5).map(skill => skill.name).join(', ')}`).join('\n')}\n\nAsk about a technology such as ESP32, Next.js, IoT or offline-first systems and I can connect it to actual projects.`,
+      response: `Emmanuel's documented technical areas include:\n\n${context.skillCategories.map(category => `• ${category.title} — ${category.skills.slice(0, 5).map(skill => skill.name).join(', ')}`).join('\n')}\n\nAsk about a technology such as ESP32, Next.js, IoT or offline-first systems and I can connect it to actual projects.`,
       options: ['ESP32 projects', 'See projects', 'Book a meeting'],
     }
   }
 
   if (includesAny(q, ['service', 'services', 'offer', 'hire', 'price', 'cost', 'quote'])) {
     return {
-      response: `Documented services include:\n\n${context.services.map(service => `• **${service.title}** — ${service.price || 'scope-based pricing'}`).join('\n')}\n\nDisplayed prices are starting points only; a real quote depends on scope, hardware, integrations, testing and deployment requirements.`,
+      response: `Documented services include:\n\n${context.services.map(service => `• ${service.title} — ${service.price || 'scope-based pricing'}`).join('\n')}\n\nDisplayed prices are starting points only; a real quote depends on scope, hardware, integrations, testing and deployment requirements.`,
       options: ['📩 Send inquiry', 'Book a meeting', 'See projects'],
     }
   }
 
   if (includesAny(q, ['project', 'projects', 'work', 'portfolio', 'what has he built', 'what did he build', 'things he built'])) {
     return {
-      response: `Some documented projects are:\n\n${context.projects.slice(0, 8).map(project => `• **${project.title}** — ${project.purpose}`).join('\n')}\n\nYou can ask me about any project by name for a more detailed engineering explanation.`,
+      response: `Some documented projects are:\n\n${context.projects.slice(0, 8).map(project => `• ${project.title} — ${project.purpose}`).join('\n')}\n\nYou can ask me about any project by name for a more detailed engineering explanation.`,
       options: context.projects.slice(0, 3).map(project => project.title),
     }
   }
