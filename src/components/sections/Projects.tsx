@@ -13,7 +13,7 @@ export default function Projects() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { projects } = useProjects()
   const { t } = useLanguage()
-  const featuredProjects = projects.filter(project => project.featured).slice(0, 4)
+  const featuredProjects = projects.filter(project => project.featured).slice(0, 5)
 
   return (
     <section id="projects" ref={ref} className="bg-dark-900/45 py-20 lg:py-28" aria-labelledby="projects-heading">
@@ -26,7 +26,7 @@ export default function Projects() {
         >
           <div>
             <span className="text-sm font-medium uppercase tracking-[0.2em] text-primary-500">{t('projects.title')}</span>
-            <h2 id="projects-heading" className="section-heading mt-2">Systems built for real-world use.</h2>
+            <h2 id="projects-heading" className="section-heading mt-2">Flagship systems built for real-world use.</h2>
             <p className="section-subheading mt-4">
               Embedded control, IoT, robotics and full-stack platforms presented as engineering systems — problem, architecture, implementation and outcome.
             </p>
