@@ -8,29 +8,77 @@ async function readSubscribers(): Promise<string[]> {
   try {
     const { blobs } = await list({ prefix: BLOB_PATH })
     if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, {
+
+    const response = await fetch(blobs[0].url, {
       headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
       cache: 'no-store',
     })
-    if (!res.ok) return []
-    return await res.json()
-  } catch {
+
+    if (!response.ok) return []
+    const data = await response.json()
+    return Array.isArray(data) ? data : []
+  } catch (error) {
+    console.error('Newsletter read failed:', error)
     return []
   }
 }
 
-async function writeSubscribers(subs: string[]) {
-  await put(BLOB_PATH, JSON.stringify(subs), {
+async function writeSubscribers(subscribers: string[]) {
+  await put(BLOB_PATH, JSON.stringify(subscribers), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   })
+}
+
+async function notifyFallback(email: string) {
+  const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
+  const FORMSPREE_ID = process.env.FORMSPREE_ID
+
+  if (WEB3FORMS_KEY) {
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: 'New Portfolio Newsletter Subscription',
+          from_name: 'Portfolio Newsletter',
+          email,
+          message: `Newsletter subscription request from ${email}`,
+        }),
+      })
+      if (response.ok) return true
+    } catch (error) {
+      console.error('Newsletter Web3Forms fallback failed:', error)
+    }
+  }
+
+  if (FORMSPREE_ID) {
+    try {
+      const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          email,
+          _subject: 'New Portfolio Newsletter Subscription',
+          message: `Newsletter subscription request from ${email}`,
+        }),
+      })
+      if (response.ok) return true
+    } catch (error) {
+      console.error('Newsletter Formspree fallback failed:', error)
+    }
+  }
+
+  return false
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit: 3 attempts per 10 minutes per IP
     const ip = getClientIP(request)
     const rl = rateLimit(`newsletter:${ip}`, 3, 10 * 60 * 1000)
+
     if (!rl.allowed) {
       return NextResponse.json(
         { error: 'Too many attempts. Please try again later.' },
@@ -39,55 +87,61 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email } = body
+    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
 
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
     }
 
     const subscribers = await readSubscribers()
 
-    if (subscribers.includes(email.toLowerCase())) {
-      return NextResponse.json(
-        { message: 'Already subscribed!' },
-        { status: 200 }
-      )
+    if (subscribers.includes(email)) {
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        message: 'You are already subscribed.',
+      })
     }
 
-    subscribers.push(email.toLowerCase())
-    await writeSubscribers(subscribers)
+    try {
+      await writeSubscribers([...subscribers, email])
+      console.log('New subscriber saved:', email)
+      return NextResponse.json({
+        success: true,
+        message: 'Successfully subscribed.',
+      })
+    } catch (storageError) {
+      console.error('Newsletter storage failed:', storageError)
 
-    console.log(`New subscriber: ${email}`)
+      const notified = await notifyFallback(email)
+      if (notified) {
+        return NextResponse.json({
+          success: true,
+          queued: true,
+          message: 'Subscription request received.',
+        })
+      }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Successfully subscribed!',
-    })
+      return NextResponse.json(
+        { error: 'Subscription storage is temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      )
+    }
   } catch (error) {
     console.error('Newsletter subscription error:', error)
     return NextResponse.json(
-      { error: 'Failed to subscribe. Please try again.' },
+      { error: 'Unable to subscribe right now. Please try again.' },
       { status: 500 }
     )
   }
 }
 
 export async function GET() {
-  // Return subscriber count (for admin dashboard)
   const subscribers = await readSubscribers()
-  return NextResponse.json({
-    count: subscribers.length,
-  })
+  return NextResponse.json({ count: subscribers.length })
 }
