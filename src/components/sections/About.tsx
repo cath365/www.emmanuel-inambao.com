@@ -87,16 +87,15 @@ export default function About() {
             <motion.div variants={itemVariants} className="space-y-6">
               <p className="text-lg text-dark-200 leading-relaxed">
                 I'm <strong className="text-white">Professor Emmanuel Inambao</strong>, 
-                an Electronic Engineer based in Lusaka, Zambia. With deep expertise in 
-                embedded systems, IoT, and full-stack development, I specialize in 
-                building complete systems — from the sensor to the dashboard.
+                an Electronic Engineer based in Lusaka, Zambia. With hands-on experience across embedded systems, IoT, robotics and full-stack development, 
+                I build complete systems — from sensors and firmware to APIs, mobile applications and dashboards.
               </p>
               <p className="text-dark-400 leading-relaxed">
                 My journey in engineering has been driven by one principle: 
                 <em className="text-primary-400"> technology must serve people</em>. 
-                Whether it's helping farmers automate irrigation, enabling industries 
-                to monitor critical systems, or creating assistive devices for those 
-                with disabilities — every project I undertake aims to create tangible impact.
+                My portfolio spans deployed mobile and web applications, connected embedded devices, 
+                automation prototypes and assistive technology. I focus on systems that can move 
+                beyond demonstrations into useful products for businesses and communities.
               </p>
               <p className="text-dark-400 leading-relaxed">
                 I don't just write code or design circuits. I architect complete solutions 
