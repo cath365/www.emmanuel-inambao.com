@@ -2,10 +2,10 @@ import { Metadata } from 'next'
 import BlogList from './BlogList'
 
 export const metadata: Metadata = {
-  title: 'Blog | Prof. Emmanuel Inambao',
-  description: 'Technical articles, tutorials, and insights on embedded systems, IoT, robotics, and engineering solutions by Professor Emmanuel Inambao.',
+  title: 'Blog | Emmanuel Inambao',
+  description: 'Technical articles, tutorials, and insights on embedded systems, IoT, robotics, and engineering solutions by Emmanuel Inambao.',
   openGraph: {
-    title: 'Blog | Prof. Emmanuel Inambao',
+    title: 'Blog | Emmanuel Inambao',
     description: 'Technical articles, tutorials, and insights on embedded systems, IoT, robotics, and engineering.',
   },
 }
