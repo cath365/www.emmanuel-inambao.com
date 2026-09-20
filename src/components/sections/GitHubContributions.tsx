@@ -3,7 +3,13 @@
 import { motion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 
-export default function GitHubContributions({ username = 'bolo3574' }: { username?: string }) {
+export default function GitHubContributions({
+  username = 'bolo3574',
+  repositoryHostUsername = 'cath365',
+}: {
+  username?: string
+  repositoryHostUsername?: string
+}) {
   return (
     <section className="py-12">
       <div className="container mx-auto px-4">
@@ -30,6 +36,38 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
             </div>
           </div>
 
+          <div className="mb-6 grid gap-3 sm:grid-cols-2">
+            <a
+              href={`https://github.com/${username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-300 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:border-blue-700"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-400">
+                Active engineering account
+              </p>
+              <p className="mt-1 font-semibold text-gray-900 dark:text-white">@{username}</p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                Public contribution activity and engineering profile.
+              </p>
+            </a>
+
+            <a
+              href={`https://github.com/${repositoryHostUsername}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl border border-gray-200 bg-gray-50 p-4 transition hover:border-blue-300 dark:border-gray-700 dark:bg-gray-900/50 dark:hover:border-blue-700"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-400">
+                Project repository account
+              </p>
+              <p className="mt-1 font-semibold text-gray-900 dark:text-white">@{repositoryHostUsername}</p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+                Current portfolio and project repositories are managed under this GitHub account.
+              </p>
+            </a>
+          </div>
+
           {/* GitHub contribution graph embed via img */}
           <div className="overflow-x-auto">
             <img
@@ -40,15 +78,24 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
             />
           </div>
 
-          {/* View on GitHub link */}
-          <div className="mt-6 text-center">
+          {/* GitHub profile links */}
+          <div className="mt-6 flex flex-wrap justify-center gap-4 text-center">
             <a
               href={`https://github.com/${username}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
-              View @{username} on GitHub
+              View @{username}
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <a
+              href={`https://github.com/${repositoryHostUsername}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              View @{repositoryHostUsername}
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
