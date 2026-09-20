@@ -7,7 +7,7 @@ export function generatePersonSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'Person',
-    name: 'Professor Emmanuel Inambao',
+    name: 'Emmanuel Inambao',
     alternateName: 'Emmanuel Inambao',
     description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer based in Lusaka, Zambia',
     jobTitle: 'Electronic Engineer & IoT Developer',
@@ -21,6 +21,7 @@ export function generatePersonSchema() {
     },
     sameAs: [
       'https://github.com/bolo3574',
+      'https://github.com/cath365',
       'https://linkedin.com/in/emmanuelinambao',
     ],
     knowsAbout: [
@@ -42,7 +43,7 @@ export function generateWebsiteSchema() {
     '@type': 'WebSite',
     name: 'Emmanuel Inambao Portfolio',
     url: SITE_URL,
-    description: 'Professional portfolio of Professor Emmanuel Inambao - Electronic Engineer, IoT & Robotics Developer',
+    description: 'Professional portfolio of Emmanuel Inambao - Electronic Engineer, IoT & Robotics Developer',
     author: {
       '@type': 'Person',
       name: 'Emmanuel Inambao',
