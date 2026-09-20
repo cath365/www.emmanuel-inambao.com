@@ -28,12 +28,12 @@ export default function Home() {
       <Hero />
       <ClientLogos />
       <About />
+      <Projects />
+      <EngineeringCTA />
       <Skills />
       <GitHubContributions username="bolo3574" />
       <Services />
       <HowIWork />
-      <Projects />
-      <EngineeringCTA />
       <AchievementTimeline />
       <Experience />
       <Certifications />
