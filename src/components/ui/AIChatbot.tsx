@@ -98,7 +98,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! 👋 I'm Emmanuel's AI assistant. I can help you:\n\n• Learn about his skills & projects\n• Book a meeting with him\n• Get contact information\n\nWhat would you like to do?",
+      content: "Hi! 👋 I'm Emmanuel's portfolio AI assistant. Ask me about a specific project, his technical experience, whether his skills fit your idea, or how to work with him.\n\nWhat would you like to know?",
       options: ['Book a meeting', 'View skills', 'See projects', 'Contact info'],
     },
   ])
@@ -201,7 +201,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
         }
         setBooking(prev => ({ ...prev, data: { ...prev.data, notificationMethod: 'email' } }))
         return {
-          response: `Perfect! Here's your booking summary:\n\n👤 Name: ${booking.data.name}\n📧 Email: ${booking.data.email}\n📅 Date: ${booking.data.date}\n⏰ Time: ${userInput}\n📝 Topic: ${userInput}\n\nShall I confirm this booking?`,
+          response: `Perfect! Here's your booking summary:\n\n👤 Name: ${booking.data.name}\n📧 Email: ${booking.data.email}\n📅 Date: ${booking.data.date}\n⏰ Time: ${booking.data.time}\n📝 Topic: ${userInput}\n\nShall I confirm this booking?`,
           options: ['✅ Confirm Booking', '❌ Cancel'],
           nextStep: 'confirm'
         }
@@ -245,7 +245,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   }
 
   // Submit booking to API (saves to Vercel Blob + sends email)
-  const submitBooking = async () => {
+  const submitBooking = async (): Promise<boolean> => {
     const newBooking = {
       id: `booking-${Date.now()}`,
       name: booking.data.name,
@@ -263,7 +263,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
 
     // Save server-side via API (stores in Vercel Blob + sends email)
     try {
-      await fetch('/api/booking', {
+      const response = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -280,9 +280,12 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
         }),
       })
 
+      if (!response.ok) return false
       trackEvent('/intent/booking', 'ai-chatbot')
+      return true
     } catch (error) {
       console.error('Booking submission error:', error)
+      return false
     }
   }
 
@@ -345,7 +348,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   }
 
   // Submit lead to API (saves to Vercel Blob + sends email)
-  const submitLead = async () => {
+  const submitLead = async (): Promise<boolean> => {
     const newLead: ServiceLead = {
       id: `lead-${Date.now()}`,
       name: lead.data.name,
@@ -358,19 +361,44 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
 
     // Save server-side via API (stores in Vercel Blob + sends email)
     try {
-      await fetch('/api/service-inquiry', {
+      const response = await fetch('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLead),
       })
 
+      if (!response.ok) return false
       trackEvent('/intent/service-inquiry', 'ai-chatbot')
+      return true
     } catch (error) {
       console.error('Lead submission error:', error)
+      return false
     }
   }
 
-  // Generate response based on query
+  const askPortfolioAI = async (conversation: Message[]): Promise<string | null> => {
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: conversation
+            .filter(message => message.content.trim())
+            .slice(-12)
+            .map(({ role, content }) => ({ role, content })),
+        }),
+      })
+
+      if (!response.ok) return null
+      const data = await response.json()
+      return typeof data?.answer === 'string' && data.answer.trim() ? data.answer.trim() : null
+    } catch (error) {
+      console.error('Portfolio AI request error:', error)
+      return null
+    }
+  }
+
+  // Generate deterministic fallback and action-flow responses
   function generateResponse(query: string): { response: string; options?: string[] } {
     const lowerQuery = query.toLowerCase()
     
@@ -459,23 +487,92 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     }
   }
 
-  const handleSend = (messageText?: string) => {
+  const handleSend = async (messageText?: string) => {
     const text = messageText || input.trim()
     if (!text || isTyping) return
 
     setInput('')
-    
-    // Add user message
-    setMessages((prev) => [...prev, { role: 'user', content: text }])
+    const userMessage: Message = { role: 'user', content: text }
+    const conversation = [...messages, userMessage]
+    setMessages(conversation)
     setIsTyping(true)
 
-    // Generate response
-    const delay = 600 + Math.random() * 500
-    setTimeout(() => {
-      const { response, options } = generateResponse(text)
-      setMessages((prev) => [...prev, { role: 'assistant', content: response, options }])
+    const lower = text.toLowerCase().trim()
+    const isPositiveConfirmation =
+      lower.includes('confirm') || lower.includes('yes') || text.includes('✅')
+
+    // Transactional actions stay deterministic and only report success after the API confirms it.
+    if (booking.active && booking.step === 'confirm' && isPositiveConfirmation) {
+      const ok = await submitBooking()
+      setBooking({ active: false, step: null, data: { name: '', email: '', phone: '', date: '', time: '', topic: '', notificationMethod: null } })
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: ok
+          ? '🎉 Booking request received successfully. Emmanuel has been notified and the confirmation workflow has been started.'
+          : 'I could not submit the booking right now. Your details were not confirmed as saved. Please try again or use the contact option.',
+        options: ok ? ['See projects', 'Contact info'] : ['Book a meeting', 'Contact info'],
+      }])
       setIsTyping(false)
-    }, delay)
+      return
+    }
+
+    if (lead.active && lead.step === 'confirm' && isPositiveConfirmation) {
+      const ok = await submitLead()
+      setLead({ active: false, step: null, data: { name: '', email: '', service: '', details: '' } })
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: ok
+          ? `🎉 Your inquiry was sent successfully. Emmanuel can follow up using ${lead.data.email}.`
+          : 'I could not submit the inquiry right now. It has not been confirmed as saved. Please try again or use the contact option.',
+        options: ok ? ['Book a meeting', 'See projects'] : ['📩 Send inquiry', 'Contact info'],
+      }])
+      setIsTyping(false)
+      return
+    }
+
+    // Existing multi-step booking/inquiry flows remain deterministic.
+    if (booking.active || lead.active) {
+      const { response, options } = generateResponse(text)
+      setMessages(prev => [...prev, { role: 'assistant', content: response, options }])
+      setIsTyping(false)
+      return
+    }
+
+    // Explicit action buttons should open the existing flows immediately.
+    const actionRequest =
+      lower === 'book a meeting' ||
+      lower === 'book another meeting' ||
+      lower === '📩 send inquiry' ||
+      lower === 'send inquiry' ||
+      lower === 'contact info'
+
+    if (actionRequest) {
+      const { response, options } = generateResponse(text)
+      setMessages(prev => [...prev, { role: 'assistant', content: response, options }])
+      setIsTyping(false)
+      return
+    }
+
+    // All open-ended questions go to the grounded server-side AI.
+    const aiAnswer = await askPortfolioAI(conversation)
+    if (aiAnswer) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: aiAnswer,
+        options: ['Book a meeting', '📩 Send inquiry'],
+      }])
+      setIsTyping(false)
+      return
+    }
+
+    // Graceful fallback: visitors can still use the portfolio if the AI provider is unavailable.
+    const { response, options } = generateResponse(text)
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: `${response}\n\nMy advanced answer service is temporarily unavailable, but the portfolio actions still work.`,
+      options,
+    }])
+    setIsTyping(false)
   }
 
   const handleOptionClick = (option: string) => {
@@ -643,7 +740,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={booking.active ? "Type your answer..." : "Ask about skills, projects..."}
+                  placeholder={booking.active || lead.active ? "Type your answer..." : "Ask about a project or your idea..."}
                   className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 dark:text-gray-200"
                   disabled={isTyping}
                 />
