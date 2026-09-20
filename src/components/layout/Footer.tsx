@@ -30,7 +30,7 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex items-center gap-4">
               <a
-                href="https://github.com/bolo3574"
+                href="https://github.com/cath365"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg transition-all duration-200"
