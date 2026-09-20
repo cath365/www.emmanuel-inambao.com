@@ -1,3 +1,11 @@
+export interface ProjectMedia {
+  src: string
+  alt: string
+  caption?: string
+  type?: 'photo' | 'screenshot' | 'diagram'
+  fit?: 'cover' | 'contain'
+}
+
 export interface Project {
   id: string
   title: string
@@ -19,6 +27,7 @@ export interface Project {
   websiteUrl?: string
   docsUrl?: string
   videoUrl?: string
+  media?: ProjectMedia[]
 }
 
 export const defaultProjects: Project[] = [
@@ -26,7 +35,7 @@ export const defaultProjects: Project[] = [
     id: 'smart-cooking-oil-dispenser',
     title: 'Smart Cooking Oil Dispenser',
     purpose: 'Automated pay-by-amount or pay-by-volume dispensing with operator accountability and cloud telemetry',
-    image: '',
+    image: '/images/projects/cooking-oil-prototype.webp',
     techStack: ['ESP32 WROOM-32D', 'Flow Sensor', 'SIM800', '4×4 Keypad', 'I2C LCD', 'Next.js', 'REST API', 'NVS'],
     problemSolved: 'Small and medium cooking-oil retailers need accurate dispensing, clear operator accountability, and reliable sales records even when internet connectivity is unstable.',
     systemLogic: 'An operator signs in with a PIN, selects an amount or target volume, and the ESP32 converts the request into a dispensing target. Flow pulses are measured continuously, the pump stops automatically at the target, and sales data is queued locally when offline before syncing to the web platform.',
@@ -36,6 +45,15 @@ export const defaultProjects: Project[] = [
     status: 'Prototype / Commercial Development',
     architecture: ['Operator keypad + LCD', 'ESP32 control layer', 'Flow sensor + pump driver', 'Offline NVS queue', 'REST telemetry API', 'Owner dashboard'],
     highlights: ['Automatic target cut-off', 'Operator PIN verification', 'Offline-first operation', 'Sales and telemetry records'],
+    media: [
+      {
+        src: '/images/projects/cooking-oil-prototype.webp',
+        alt: 'Internal prototype of the Smart Cooking Oil Dispenser showing the embedded controller, LCD, GSM module and pump-control hardware',
+        caption: 'Internal hardware prototype used to validate the embedded dispensing architecture and device integration.',
+        type: 'photo',
+        fit: 'cover',
+      },
+    ],
   },
   {
     id: 'denuel-one-pro-ai-x',
@@ -56,7 +74,7 @@ export const defaultProjects: Project[] = [
     id: 'smart-walking-stick',
     title: 'AI Smart Walking Stick',
     purpose: 'AI-assisted navigation system for visually impaired users using a camera-equipped stick, sensors, smartphone AI and headset guidance',
-    image: '',
+    image: '/images/projects/walking-stick-sensor-prototype.webp',
     techStack: ['ESP32', 'Camera', 'Ultrasonic Sensors', 'Wi-Fi/BLE', 'Mobile App', 'On-device AI', 'Cloud AI', 'Wireless Headset'],
     problemSolved: 'A basic obstacle alarm only tells a visually impaired user that something is nearby. Safer mobility requires understanding the scene, selecting a safer direction and delivering guidance without requiring the user to hold a phone visibly.',
     systemLogic: 'The stick captures sensor data and selected image frames, then sends them to the paired smartphone over local Wi-Fi or Bluetooth. The phone performs fast on-device detection and can use cloud AI for deeper scene analysis before returning spoken navigation guidance through a wireless headset.',
@@ -66,12 +84,21 @@ export const defaultProjects: Project[] = [
     status: 'Prototype / Active Development',
     architecture: ['Camera + obstacle sensors on stick', 'ESP32 local communications', 'Phone app as compute bridge', 'On-device AI detection', 'Cloud AI scene analysis', 'Wireless headset guidance'],
     highlights: ['Camera remains on the stick', 'Phone acts as the compute bridge', 'Fast local detection path', 'Cloud-assisted scene reasoning'],
+    media: [
+      {
+        src: '/images/projects/walking-stick-sensor-prototype.webp',
+        alt: 'HC-SR04 ultrasonic sensor mounted on a prototype assembly for obstacle-detection testing',
+        caption: 'Obstacle-detection sensor prototype detail used for ultrasonic ranging tests in the assistive-device development work.',
+        type: 'photo',
+        fit: 'cover',
+      },
+    ],
   },
   {
     id: 'the-spot-app',
     title: 'The Spot App',
     purpose: 'Production women’s-health mobile application for cycle education, tracking, phase information and administrative communication',
-    image: '',
+    image: '/images/projects/the-spot-hero.webp',
     techStack: ['React Native', 'Expo', 'Android', 'iOS', 'Google Play', 'App Store', 'Mobile UX', 'Admin Dashboard'],
     problemSolved: 'The product needed a more reliable mobile experience, clearer cycle-tracking information and a stable path to production distribution on both major mobile platforms.',
     systemLogic: 'The application combines cycle tracking and prediction, menstrual-phase education and user-facing content with an administrative communication layer. Deployment work includes production build stabilization and release workflows for Android and iOS.',
@@ -81,6 +108,15 @@ export const defaultProjects: Project[] = [
     status: 'Production / Released',
     architecture: ['Mobile application', 'Cycle tracking + prediction', 'Educational content layer', 'Admin communication workflow', 'Android release pipeline', 'iOS release pipeline'],
     highlights: ['Android production release', 'iOS production release', 'Cycle-tracking improvements', 'Admin communication workflow'],
+    media: [
+      {
+        src: '/images/projects/the-spot-hero.webp',
+        alt: 'The Spot App mobile screens showing the home, health library and period-tracking interfaces',
+        caption: 'Production mobile interface showing the home, health-library and cycle-tracking flows.',
+        type: 'screenshot',
+        fit: 'cover',
+      },
+    ],
   },
   {
     id: 'denuel-dev',
