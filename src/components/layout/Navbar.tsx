@@ -13,6 +13,7 @@ const navLinks: Array<{ href: string; labelKey?: string; label?: string }> = [
   { href: '#skills', labelKey: 'nav.skills' },
   { href: '#projects', labelKey: 'nav.projects' },
   { href: '/hire', label: 'Hire / Work With Me' },
+  { href: '/capabilities', label: 'Capabilities' },
   { href: '/start-project', labelKey: 'hero.cta.contact' },
   { href: '/case-studies', labelKey: 'nav.caseStudies' },
   { href: '/blog', labelKey: 'nav.blog' },
