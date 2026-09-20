@@ -54,7 +54,14 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
 
         <div className="relative mt-10 aspect-[16/7] overflow-hidden rounded-2xl border border-dark-800 bg-dark-900">
           {project.image ? (
-            <Image src={project.image} alt={project.title} fill priority className="object-cover" sizes="(max-width: 1200px) 100vw, 1200px" />
+            <Image
+              src={project.image}
+              alt={project.media?.[0]?.alt || project.title}
+              fill
+              priority
+              className={project.media?.[0]?.fit === 'contain' ? 'object-contain' : 'object-cover'}
+              sizes="(max-width: 1200px) 100vw, 1200px"
+            />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950">
               <div className="absolute right-[8%] top-[12%] h-52 w-52 rounded-full border border-primary-400/20" />
@@ -65,6 +72,13 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
             </div>
           )}
         </div>
+
+        {project.media?.[0]?.caption && (
+          <div className="mt-3 flex flex-col gap-2 rounded-xl border border-dark-800 bg-dark-900/45 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Project evidence</span>
+            <p className="max-w-4xl text-sm leading-relaxed text-dark-400">{project.media[0].caption}</p>
+          </div>
+        )}
 
         <div className="mt-10 flex flex-wrap gap-2">
           {project.techStack.map(tech => <span key={tech} className="tech-badge">{tech}</span>)}
@@ -113,6 +127,32 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
             </ul>
           </div>
         </section>
+
+        {project.media && project.media.length > 1 && (
+          <section className="mt-6 rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Project evidence</p>
+              <h2 className="mt-2 text-2xl font-bold text-white">Hardware, product and deployment proof</h2>
+              <p className="mt-2 text-sm text-dark-500">Real project photos and screens from development and deployment.</p>
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {project.media.slice(1).map((item, index) => (
+                <figure key={item.src + index} className="overflow-hidden rounded-xl border border-dark-800 bg-dark-950/70">
+                  <div className="relative aspect-video bg-dark-950">
+                    <Image
+                      src={item.src}
+                      alt={item.alt}
+                      fill
+                      className={item.fit === 'contain' ? 'object-contain' : 'object-cover'}
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
+                  {item.caption && <figcaption className="p-4 text-sm leading-relaxed text-dark-400">{item.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-12 rounded-2xl border border-primary-500/20 bg-primary-950/30 p-7 sm:p-9">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400">Build something similar</p>
