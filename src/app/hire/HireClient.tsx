@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -93,6 +94,16 @@ export default function HireClient() {
   const { profile } = useProfile()
   const { projects } = useProjects()
   const { skillCategories } = useSkills()
+  const [opportunity, setOpportunity] = useState({
+    name: '',
+    email: '',
+    organization: '',
+    country: '',
+    type: 'Remote engineering role',
+    details: '',
+  })
+  const [opportunityStatus, setOpportunityStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [opportunityMessage, setOpportunityMessage] = useState('')
 
   const evidenceProjects = evidenceProjectIds
     .map(id => projects.find(project => project.id === id))
@@ -105,6 +116,55 @@ export default function HireClient() {
   const whatsapp = `https://wa.me/${profile.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
     'Hello Emmanuel, I reviewed your portfolio and would like to discuss a professional opportunity.'
   )}`
+
+  const submitOpportunity = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setOpportunityStatus('sending')
+    setOpportunityMessage('')
+
+    const details = [
+      `Opportunity type: ${opportunity.type}`,
+      `Organization: ${opportunity.organization || 'Not specified'}`,
+      `Country / time zone: ${opportunity.country || 'Not specified'}`,
+      '',
+      opportunity.details,
+    ].join('\n')
+
+    try {
+      const response = await fetch('/api/service-inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: `professional-${Date.now()}`,
+          name: opportunity.name,
+          email: opportunity.email,
+          service: `Professional Opportunity: ${opportunity.type}`,
+          details,
+          submittedAt: new Date().toISOString(),
+          status: 'new',
+        }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Unable to submit the opportunity.')
+      }
+
+      setOpportunityStatus('success')
+      setOpportunityMessage('Opportunity received. Emmanuel can review the details and follow up using your email.')
+      setOpportunity({
+        name: '',
+        email: '',
+        organization: '',
+        country: '',
+        type: 'Remote engineering role',
+        details: '',
+      })
+    } catch (error) {
+      setOpportunityStatus('error')
+      setOpportunityMessage(error instanceof Error ? error.message : 'Unable to submit right now. Please use email or WhatsApp.')
+    }
+  }
 
   return (
     <main className="min-h-screen bg-dark-950 pb-20 pt-24">
@@ -345,6 +405,119 @@ export default function HireClient() {
               ))}
             </div>
           </aside>
+        </section>
+
+        <section className="mt-16 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-400">Professional opportunity</p>
+            <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">Send the role or project context directly.</h2>
+            <p className="mt-4 leading-relaxed text-dark-400">
+              A useful first message includes the organization, location or time zone, opportunity type, expected responsibilities or deliverables, and the technology involved. The submission goes into the portfolio lead system for review.
+            </p>
+
+            <div className="mt-6 space-y-3 text-sm text-dark-400">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                <span>Recruiters can include role scope, team structure and interview process.</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                <span>Clients can include the problem, users, required system and target timeline.</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-400" />
+                <span>Technical partners can describe the R&D stage and the engineering gap to solve.</span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={submitOpportunity} className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="text-sm text-dark-300">
+                Name *
+                <input
+                  required
+                  value={opportunity.name}
+                  onChange={event => setOpportunity({ ...opportunity, name: event.target.value })}
+                  className="mt-2 w-full rounded-lg border border-dark-700 bg-dark-950 px-4 py-3 text-white outline-none transition focus:border-primary-500"
+                  placeholder="Your name"
+                />
+              </label>
+              <label className="text-sm text-dark-300">
+                Work email *
+                <input
+                  required
+                  type="email"
+                  value={opportunity.email}
+                  onChange={event => setOpportunity({ ...opportunity, email: event.target.value })}
+                  className="mt-2 w-full rounded-lg border border-dark-700 bg-dark-950 px-4 py-3 text-white outline-none transition focus:border-primary-500"
+                  placeholder="you@company.com"
+                />
+              </label>
+              <label className="text-sm text-dark-300">
+                Organization
+                <input
+                  value={opportunity.organization}
+                  onChange={event => setOpportunity({ ...opportunity, organization: event.target.value })}
+                  className="mt-2 w-full rounded-lg border border-dark-700 bg-dark-950 px-4 py-3 text-white outline-none transition focus:border-primary-500"
+                  placeholder="Company or organization"
+                />
+              </label>
+              <label className="text-sm text-dark-300">
+                Country / time zone
+                <input
+                  value={opportunity.country}
+                  onChange={event => setOpportunity({ ...opportunity, country: event.target.value })}
+                  className="mt-2 w-full rounded-lg border border-dark-700 bg-dark-950 px-4 py-3 text-white outline-none transition focus:border-primary-500"
+                  placeholder="e.g. Germany / CET"
+                />
+              </label>
+            </div>
+
+            <label className="mt-4 block text-sm text-dark-300">
+              Opportunity type *
+              <select
+                value={opportunity.type}
+                onChange={event => setOpportunity({ ...opportunity, type: event.target.value })}
+                className="mt-2 w-full rounded-lg border border-dark-700 bg-dark-950 px-4 py-3 text-white outline-none transition focus:border-primary-500"
+              >
+                <option>Remote engineering role</option>
+                <option>Contract product build</option>
+                <option>Technical partnership</option>
+                <option>Consulting / R&D</option>
+              </select>
+            </label>
+
+            <label className="mt-4 block text-sm text-dark-300">
+              Opportunity details *
+              <textarea
+                required
+                rows={6}
+                value={opportunity.details}
+                onChange={event => setOpportunity({ ...opportunity, details: event.target.value })}
+                className="mt-2 w-full resize-none rounded-lg border border-dark-700 bg-dark-950 px-4 py-3 text-white outline-none transition focus:border-primary-500"
+                placeholder="Role responsibilities, project scope, technology, timeline, or the problem you need solved..."
+              />
+            </label>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button type="submit" disabled={opportunityStatus === 'sending'} className="btn-primary disabled:opacity-50">
+                {opportunityStatus === 'sending' ? 'Sending...' : 'Send professional opportunity'}
+              </button>
+              <span className="text-xs text-dark-500">No account required.</span>
+            </div>
+
+            {opportunityStatus === 'success' && (
+              <p className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-300">
+                {opportunityMessage}
+              </p>
+            )}
+            {opportunityStatus === 'error' && (
+              <p className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-300">
+                {opportunityMessage}
+              </p>
+            )}
+          </form>
         </section>
 
         <section id="contact-options" className="mt-16 scroll-mt-24 rounded-3xl border border-primary-500/20 bg-primary-950/25 p-7 sm:p-10">
