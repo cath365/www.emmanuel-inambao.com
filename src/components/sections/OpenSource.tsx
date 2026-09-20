@@ -6,39 +6,11 @@ import { Github, Star, GitFork, ExternalLink, Code } from 'lucide-react'
 
 const ownProjects = [
   {
-    name: 'smart-irrigation',
-    description: 'ESP32-based automated irrigation system with soil moisture sensing and web dashboard',
-    language: 'C++',
-    languageColor: '#f34b7d',
-    url: 'https://github.com/bolo3574/smart-irrigation',
-  },
-  {
-    name: 'cutter-robot',
-    description: 'Web-controlled precision cutting robot using ESP32 and L298N motor driver',
-    language: 'C++',
-    languageColor: '#f34b7d',
-    url: 'https://github.com/bolo3574/cutter-robot',
-  },
-  {
-    name: 'bottle-sorting',
-    description: 'Arduino-based automated bottle sorting system using dual ultrasonic sensors',
-    language: 'C++',
-    languageColor: '#f34b7d',
-    url: 'https://github.com/bolo3574/bottle-sorting',
-  },
-  {
-    name: 'oil-monitoring',
-    description: 'Real-time industrial oil tank monitoring with ESP32, MQTT, and Next.js dashboard',
+    name: 'www.emmanuel-inambao.com',
+    description: 'Source repository for the current engineering portfolio, project case studies, institutional capability pages and portfolio systems.',
     language: 'TypeScript',
     languageColor: '#2b7489',
-    url: 'https://github.com/bolo3574/oil-monitoring',
-  },
-  {
-    name: 'smart-walking-stick',
-    description: 'Arduino-based assistive navigation device for visually impaired individuals',
-    language: 'C++',
-    languageColor: '#f34b7d',
-    url: 'https://github.com/bolo3574/smart-walking-stick',
+    url: 'https://github.com/cath365/www.emmanuel-inambao.com',
   },
 ]
 
@@ -66,7 +38,7 @@ export default function OpenSource() {
           <p className="text-primary-400 font-semibold text-sm uppercase tracking-wider mb-3">
             Open Source
           </p>
-          <h2 className="section-heading">My Public Projects</h2>
+          <h2 className="section-heading">Current Public Repository</h2>
           <p className="section-subheading mx-auto">
             I share my engineering projects on GitHub so others can learn from,
             build upon, and contribute to practical IoT and embedded systems solutions.
@@ -77,7 +49,7 @@ export default function OpenSource() {
         <div className="mb-16">
           <h3 className="text-lg font-semibold text-white light:text-slate-900 mb-6 flex items-center gap-2">
             <Github className="w-5 h-5 text-primary-400" />
-            Public Repositories
+            Public Repository
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {ownProjects.map((project, index) => (
@@ -143,7 +115,7 @@ export default function OpenSource() {
           className="text-center mt-12"
         >
           <a
-            href="https://github.com/bolo3574"
+            href="https://github.com/cath365"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-secondary inline-flex items-center gap-2"
