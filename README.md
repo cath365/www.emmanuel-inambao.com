@@ -21,7 +21,7 @@ Production portfolio for Prof. Emmanuel Inambao (Electronic Engineer, IoT & Robo
 
 - Public: Hero, About, Skills, Projects, Case studies, Blog, Resume, Services, Testimonials, Pricing, FAQ, Newsletter, Contact, Gallery, Downloadable resources
 - Admin (`/admin`): profile, projects, testimonials, certifications, experience, services, gallery, resources, bookings, leads, analytics, media uploader
-- APIs: `/api/contact`, `/api/booking`, `/api/service-inquiry`, `/api/newsletter`, `/api/testimonials`, `/api/upload`, `/api/auth/*`, `/api/portfolio-data`, `/api/analytics`, `/api/rss`
+- APIs: `/api/ai/chat`, `/api/contact`, `/api/booking`, `/api/service-inquiry`, `/api/newsletter`, `/api/testimonials`, `/api/upload`, `/api/auth/*`, `/api/portfolio-data`, `/api/analytics`, `/api/rss`
 - PWA: manifest + service worker + offline page
 - SEO: sitemap, robots, JSON-LD (Person, WebSite, ProfessionalService), multilingual hreflang
 
@@ -57,7 +57,7 @@ All secrets are server-side only. Never prefix with `NEXT_PUBLIC_` unless you wa
 | `FORMSPREE_ID` | one of | Fallback contact-form backend — https://formspree.io |
 | `CLOUDINARY_CLOUD_NAME` | admin | Media uploader |
 | `CLOUDINARY_API_KEY` | admin | Media uploader |
-| `CLOUDINARY_API_SECRET` | admin | Media uploader |
+| `CLOUDINARY_API_SECRET` | admin | Media uploader |\n| `OPENAI_API_KEY` | AI assistant | Server-side OpenAI API key for the portfolio assistant |\n| `OPENAI_MODEL` | optional | AI model override; defaults to `gpt-5.6-terra` |
 
 Without `ADMIN_*` or `SESSION_SECRET`, admin login is disabled. Without a contact-form backend, `/api/contact` returns 503. Without Cloudinary, `/api/upload` returns 500. All three are enforced at runtime and logged to the server console in dev.
 
@@ -114,7 +114,7 @@ The UI gracefully falls back (gradient cover, monogram avatar, hidden CV button)
 
 - **Data layer**: Admin-managed content (profile, projects, etc.) lives in `src/lib/*.tsx` React contexts. On first load, each context fetches from `/api/portfolio-data?key=…` (Vercel Blob). Writes POST back to the same endpoint. `localStorage` is a client-side cache only.
 - **Auth**: `src/lib/auth-config.ts` exports `signSession` / `verifySession`. All protected API routes call `isAuthenticated()` from `src/lib/auth-helpers.ts` — do not re-implement cookie parsing.
-- **Media**: All user-uploaded media goes through `/api/upload` → Cloudinary (never the filesystem). Cloudinary URLs are whitelisted in `next.config.js`.
+- **Media**: All user-uploaded media goes through `/api/upload` → Cloudinary (never the filesystem). Cloudinary URLs are whitelisted in `next.config.js`.\n- **Portfolio AI**: `/api/ai/chat` is server-side only. It loads current portfolio data, sends a compact grounded context to OpenAI, limits conversation length, and falls back to deterministic portfolio actions if the provider is unavailable. Never expose `OPENAI_API_KEY` to the browser.
 - **PWA**: `public/sw.js` is a network-first service worker registered by `ServiceWorkerRegistrar`. It skips `/api/*` and `/admin`.
 
 ## License
