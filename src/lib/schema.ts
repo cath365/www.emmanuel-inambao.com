@@ -20,7 +20,6 @@ export function generatePersonSchema() {
       addressCountry: 'Zambia',
     },
     sameAs: [
-      'https://github.com/bolo3574',
       'https://github.com/cath365',
       'https://linkedin.com/in/emmanuelinambao',
     ],
