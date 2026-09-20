@@ -160,9 +160,39 @@ function relevantSkills(query: string, categories: SkillCategory[]) {
   )
 }
 
+function capabilityHints(query: string) {
+  const q = normalize(query)
+  const hints: string[] = []
+
+  if (/\b(livestock|cattle|cow|gps|tracker|tracking|geofence)\b/.test(q)) {
+    hints.push('ESP32', 'SIM800', 'IoT', 'mobile app', 'API', 'offline', 'sensor')
+  }
+  if (/\b(monitor|monitoring|sensor|telemetry|remote|alert)\b/.test(q)) {
+    hints.push('ESP32', 'sensor', 'IoT', 'dashboard', 'offline', 'REST API')
+  }
+  if (/\b(fuel|oil|liquid|dispense|dispenser|pump|flow)\b/.test(q)) {
+    hints.push('dispenser', 'pump', 'flow sensor', 'ESP32', 'telemetry')
+  }
+  if (/\b(mobile|android|ios|app|application)\b/.test(q)) {
+    hints.push('React Native', 'Expo', 'Android', 'iOS', 'mobile')
+  }
+  if (/\b(crm|quotation|invoice|receipt|business|customer|inventory)\b/.test(q)) {
+    hints.push('quotation', 'CRM', 'dashboard', 'admin', 'Next.js')
+  }
+  if (/\b(blind|visual|assistive|walking|navigation|obstacle)\b/.test(q)) {
+    hints.push('walking stick', 'camera', 'ultrasonic', 'ESP32', 'AI', 'Bluetooth')
+  }
+  if (/\b(robot|robotics|motor|automation|conveyor)\b/.test(q)) {
+    hints.push('robotics', 'motor', 'ESP32', 'Arduino', 'sensor', 'automation')
+  }
+
+  return hints.join(' ')
+}
+
 function capabilityAnswer(query: string, context: LocalAssistantContext): LocalAssistantAnswer {
+  const expandedQuery = `${query} ${capabilityHints(query)}`
   const ranked = context.projects
-    .map(project => ({ project, score: projectScore(query, project) }))
+    .map(project => ({ project, score: projectScore(expandedQuery, project) }))
     .filter(item => item.score >= 3)
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
