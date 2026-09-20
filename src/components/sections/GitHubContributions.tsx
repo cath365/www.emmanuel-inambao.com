@@ -48,7 +48,7 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
-              View @${username} on GitHub
+              View @{username} on GitHub
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>
