@@ -8,7 +8,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 import { LanguageSwitcher, useLanguage } from '@/lib/i18n'
 
 // Navigation links configuration
-const navLinks = [
+const navLinks: Array<{ href: string; labelKey?: string; label?: string }> = [
   { href: '#about', labelKey: 'nav.about' },
   { href: '#skills', labelKey: 'nav.skills' },
   { href: '#projects', labelKey: 'nav.projects' },
