@@ -35,7 +35,7 @@ const defaultProfile: Profile = {
   cv: '/cv/emmanuel-inambao-cv.pdf',
   status: 'Available for Engineering Projects',
   socialLinks: {
-    github: 'https://github.com/bolo3574',
+    github: 'https://github.com/cath365',
     linkedin: 'https://linkedin.com/in/emmanuelinambao',
     twitter: '',
     website: 'https://emmanuelinambao.com',
