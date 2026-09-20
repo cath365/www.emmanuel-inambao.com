@@ -27,6 +27,7 @@ async function writeSection(key: string, data: unknown) {
   await put(blobPath(key), JSON.stringify(data), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   })
 }
 

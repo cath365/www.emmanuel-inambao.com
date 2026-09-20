@@ -34,6 +34,7 @@ async function writeLeads(leads: ServiceLead[]) {
   await put(LEADS_BLOB_PATH, JSON.stringify(leads), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   })
 }
 

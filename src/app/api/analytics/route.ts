@@ -41,6 +41,7 @@ async function writeDay(day: string, visits: Visit[]) {
   await put(blobPath(day), JSON.stringify(visits), {
     access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   })
 }
 

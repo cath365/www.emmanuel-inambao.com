@@ -6,12 +6,14 @@ import { motion } from 'framer-motion'
 export default function Newsletter() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [statusMessage, setStatusMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
 
     setStatus('loading')
+    setStatusMessage('')
 
     try {
       const response = await fetch('/api/newsletter', {
@@ -20,13 +22,18 @@ export default function Newsletter() {
         body: JSON.stringify({ email }),
       })
 
-      if (response.ok) {
+      const result = await response.json().catch(() => ({}))
+
+      if (response.ok && result.success) {
+        setStatusMessage(result.message || 'Successfully subscribed.')
         setStatus('success')
         setEmail('')
       } else {
+        setStatusMessage(result.error || 'Unable to subscribe right now. Please try again.')
         setStatus('error')
       }
     } catch {
+      setStatusMessage('Network error. Please check your connection and try again.')
       setStatus('error')
     }
   }
@@ -73,7 +80,7 @@ export default function Newsletter() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 text-green-300"
             >
-              ✓ Thanks for subscribing! Check your inbox for confirmation.
+              ✓ {statusMessage || 'Thanks for subscribing!'}
             </motion.p>
           )}
 
@@ -83,7 +90,7 @@ export default function Newsletter() {
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 text-red-300"
             >
-              Something went wrong. Please try again.
+              {statusMessage || 'Unable to subscribe right now. Please try again.'}
             </motion.p>
           )}
 
