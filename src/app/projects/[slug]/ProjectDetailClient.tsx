@@ -65,6 +65,11 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
             </div>
           )}
         </div>
+        {project.image && project.imageCaption && (
+          <p className="mt-3 text-sm leading-relaxed text-dark-500">
+            {project.imageCaption}
+          </p>
+        )}
 
         <div className="mt-10 flex flex-wrap gap-2">
           {project.techStack.map(tech => <span key={tech} className="tech-badge">{tech}</span>)}
