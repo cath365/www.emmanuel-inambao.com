@@ -23,7 +23,6 @@ const sections = [
   { name: 'Hire / Work With Me', href: '/hire', icon: Briefcase, group: 'Pages' },
   { name: 'Professional Dossier', href: '/hire/dossier', icon: FileText, group: 'Pages' },
   { name: 'Start Project', href: '/start-project', icon: Calculator, group: 'Pages' },
-  { name: 'Interactive Resume', href: '/resume', icon: Award, group: 'Pages' },
   { name: 'Changelog', href: '/changelog', icon: Zap, group: 'Pages' },
   { name: 'Download CV', href: '/cv/emmanuel-inambao-cv.pdf', icon: Download, group: 'Actions' },
   { name: 'Book a Meeting', href: '#booking', icon: Calendar, group: 'Actions' },
