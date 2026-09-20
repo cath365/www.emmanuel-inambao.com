@@ -186,6 +186,69 @@ function extractResponseText(payload: any): string {
   return parts.join('\n').trim()
 }
 
+export async function GET() {
+  const apiKey = process.env.OPENAI_API_KEY
+  const model = process.env.OPENAI_MODEL || 'gpt-5.6-terra'
+
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        configured: false,
+        model,
+        providerReachable: false,
+        providerStatus: null,
+        providerErrorType: 'missing_api_key',
+        providerErrorCode: null,
+      },
+      { status: 503, headers: { 'Cache-Control': 'no-store' } }
+    )
+  }
+
+  try {
+    const response = await fetch(`https://api.openai.com/v1/models/${encodeURIComponent(model)}`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10_000),
+    })
+
+    let errorType: string | null = null
+    let errorCode: string | null = null
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      errorType = typeof payload?.error?.type === 'string' ? payload.error.type : null
+      errorCode = typeof payload?.error?.code === 'string' ? payload.error.code : null
+    }
+
+    return NextResponse.json(
+      {
+        configured: true,
+        model,
+        providerReachable: response.ok,
+        providerStatus: response.status,
+        providerErrorType: errorType,
+        providerErrorCode: errorCode,
+      },
+      {
+        status: response.ok ? 200 : 502,
+        headers: { 'Cache-Control': 'no-store' },
+      }
+    )
+  } catch {
+    return NextResponse.json(
+      {
+        configured: true,
+        model,
+        providerReachable: false,
+        providerStatus: null,
+        providerErrorType: 'network_or_timeout',
+        providerErrorCode: null,
+      },
+      { status: 502, headers: { 'Cache-Control': 'no-store' } }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   const id = clientId(request)
   if (isRateLimited(id)) {
