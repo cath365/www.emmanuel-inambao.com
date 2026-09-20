@@ -71,6 +71,7 @@ export default function Contact() {
   })
   const [formStatus, setFormStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const [successMessage, setSuccessMessage] = useState<string>('')
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -82,6 +83,7 @@ export default function Contact() {
     e.preventDefault()
     setFormStatus('loading')
     setErrorMessage('')
+    setSuccessMessage('')
 
     try {
       // Include honeypot field for spam detection
@@ -95,6 +97,7 @@ export default function Contact() {
       const result = await response.json().catch(() => ({}))
 
       if (response.ok && result.success) {
+        setSuccessMessage(result.message || 'Message received successfully.')
         setFormStatus('success')
         setTimeout(() => {
           setFormData({ name: '', email: '', subject: '', message: '' })
@@ -376,7 +379,7 @@ export default function Contact() {
                     >
                       <CheckCircle className="w-5 h-5 text-green-400" aria-hidden="true" />
                       <p className="text-green-400 text-sm">
-                        Thank you! I'll get back to you soon.
+                        {successMessage || "Thank you! Your message has been received."}
                       </p>
                     </motion.div>
                   )}
@@ -402,11 +405,11 @@ export default function Contact() {
                     Prefer email? Reach me directly at:
                   </p>
                   <a 
-                    href="mailto:denuelinambao@gmail.com?subject=Portfolio%20Contact" 
+                    href={`mailto:${profile.email}?subject=Portfolio%20Contact`} 
                     className="flex items-center justify-center gap-2 w-full py-3 bg-dark-800/50 border border-dark-700 rounded-lg text-primary-400 hover:bg-dark-700/50 hover:border-primary-500/50 transition-all"
                   >
                     <Mail className="w-5 h-5" />
-                    denuelinambao@gmail.com
+                    {profile.email}
                   </a>
                 </div>
               </div>
