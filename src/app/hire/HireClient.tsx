@@ -10,6 +10,7 @@ import {
   Cpu,
   Download,
   ExternalLink,
+  FileText,
   Globe2,
   Handshake,
   Layers3,
@@ -225,6 +226,9 @@ export default function HireClient() {
                 <Link href="/start-project" className="btn-secondary">
                   Start a project
                 </Link>
+                <Link href="/hire/dossier" className="btn-secondary">
+                  <FileText className="h-4 w-4" /> Professional dossier
+                </Link>
                 {profile.cv && (
                   <a href={profile.cv} target="_blank" rel="noopener noreferrer" className="btn-secondary">
                     <Download className="h-4 w-4" /> CV
@@ -299,6 +303,46 @@ export default function HireClient() {
             {skillNames.slice(0, 22).map(skill => (
               <span key={skill} className="tech-badge text-xs">{skill}</span>
             ))}
+          </div>
+        </section>
+
+        <section className="mt-16 rounded-3xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
+          <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-400">Government & institutional ICT</p>
+              <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">Relevant to public-service technology, not only private-sector product work.</h2>
+              <p className="mt-4 leading-relaxed text-dark-400">
+                Government departments, statutory bodies, universities, NGOs and development programs often need engineers who can support day-to-day ICT operations while also helping modernize digital services. My portfolio is strongest where infrastructure, applications, connected systems and practical field constraints overlap.
+              </p>
+              <Link href="/hire/dossier" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-300 hover:text-primary-200">
+                Open institutional dossier <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                ['ICT operations & support', 'Computers, devices, user access, troubleshooting, software support and dependable day-to-day digital operations.'],
+                ['Networks & connectivity', 'LAN/WAN, Wi-Fi, internet-connected systems, field connectivity and network-aware troubleshooting.'],
+                ['Digital services & portals', 'Web systems, service portals, internal workflows, dashboards and citizen/user-facing applications.'],
+                ['Systems integration', 'APIs, interoperability, data exchange and connecting existing systems rather than creating isolated applications.'],
+                ['Cybersecurity & data handling', 'Access control, confidentiality, secure architecture thinking, data safeguards and operational discipline.'],
+                ['Data & monitoring systems', 'Dashboards, telemetry, reporting, operational data capture and systems that support evidence-based decisions.'],
+                ['Business continuity', 'Offline-first workflows, recovery thinking, resilient field systems and continuity when connectivity is weak.'],
+                ['Documentation & capacity building', 'Technical reporting, user guidance, training, handover documentation and communication with non-technical stakeholders.'],
+              ].map(([title, text]) => (
+                <article key={title} className="rounded-xl border border-dark-800 bg-dark-950/60 p-4">
+                  <p className="font-semibold text-white">{title}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-dark-500">{text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-950/15 p-4">
+            <p className="text-sm font-semibold text-amber-200">Eligibility is vacancy-specific.</p>
+            <p className="mt-1 text-sm leading-relaxed text-dark-400">
+              Public-sector vacancies may require a particular degree level, ICT professional-body membership, certified qualifications, citizenship or minimum years of experience. This portfolio demonstrates engineering capability and evidence; formal eligibility should always be checked against the official job specification.
+            </p>
           </div>
         </section>
 
