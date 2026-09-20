@@ -5,7 +5,7 @@ import { Command } from 'cmdk'
 import { useRouter } from 'next/navigation'
 import {
   Search, Home, User, Code, Briefcase, Mail, FileText,
-  BookOpen, Award, Download, Sun, Moon, Globe, X,
+  BookOpen, Download, Sun, Moon, Globe, X,
   Cpu, Zap, Shield, Wrench, MessageSquare, Calendar, Calculator
 } from 'lucide-react'
 
