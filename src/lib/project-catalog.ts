@@ -3,6 +3,7 @@ export interface Project {
   title: string
   purpose: string
   image: string
+  imageCaption?: string
   techStack: string[]
   problemSolved: string
   systemLogic: string
@@ -26,7 +27,8 @@ export const defaultProjects: Project[] = [
     id: 'smart-cooking-oil-dispenser',
     title: 'Smart Cooking Oil Dispenser',
     purpose: 'Automated pay-by-amount or pay-by-volume dispensing with operator accountability and cloud telemetry',
-    image: '',
+    image: '/images/projects/cooking-oil-dispenser.webp',
+    imageCaption: 'Internal hardware prototype and embedded control architecture for the dispensing system.',
     techStack: ['ESP32 WROOM-32D', 'Flow Sensor', 'SIM800', '4×4 Keypad', 'I2C LCD', 'Next.js', 'REST API', 'NVS'],
     problemSolved: 'Small and medium cooking-oil retailers need accurate dispensing, clear operator accountability, and reliable sales records even when internet connectivity is unstable.',
     systemLogic: 'An operator signs in with a PIN, selects an amount or target volume, and the ESP32 converts the request into a dispensing target. Flow pulses are measured continuously, the pump stops automatically at the target, and sales data is queued locally when offline before syncing to the web platform.',
@@ -56,7 +58,8 @@ export const defaultProjects: Project[] = [
     id: 'smart-walking-stick',
     title: 'AI Smart Walking Stick',
     purpose: 'AI-assisted navigation system for visually impaired users using a camera-equipped stick, sensors, smartphone AI and headset guidance',
-    image: '',
+    image: '/images/projects/smart-walking-stick.webp',
+    imageCaption: 'Prototype ultrasonic obstacle-sensing hardware mounted on the walking-stick assembly.',
     techStack: ['ESP32', 'Camera', 'Ultrasonic Sensors', 'Wi-Fi/BLE', 'Mobile App', 'On-device AI', 'Cloud AI', 'Wireless Headset'],
     problemSolved: 'A basic obstacle alarm only tells a visually impaired user that something is nearby. Safer mobility requires understanding the scene, selecting a safer direction and delivering guidance without requiring the user to hold a phone visibly.',
     systemLogic: 'The stick captures sensor data and selected image frames, then sends them to the paired smartphone over local Wi-Fi or Bluetooth. The phone performs fast on-device detection and can use cloud AI for deeper scene analysis before returning spoken navigation guidance through a wireless headset.',
@@ -71,7 +74,8 @@ export const defaultProjects: Project[] = [
     id: 'the-spot-app',
     title: 'The Spot App',
     purpose: 'Production women’s-health mobile application for cycle education, tracking, phase information and administrative communication',
-    image: '',
+    image: '/images/projects/the-spot-app.webp',
+    imageCaption: 'Production app screens covering essentials, period tracking, journaling and the health-content library.',
     techStack: ['React Native', 'Expo', 'Android', 'iOS', 'Google Play', 'App Store', 'Mobile UX', 'Admin Dashboard'],
     problemSolved: 'The product needed a more reliable mobile experience, clearer cycle-tracking information and a stable path to production distribution on both major mobile platforms.',
     systemLogic: 'The application combines cycle tracking and prediction, menstrual-phase education and user-facing content with an administrative communication layer. Deployment work includes production build stabilization and release workflows for Android and iOS.',
