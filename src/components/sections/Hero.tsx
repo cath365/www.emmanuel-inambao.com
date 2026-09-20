@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowRight, Download, Mail, ChevronDown, MapPin, Users, Briefcase } from 'lucide-react'
+import { ArrowRight, Download, Mail, ChevronDown, MapPin, Cpu, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useProfile } from '@/lib/profile'
@@ -103,11 +103,10 @@ export default function Hero() {
               >
                 <TypeWriter
                   words={[
-                    'Electronic Engineer',
-                    'IoT Developer',
-                    'Robotics Expert',
-                    'Full-Stack Engineer',
-                    'AI/ML Enthusiast',
+                    'Embedded Systems Engineer',
+                    'IoT & Robotics Developer',
+                    'Full-Stack Systems Engineer',
+                    'AI-Integrated Product Builder',
                   ]}
                   className="text-primary-400"
                 />
@@ -129,8 +128,8 @@ export default function Hero() {
                   5+ years experience
                 </span>
                 <span className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
-                  500+ connections
+                  <Cpu className="w-4 h-4" />
+                  Hardware + Software
                 </span>
               </motion.div>
 
