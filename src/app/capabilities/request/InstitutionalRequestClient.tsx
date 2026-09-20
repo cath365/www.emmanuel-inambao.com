@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   FileText,
-  Mail,
   Send,
   ShieldCheck,
 } from 'lucide-react'
@@ -130,7 +129,7 @@ export default function InstitutionalRequestClient() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
-  const set = <K extends keyof InstitutionalBrief>(key: K, value: InstitutionalBrief[K]) => {
+  const set = <K extends keyof InstitutionalBrief,>(key: K, value: InstitutionalBrief[K]) => {
     setBrief(current => ({ ...current, [key]: value }))
   }
 
