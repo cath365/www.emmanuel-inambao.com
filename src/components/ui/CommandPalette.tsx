@@ -20,6 +20,7 @@ const sections = [
   { name: 'Contact', href: '#contact', icon: Mail, group: 'Navigation' },
   { name: 'Blog', href: '/blog', icon: BookOpen, group: 'Pages' },
   { name: 'Case Studies', href: '/case-studies', icon: FileText, group: 'Pages' },
+  { name: 'Hire / Work With Me', href: '/hire', icon: Briefcase, group: 'Pages' },
   { name: 'Start Project', href: '/start-project', icon: Calculator, group: 'Pages' },
   { name: 'Interactive Resume', href: '/resume', icon: Award, group: 'Pages' },
   { name: 'Changelog', href: '/changelog', icon: Zap, group: 'Pages' },
