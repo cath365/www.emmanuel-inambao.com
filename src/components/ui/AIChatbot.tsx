@@ -398,6 +398,59 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     }
   }
 
+  const resetBookingFlow = () => {
+    setBooking({
+      active: false,
+      step: null,
+      data: { name: '', email: '', phone: '', date: '', time: '', topic: '', notificationMethod: null },
+    })
+  }
+
+  const resetLeadFlow = () => {
+    setLead({
+      active: false,
+      step: null,
+      data: { name: '', email: '', service: '', details: '' },
+    })
+  }
+
+  const isCancelIntent = (text: string) =>
+    /^(cancel|stop|exit|go back|never ?mind|start over|quit)( booking| inquiry| meeting)?[.!]?$/i.test(text.trim())
+
+  const looksLikeOpenQuestion = (text: string) => {
+    const trimmed = text.trim()
+    if (trimmed.includes('?')) return true
+
+    return /^(tell me|show me|explain|what\b|why\b|how\b|who\b|where\b|which\b|can\b|could\b|would\b|does\b|do\b|is\b|are\b|has\b|have\b|give me|describe|compare|i want to know|i need to know)/i.test(trimmed)
+  }
+
+  const shouldInterruptBooking = (text: string) => {
+    if (!booking.active || !booking.step) return false
+    if (booking.step === 'topic') return false
+
+    const trimmed = text.trim()
+    if (booking.step === 'email' && trimmed.includes('@')) return false
+    if (booking.step === 'phone' && (/^skip$/i.test(trimmed) || /^\+?[\d\s()-]{7,}$/.test(trimmed))) return false
+    if (booking.step === 'date' && getAvailableDates().includes(trimmed)) return false
+    if (booking.step === 'time' && getAvailableTimes().includes(trimmed)) return false
+    if (booking.step === 'notification' && /email|whatsapp|both/i.test(trimmed)) return false
+    if (booking.step === 'confirm' && /confirm|yes|no|cancel|✅|❌/i.test(trimmed)) return false
+
+    return looksLikeOpenQuestion(trimmed)
+  }
+
+  const shouldInterruptLead = (text: string) => {
+    if (!lead.active || !lead.step) return false
+    if (lead.step === 'details') return false
+
+    const trimmed = text.trim()
+    if (lead.step === 'email' && trimmed.includes('@')) return false
+    if (lead.step === 'service' && dynamicServices.some(service => service.toLowerCase() === trimmed.toLowerCase())) return false
+    if (lead.step === 'confirm' && /yes|no|send|cancel|✅|❌/i.test(trimmed)) return false
+
+    return looksLikeOpenQuestion(trimmed)
+  }
+
   // Generate deterministic fallback and action-flow responses
   function generateResponse(query: string): { response: string; options?: string[] } {
     const lowerQuery = query.toLowerCase()
@@ -428,7 +481,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     if (lowerQuery.includes('book') || lowerQuery.includes('meeting') || lowerQuery.includes('schedule') || lowerQuery.includes('appointment')) {
       setBooking(prev => ({ ...prev, active: true, step: 'name' }))
       return {
-        response: "Great! Let's schedule a meeting with Emmanuel. 📅\n\nFirst, what's your name?"
+        response: "Great! Let's schedule a meeting with Emmanuel. 📅\n\nFirst, what's your name?\n\nYou can type “cancel” at any time or ask another question to leave booking mode."
       }
     }
     
@@ -468,7 +521,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     if (lowerQuery.includes('inquiry') || lowerQuery.includes('send inquiry') || lowerQuery.includes('get started') || lowerQuery.includes('interested in')) {
       setLead(prev => ({ ...prev, active: true, step: 'name' }))
       return {
-        response: "Great! Let's get your inquiry to Emmanuel. 📩\n\nFirst, what's your name?"
+        response: "Great! Let's get your inquiry to Emmanuel. 📩\n\nFirst, what's your name?\n\nYou can type “cancel” at any time or ask another question to leave inquiry mode."
       }
     }
     
@@ -500,6 +553,43 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     const lower = text.toLowerCase().trim()
     const isPositiveConfirmation =
       lower.includes('confirm') || lower.includes('yes') || text.includes('✅')
+
+    // A visitor can leave a transactional flow at any time without the chatbot
+    // misreading a new portfolio question as form data.
+    if ((booking.active || lead.active) && isCancelIntent(text)) {
+      if (booking.active) resetBookingFlow()
+      if (lead.active) resetLeadFlow()
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'No problem — I stopped that flow. What would you like to know about Emmanuel or his work?',
+        options: ['See projects', 'View skills', 'Book a meeting'],
+      }])
+      setIsTyping(false)
+      return
+    }
+
+    if (shouldInterruptBooking(text) || shouldInterruptLead(text)) {
+      if (booking.active) resetBookingFlow()
+      if (lead.active) resetLeadFlow()
+
+      const aiAnswer = await askPortfolioAI(conversation)
+      if (aiAnswer) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: aiAnswer,
+          options: ['Book a meeting', '📩 Send inquiry'],
+        }])
+      } else {
+        const { response, options } = generateResponse(text)
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `${response}\n\nI stopped the previous form so your question would not be treated as booking or inquiry data.`,
+          options,
+        }])
+      }
+      setIsTyping(false)
+      return
+    }
 
     // Transactional actions stay deterministic and only report success after the API confirms it.
     if (booking.active && booking.step === 'confirm' && isPositiveConfirmation) {
