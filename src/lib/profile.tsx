@@ -23,7 +23,7 @@ export interface Profile {
 }
 
 const defaultProfile: Profile = {
-  name: 'Prof. Emmanuel Inambao',
+  name: 'Emmanuel Inambao',
   title: 'Embedded Systems | IoT & Robotics',
   subtitle: 'Full-Stack Systems Engineer',
   bio: 'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.',
