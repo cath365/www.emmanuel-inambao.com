@@ -99,7 +99,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! 👋 I'm Emmanuel's portfolio AI assistant. Ask me about a specific project, his technical experience, whether his skills fit your idea, or how to work with him.\n\nWhat would you like to know?",
+      content: "Hi! 👋 I'm Emmanuel's portfolio assistant. Ask me about a specific project, his technical experience, whether his skills fit your idea, or how to work with him.\n\nWhat would you like to know?",
       options: ['Book a meeting', 'View skills', 'See projects', 'Contact info'],
     },
   ])
@@ -394,7 +394,9 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     return answer
   }
 
-  const thinkingDelay = () => new Promise(resolve => window.setTimeout(resolve, 550))
+  const thinkingDelay = () => new Promise<void>(resolve => {
+    window.setTimeout(resolve, 550)
+  })
 
   const resetBookingFlow = () => {
     setBooking({
@@ -544,8 +546,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
 
     setInput('')
     const userMessage: Message = { role: 'user', content: text }
-    const conversation = [...messages, userMessage]
-    setMessages(conversation)
+    setMessages(prev => [...prev, userMessage])
     setIsTyping(true)
 
     const lower = text.toLowerCase().trim()
@@ -570,13 +571,21 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       if (booking.active) resetBookingFlow()
       if (lead.active) resetLeadFlow()
 
-      await thinkingDelay()
-      const answer = getSmartLocalAnswer(text)
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: answer.response,
-        options: answer.options,
-      }])
+      const aiAnswer = await askPortfolioAI(conversation)
+      if (aiAnswer) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: aiAnswer,
+          options: ['Book a meeting', '📩 Send inquiry'],
+        }])
+      } else {
+        const { response, options } = generateResponse(text)
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `${response}\n\nI stopped the previous form so your question would not be treated as booking or inquiry data.`,
+          options,
+        }])
+      }
       setIsTyping(false)
       return
     }
@@ -739,7 +748,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                 </div>
                 <div>
                   <h3 className="font-semibold">Portfolio Assistant</h3>
-                  <p className="text-xs text-white/80">Powered by Emmanuel's portfolio data</p>
+                  <p className="text-xs text-white/80">Powered by Emmanuel&apos;s portfolio data</p>
                 </div>
               </div>
             </div>
@@ -815,7 +824,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                     </div>
                   </div>
                 </motion.div>
-              ))}
+              )}
               <div ref={messagesEndRef} />
             </div>
 
