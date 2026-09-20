@@ -80,6 +80,13 @@ const engagementOptions = [
     action: 'Discuss partnership',
     href: '#contact-options',
   },
+  {
+    icon: ShieldCheck,
+    title: 'Government / institutional ICT',
+    text: 'For public institutions, statutory bodies, universities, NGOs and programs needing ICT systems, digital services, integration, support or field technology.',
+    action: 'Review public-sector fit',
+    href: '#public-sector',
+  },
 ]
 
 const remotePractices = [
@@ -257,7 +264,7 @@ export default function HireClient() {
           </div>
         </section>
 
-        <section className="mt-10 grid gap-5 md:grid-cols-3">
+        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {engagementOptions.map(option => {
             const Icon = option.icon
             return (
@@ -306,7 +313,7 @@ export default function HireClient() {
           </div>
         </section>
 
-        <section className="mt-16 rounded-3xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
+        <section id="public-sector" className="mt-16 scroll-mt-24 rounded-3xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-400">Government & institutional ICT</p>
@@ -528,6 +535,7 @@ export default function HireClient() {
                 <option>Remote engineering role</option>
                 <option>Contract product build</option>
                 <option>Technical partnership</option>
+                <option>Government / institutional ICT</option>
                 <option>Consulting / R&D</option>
               </select>
             </label>
