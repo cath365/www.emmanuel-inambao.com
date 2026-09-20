@@ -571,21 +571,13 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       if (booking.active) resetBookingFlow()
       if (lead.active) resetLeadFlow()
 
-      const aiAnswer = await askPortfolioAI(conversation)
-      if (aiAnswer) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: aiAnswer,
-          options: ['Book a meeting', '📩 Send inquiry'],
-        }])
-      } else {
-        const { response, options } = generateResponse(text)
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `${response}\n\nI stopped the previous form so your question would not be treated as booking or inquiry data.`,
-          options,
-        }])
-      }
+      await thinkingDelay()
+      const answer = getSmartLocalAnswer(text)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: answer.response,
+        options: answer.options,
+      }])
       setIsTyping(false)
       return
     }
