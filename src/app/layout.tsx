@@ -85,15 +85,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={'scroll-smooth dark overflow-x-hidden ' + inter.variable + ' ' + notoArabic.variable + ' ' + notoSC.variable} suppressHydrationWarning>
+    <html lang="en" className={'scroll-smooth light overflow-x-hidden ' + inter.variable + ' ' + notoArabic.variable + ' ' + notoSC.variable} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0b1220" />
+        <meta name="theme-color" content="#F7F5EF" />
         <link rel="alternate" type="application/rss+xml" title="Emmanuel Inambao Blog" href="/api/rss" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonSchema()) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateWebsiteSchema()) }} />
       </head>
-      <body className={inter.className + ' bg-dark-950 text-dark-100 light:bg-slate-50 light:text-slate-900'}>
+      <body className={inter.className + ' bg-[#F7F5EF] text-[#293442] dark:bg-dark-950 dark:text-dark-100'}>
         <Providers>
           {children}
           <VisitorTracker />
