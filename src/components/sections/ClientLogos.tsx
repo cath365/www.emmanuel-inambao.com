@@ -27,7 +27,7 @@ export default function ClientLogos() {
   const { t } = useLanguage()
 
   return (
-    <section ref={ref} className="py-14 lg:py-20 border-y border-dark-800/70 bg-dark-950/35">
+    <section ref={ref} className="py-14 lg:py-20 border-y border-[#DDD7CC] dark:border-dark-800/70 bg-[#FCFBF7] dark:bg-dark-950/35">
       <div className="section-container">
         {/* Section Header */}
         <motion.div
@@ -36,10 +36,10 @@ export default function ClientLogos() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <p className="text-primary-400 font-semibold text-xs uppercase tracking-[0.2em] mb-3">
+          <p className="text-[#526E8A] dark:text-primary-400 font-semibold text-xs uppercase tracking-[0.2em] mb-3">
             Trusted By
           </p>
-          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white light:text-slate-900">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#10243E] dark:text-white">
             Organizations That Trust My Work
           </h2>
         </motion.div>
@@ -52,14 +52,14 @@ export default function ClientLogos() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="flex flex-col items-center justify-center p-6 bg-dark-800/30 border border-dark-700/50
-                         rounded-lg hover:border-dark-600 hover:bg-dark-800/40 transition-all duration-300 group"
+              className="flex flex-col items-center justify-center p-6 bg-white/65 dark:bg-dark-800/30 border border-[#DDD7CC] dark:border-dark-700/50
+                         rounded-sm hover:border-[#AAB6C2] dark:hover:border-dark-600 hover:bg-white dark:hover:bg-dark-800/40 transition-all duration-300 group"
             >
-              <client.icon className="w-8 h-8 text-dark-400 group-hover:text-primary-400 transition-colors mb-3" />
-              <p className="text-xs text-dark-400 group-hover:text-dark-300 text-center font-medium transition-colors">
+              <client.icon className="w-8 h-8 text-[#687382] dark:text-dark-400 group-hover:text-primary-400 transition-colors mb-3" />
+              <p className="text-xs text-[#687382] dark:text-dark-400 group-hover:text-[#4C5968] dark:text-dark-300 text-center font-medium transition-colors">
                 {client.name}
               </p>
-              <span className="text-[10px] text-dark-600 mt-1">{client.type}</span>
+              <span className="text-[10px] text-[#8A918F] dark:text-dark-600 mt-1">{client.type}</span>
             </motion.div>
           ))}
         </div>
@@ -74,10 +74,10 @@ export default function ClientLogos() {
               transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
               className="text-center"
             >
-              <p className="text-3xl sm:text-4xl font-semibold text-white mb-1">
+              <p className="text-3xl sm:text-4xl font-display font-medium text-[#10243E] dark:text-white mb-1">
                 {stat.value}
               </p>
-              <p className="text-sm text-dark-400">{stat.label}</p>
+              <p className="text-sm text-[#687382] dark:text-dark-400">{stat.label}</p>
             </motion.div>
           ))}
         </div>
