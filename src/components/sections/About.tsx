@@ -62,7 +62,7 @@ export default function About() {
     <section
       id="about"
       ref={ref}
-      className="py-20 lg:py-28 bg-dark-900/35 border-y border-dark-800/60"
+      className="py-20 lg:py-28 bg-[#F7F5EF] dark:bg-dark-900/35 border-y border-[#E1DBD1] dark:border-dark-800/60"
       aria-labelledby="about-heading"
     >
       <div className="section-container">
@@ -73,7 +73,7 @@ export default function About() {
         >
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-14">
-            <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
+            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-wider">
               {t('about.title')}
             </span>
             <h2 id="about-heading" className="section-heading mt-3 tracking-tight">
@@ -85,19 +85,19 @@ export default function About() {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Story section */}
             <motion.div variants={itemVariants} className="space-y-6">
-              <p className="text-lg text-dark-200 leading-relaxed">
-                I'm <strong className="text-white">Emmanuel Inambao</strong>, 
+              <p className="text-lg text-[#39495A] dark:text-dark-200 leading-relaxed">
+                I'm <strong className="text-[#10243E] dark:text-white">Emmanuel Inambao</strong>, 
                 an Electronic Engineer based in Lusaka, Zambia. With hands-on experience across embedded systems, IoT, robotics and full-stack development, 
                 I build complete systems — from sensors and firmware to APIs, mobile applications and dashboards.
               </p>
-              <p className="text-dark-400 leading-relaxed">
+              <p className="text-[#697483] dark:text-dark-400 leading-relaxed">
                 My journey in engineering has been driven by one principle: 
-                <em className="text-primary-400"> technology must serve people</em>. 
+                <em className="text-[#526E8A] dark:text-primary-400"> technology must serve people</em>. 
                 My portfolio spans deployed mobile and web applications, connected embedded devices, 
                 automation prototypes and assistive technology. I focus on systems that can move 
                 beyond demonstrations into useful products for businesses and communities.
               </p>
-              <p className="text-dark-400 leading-relaxed">
+              <p className="text-[#697483] dark:text-dark-400 leading-relaxed">
                 I don't just write code or design circuits. I architect complete solutions 
                 that consider power constraints, network availability, user experience, 
                 and long-term maintenance. My systems are built to work in real African 
@@ -106,17 +106,17 @@ export default function About() {
               </p>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-dark-700">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-[#D8D2C8] dark:border-dark-700">
                 <div className="text-center sm:text-left">
-                  <p className="text-2xl sm:text-3xl font-bold text-white">15+</p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-[#10243E] dark:text-white">15+</p>
                   <p className="text-dark-500 text-xs sm:text-sm">Projects Delivered</p>
                 </div>
                 <div className="text-center sm:text-left">
-                  <p className="text-2xl sm:text-3xl font-bold text-white">50+</p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-[#10243E] dark:text-white">50+</p>
                   <p className="text-dark-500 text-xs sm:text-sm">Students Mentored</p>
                 </div>
                 <div className="col-span-2 sm:col-span-1 text-center sm:text-left">
-                  <p className="text-2xl sm:text-3xl font-bold text-white">5+</p>
+                  <p className="text-2xl sm:text-3xl font-semibold text-[#10243E] dark:text-white">5+</p>
                   <p className="text-dark-500 text-xs sm:text-sm">Years Experience</p>
                 </div>
               </div>
@@ -131,9 +131,9 @@ export default function About() {
                 <motion.div
                   key={pillar.title}
                   variants={itemVariants}
-                  className="card group bg-dark-900/55 border-dark-800 rounded-lg hover:border-dark-600"
+                  className="card group bg-white/55 dark:bg-dark-900/55 border-[#DDD7CC] dark:border-dark-800 rounded-sm hover:border-[#AAB6C2] dark:hover:border-dark-600"
                 >
-                  <div className="w-12 h-12 rounded-md bg-primary-600/10 flex items-center justify-center mb-4 group-hover:bg-primary-600/20 transition-colors">
+                  <div className="w-12 h-12 rounded-sm bg-[#EEF1F3] dark:bg-primary-600/10 flex items-center justify-center mb-4 group-hover:bg-primary-600/20 transition-colors">
                     <pillar.icon 
                       className="w-6 h-6 text-primary-500" 
                       aria-hidden="true" 
@@ -142,7 +142,7 @@ export default function About() {
                   <h3 className="text-white font-semibold mb-2">
                     {pillar.title}
                   </h3>
-                  <p className="text-dark-400 text-sm leading-relaxed">
+                  <p className="text-[#697483] dark:text-dark-400 text-sm leading-relaxed">
                     {pillar.description}
                   </p>
                 </motion.div>
