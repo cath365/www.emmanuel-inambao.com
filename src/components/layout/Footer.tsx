@@ -9,14 +9,14 @@ export default function Footer() {
   const { t } = useLanguage()
 
   return (
-    <footer className="bg-dark-900 border-t border-dark-800" role="contentinfo">
+    <footer className="bg-dark-900 border-t-2 border-t-accent-600/50" role="contentinfo">
       <div className="section-container py-12 lg:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand Section */}
           <div className="lg:col-span-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-white font-bold text-xl mb-4"
+              className="inline-flex items-center gap-2 text-dark-50 font-display font-medium text-2xl mb-4"
               aria-label="Emmanuel Inambao - Home"
             >
               <Cpu className="w-6 h-6 text-primary-500" aria-hidden="true" />
@@ -33,7 +33,7 @@ export default function Footer() {
                 href="https://github.com/cath365"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg transition-all duration-200"
+                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-sm transition-colors duration-200"
                 aria-label="GitHub Profile"
               >
                 <Github className="w-5 h-5" aria-hidden="true" />
@@ -42,21 +42,21 @@ export default function Footer() {
                 href="https://linkedin.com/in/emmanuelinambao"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg transition-all duration-200"
+                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-sm transition-colors duration-200"
                 aria-label="LinkedIn Profile"
               >
                 <Linkedin className="w-5 h-5" aria-hidden="true" />
               </a>
               <a
                 href="mailto:denuelinambao@gmail.com"
-                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg transition-all duration-200"
+                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-sm transition-colors duration-200"
                 aria-label="Email Emmanuel"
               >
                 <Mail className="w-5 h-5" aria-hidden="true" />
               </a>
               <a
                 href="https://wa.me/260973914432"
-                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg transition-all duration-200"
+                className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-sm transition-colors duration-200"
                 aria-label="WhatsApp Emmanuel"
               >
                 <Phone className="w-5 h-5" aria-hidden="true" />
@@ -65,7 +65,7 @@ export default function Footer() {
                 href="/api/rss"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2 text-dark-400 hover:text-orange-400 hover:bg-dark-800 rounded-lg transition-all duration-200"
+                className="p-2 text-dark-400 hover:text-orange-400 hover:bg-dark-800 rounded-sm transition-colors duration-200"
                 aria-label="RSS Feed"
               >
                 <Rss className="w-5 h-5" aria-hidden="true" />
