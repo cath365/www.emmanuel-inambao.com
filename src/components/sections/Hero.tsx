@@ -40,12 +40,13 @@ export default function Hero() {
             priority
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-dark-900 to-dark-950">
+          <div className="absolute inset-0 bg-dark-900">
             {/* Default cover pattern */}
             <div
               className="absolute inset-0 opacity-10"
               style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundImage: 'linear-gradient(rgba(201,170,109,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(201,170,109,0.08) 1px, transparent 1px)',
+                backgroundSize: '72px 72px',
               }}
             />
             {/* Gradient overlay for depth */}
@@ -58,7 +59,7 @@ export default function Hero() {
 
       {/* Profile Card - overlapping the cover */}
       <div className="relative section-container -mt-16 sm:-mt-20 z-10">
-        <div className="bg-dark-900/95 backdrop-blur-md border border-dark-700/80 rounded-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-black/10">
+        <div className="bg-dark-900/98 border border-dark-700/80 border-t-2 border-t-accent-500/70 rounded-sm p-4 sm:p-6 md:p-8 shadow-2xl shadow-black/20">
           {/* Top row: Profile photo + name + status */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
             {/* Profile Photo */}
@@ -89,9 +90,9 @@ export default function Hero() {
             {/* Name + Title + Status */}
             <div className="flex-1 text-center sm:text-left pt-0 sm:pt-2">
               <motion.div initial="hidden" animate="visible" variants={itemVariants}>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-medium text-dark-50 tracking-tight">
                   {firstName}{' '}
-                  <span className="text-primary-300">{lastName}</span>
+                  <span className="text-accent-300">{lastName}</span>
                 </h1>
               </motion.div>
 
@@ -108,7 +109,7 @@ export default function Hero() {
                     'Full-Stack Systems Engineer',
                     'AI-Integrated Product Builder',
                   ]}
-                  className="text-primary-400"
+                  className="text-primary-300"
                 />
               </motion.p>
 
@@ -135,8 +136,8 @@ export default function Hero() {
 
               {/* Status badge */}
               <motion.div initial="hidden" animate="visible" variants={itemVariants} className="mt-3">
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/5 border border-green-500/20 rounded-full text-sm text-green-400">
-                  <span className="w-2 h-2 bg-green-500 rounded-full " />
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-dark-950/50 border border-accent-500/30 rounded-sm text-xs uppercase tracking-[0.12em] text-accent-300">
+                  <span className="w-1.5 h-1.5 bg-accent-400 rounded-full" />
                   {profile.status || 'Available for Engineering Projects'}
                 </span>
               </motion.div>
