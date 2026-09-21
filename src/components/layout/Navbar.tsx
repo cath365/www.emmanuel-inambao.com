@@ -1,116 +1,101 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Cpu, Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Cpu, Menu, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import ThemeToggle from '@/components/ui/ThemeToggle'
-import { LanguageSwitcher, useLanguage } from '@/lib/i18n'
+import { LanguageSwitcher } from '@/lib/i18n'
 
-// Navigation links configuration
-const navLinks: Array<{ href: string; labelKey?: string; label?: string }> = [
-  { href: '/#about', labelKey: 'nav.about' },
-  { href: '/#skills', labelKey: 'nav.skills' },
-  { href: '/#projects', labelKey: 'nav.projects' },
-  { href: '/hire', label: 'Hire / Work With Me' },
+const navLinks = [
+  { href: '/#about', label: 'Profile' },
+  { href: '/#projects', label: 'Engineering Work' },
   { href: '/capabilities', label: 'Capabilities' },
-  { href: '/start-project', labelKey: 'hero.cta.contact' },
-  { href: '/case-studies', labelKey: 'nav.caseStudies' },
-  { href: '/blog', labelKey: 'nav.blog' },
-  { href: '/#contact', labelKey: 'nav.contact' },
+  { href: '/hire', label: 'Work With Me' },
+  { href: '/hire/dossier', label: 'Dossier' },
+  { href: '/case-studies', label: 'Case Studies' },
 ]
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const { t } = useLanguage()
 
-  // Handle scroll effect for navbar background
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-    }
+    const handleScroll = () => setIsScrolled(window.scrollY > 40)
+    handleScroll()
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Close mobile menu when clicking a link
-  const handleLinkClick = () => {
-    setIsOpen(false)
-  }
-
-  // Open command palette
   const openCommandPalette = () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
   }
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ${
         isScrolled
-          ? 'bg-dark-950/95 light:bg-white/95 backdrop-blur-md border-b border-dark-800 light:border-slate-200'
-          : 'bg-transparent'
+          ? 'border-dark-800/80 bg-dark-950/95 backdrop-blur-xl light:border-slate-200 light:bg-white/95'
+          : 'border-transparent bg-dark-950/55 backdrop-blur-md'
       }`}
     >
       <nav className="section-container" aria-label="Main navigation">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
+        <div className="flex h-16 items-center justify-between lg:h-20">
           <Link
             href="/"
-            className="flex items-center gap-2 text-white font-bold text-xl hover:text-primary-400 transition-colors"
+            className="flex items-center gap-3 text-white transition hover:text-primary-300"
             aria-label="Emmanuel Inambao - Home"
           >
-            <Cpu className="w-6 h-6 text-primary-500" aria-hidden="true" />
-            <span className="hidden sm:inline">E.Inambao</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-dark-700 bg-dark-900">
+              <Cpu className="h-5 w-5 text-primary-400" aria-hidden="true" />
+            </span>
+            <span className="hidden sm:block">
+              <span className="block text-sm font-semibold tracking-wide">Emmanuel Inambao</span>
+              <span className="block text-[10px] uppercase tracking-[0.16em] text-dark-500">
+                Engineering Systems
+              </span>
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-6">
-            {navLinks.map((link) => (
+          <div className="hidden items-center gap-5 lg:flex">
+            {navLinks.map(link => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 transition-colors duration-200 font-medium text-sm"
+                className="text-sm font-medium text-dark-300 transition-colors hover:text-white light:text-slate-600 light:hover:text-slate-900"
               >
-                {link.label || t(link.labelKey || '')}
+                {link.label}
               </Link>
             ))}
 
-            {/* Command Palette Trigger */}
             <button
               onClick={openCommandPalette}
-              className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-xs text-dark-400 bg-dark-800/50
-                         border border-dark-700 rounded-lg hover:border-dark-600 hover:text-dark-300 transition-all"
-              aria-label="Search (Ctrl+K)"
+              className="hidden items-center gap-2 rounded-lg border border-dark-700 bg-dark-900/60 px-3 py-1.5 text-xs text-dark-400 transition hover:border-dark-600 hover:text-dark-200 xl:flex"
+              aria-label="Search portfolio"
             >
-              <Search className="w-3.5 h-3.5" />
-              <kbd className="text-[10px] text-dark-500 font-mono">Ctrl K</kbd>
+              <Search className="h-3.5 w-3.5" />
+              <kbd className="font-mono text-[10px] text-dark-500">Ctrl K</kbd>
             </button>
 
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="/#contact" className="btn-primary text-sm">
-              {t('hero.cta.contact')}
+
+            <Link href="/#contact" className="btn-primary px-4 py-2 text-sm">
+              Discuss an opportunity
             </Link>
           </div>
 
-          {/* Mobile menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 text-dark-300 hover:text-white transition-colors"
+            className="p-2 text-dark-300 transition-colors hover:text-white lg:hidden"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
           >
-            {isOpen ? (
-              <X className="w-6 h-6" aria-hidden="true" />
-            ) : (
-              <Menu className="w-6 h-6" aria-hidden="true" />
-            )}
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -118,41 +103,42 @@ export default function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="lg:hidden overflow-hidden"
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden lg:hidden"
             >
-              <div className="py-4 space-y-2 border-t border-dark-800 light:border-slate-200">
-                {navLinks.map((link, index) => (
-                  <motion.div
-                    key={link.href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Link
-                      href={link.href}
-                      onClick={handleLinkClick}
-                      className="block py-3 px-4 text-center text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 hover:bg-dark-800/50 light:hover:bg-slate-100
-                                 rounded-lg transition-all duration-200 font-medium"
+              <div className="border-t border-dark-800 py-4">
+                <div className="grid gap-1">
+                  {navLinks.map((link, index) => (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.035 }}
                     >
-                      {link.label || t(link.labelKey || '')}
-                    </Link>
-                  </motion.div>
-                ))}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: navLinks.length * 0.05 }}
-                  className="pt-2"
-                >
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsOpen(false)}
+                        className="block rounded-lg px-4 py-3 text-sm font-medium text-dark-300 transition hover:bg-dark-900 hover:text-white"
+                      >
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-dark-800 pt-4">
+                  <div className="flex items-center gap-2">
+                    <LanguageSwitcher />
+                    <ThemeToggle />
+                  </div>
                   <Link
                     href="/#contact"
-                    onClick={handleLinkClick}
-                    className="btn-primary w-full text-center"
+                    onClick={() => setIsOpen(false)}
+                    className="btn-primary px-4 py-2 text-sm"
                   >
-                    {t('hero.cta.contact')}
+                    Discuss an opportunity
                   </Link>
-                </motion.div>
+                </div>
               </div>
             </motion.div>
           )}
