@@ -174,8 +174,8 @@ export default function Contact() {
                 {contactInfo.map((item) => {
                   const Icon = item.icon
                   const content = (
-                    <div className="flex items-center gap-4 p-4 bg-dark-800/50 border border-dark-700 rounded-xl hover:border-primary-500/50 transition-all duration-300">
-                      <div className="p-3 rounded-lg bg-primary-600/10">
+                    <div className="flex items-center gap-4 p-4 bg-dark-900/70 border border-dark-700/80 rounded-sm hover:border-accent-500/40 transition-colors duration-200">
+                      <div className="p-3 rounded-sm border border-dark-700 bg-dark-950">
                         <Icon className="w-5 h-5 text-primary-400" aria-hidden="true" />
                       </div>
                       <div>
@@ -214,7 +214,7 @@ export default function Contact() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-dark-800/50 border border-dark-700 rounded-xl hover:border-primary-500/50 transition-all duration-300 group"
+                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-dark-900/70 border border-dark-700/80 rounded-sm hover:border-accent-500/40 transition-colors duration-200 group"
                       aria-label={`${social.label}: ${social.username}`}
                     >
                       <Icon className="w-5 h-5 text-dark-400 group-hover:text-primary-400 transition-colors" aria-hidden="true" />
@@ -228,11 +228,11 @@ export default function Contact() {
               </div>
 
               {/* Availability note */}
-              <div className="mt-8 p-4 bg-green-900/20 border border-green-700/30 rounded-xl">
+              <div className="mt-8 p-4 bg-dark-900/70 border border-accent-700/30 rounded-sm">
                 <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 mt-1 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                  <div className="w-3 h-3 mt-1 rounded-full bg-accent-400" aria-hidden="true" />
                   <div>
-                    <p className="text-green-400 font-medium">Available for Projects</p>
+                    <p className="text-accent-300 font-medium">Available for Projects</p>
                     <p className="text-dark-400 text-sm mt-1">
                       Currently accepting new engineering projects and consultations.
                       Response time: typically within 24 hours.
@@ -276,7 +276,7 @@ export default function Contact() {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
+                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-sm text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                       placeholder="John Doe"
                     />
                   </div>
@@ -296,7 +296,7 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
+                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-sm text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -315,7 +315,7 @@ export default function Contact() {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
+                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-sm text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
                     >
                       <option value="">Select a topic</option>
                       <option value="project">Project Inquiry</option>
@@ -341,7 +341,7 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       rows={5}
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-sm text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors resize-none"
                       placeholder="Tell me about your project or inquiry..."
                     />
                   </div>
@@ -406,7 +406,7 @@ export default function Contact() {
                   </p>
                   <a 
                     href={`mailto:${profile.email}?subject=Portfolio%20Contact`} 
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-dark-800/50 border border-dark-700 rounded-lg text-primary-400 hover:bg-dark-700/50 hover:border-primary-500/50 transition-all"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-dark-800/50 border border-dark-700 rounded-sm text-primary-300 hover:bg-dark-700/50 hover:border-primary-500/50 transition-all"
                   >
                     <Mail className="w-5 h-5" />
                     {profile.email}
