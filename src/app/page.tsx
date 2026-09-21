@@ -27,8 +27,8 @@ export default function Home() {
       <SectionViewTracker />
       <Hero />
       <ClientLogos />
-      <About />
       <Projects />
+      <About />
       <EngineeringCTA />
       <Skills />
       <GitHubContributions username="cath365" />
