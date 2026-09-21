@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 
+// Current public GitHub identity: @cath365
+
 export default function GitHubContributions({ username = 'cath365' }: { username?: string }) {
   return (
     <section className="py-12">
