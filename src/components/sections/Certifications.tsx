@@ -13,7 +13,7 @@ export default function Certifications() {
   }
 
   return (
-    <section id="certifications" className="py-20 bg-dark-900">
+    <section id="certifications" className="py-20 bg-[#FCFBF7] dark:bg-dark-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -22,10 +22,10 @@ export default function Certifications() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            <span className="text-primary-500">Certifications</span> & Credentials
+          <h2 className="text-3xl sm:text-4xl font-display font-medium text-[#10243E] dark:text-white mb-4">
+            <span className="text-[#526E8A] dark:text-primary-500">Certifications</span> & Credentials
           </h2>
-          <p className="text-dark-300 max-w-2xl mx-auto">
+          <p className="text-[#667384] dark:text-[#566273] dark:text-dark-300 max-w-2xl mx-auto">
             Professional certifications and achievements that validate my expertise
           </p>
         </motion.div>
@@ -38,7 +38,7 @@ export default function Certifications() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group bg-dark-800/50 border border-dark-700 rounded-xl overflow-hidden hover:border-primary-500/50 transition-all duration-300"
+              className="group bg-white/70 dark:bg-dark-800/50 border border-[#DDD7CC] dark:border-dark-700 rounded-sm overflow-hidden hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-all duration-300"
             >
               {cert.image ? (
                 <div className="relative h-40 bg-dark-700 overflow-hidden">
@@ -57,27 +57,27 @@ export default function Certifications() {
               )}
 
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary-400 transition-colors">
+                <h3 className="text-lg font-semibold text-[#10243E] dark:text-white mb-2 group-hover:text-[#526E8A] dark:text-primary-400 transition-colors">
                   {cert.name}
                 </h3>
-                <p className="text-primary-400 font-medium mb-3">{cert.issuer}</p>
+                <p className="text-[#526E8A] dark:text-primary-400 font-medium mb-3">{cert.issuer}</p>
 
-                <div className="flex items-center gap-2 text-sm text-dark-400 mb-3">
+                <div className="flex items-center gap-2 text-sm text-[#697483] dark:text-dark-400 mb-3">
                   <Calendar className="w-4 h-4" />
                   <span>Issued: {cert.issueDate}</span>
                   {cert.expiryDate && (
-                    <span className="text-dark-500">• Expires: {cert.expiryDate}</span>
+                    <span className="text-[#7C8792] dark:text-dark-500">• Expires: {cert.expiryDate}</span>
                   )}
                 </div>
 
                 {cert.credentialId && (
-                  <p className="text-xs text-dark-500 mb-3">
+                  <p className="text-xs text-[#7C8792] dark:text-dark-500 mb-3">
                     Credential ID: {cert.credentialId}
                   </p>
                 )}
 
                 {cert.description && (
-                  <p className="text-dark-300 text-sm mb-4 line-clamp-2">
+                  <p className="text-[#566273] dark:text-dark-300 text-sm mb-4 line-clamp-2">
                     {cert.description}
                   </p>
                 )}
@@ -87,7 +87,7 @@ export default function Certifications() {
                     href={cert.credentialUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors"
+                    className="inline-flex items-center gap-2 text-[#526E8A] dark:text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Verify Credential
