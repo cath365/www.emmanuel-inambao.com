@@ -25,7 +25,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
       <div className={'relative overflow-hidden ' + (isEven ? 'lg:order-1' : 'lg:order-2')}>
         <Link
           href={'/projects/' + project.id}
-          className="group relative block aspect-video overflow-hidden rounded-2xl border border-dark-700 bg-dark-800"
+          className="group relative block aspect-video overflow-hidden rounded-sm border border-[#D5D0C7] dark:border-dark-700 bg-white/70 dark:bg-dark-800"
           aria-label={'Open ' + project.title + ' project details'}
         >
           {project.image ? (
@@ -34,7 +34,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                 src={project.image}
                 alt={project.title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
@@ -45,7 +45,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               <div className="absolute -bottom-16 -left-8 h-64 w-64 rounded-full border border-accent-400/10" />
               <div className="absolute inset-0 flex items-end p-6 sm:p-8">
                 <div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-primary-400">
+                  <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[#526E8A] dark:text-primary-400">
                     Engineering system
                   </span>
                   <p className="mt-2 max-w-md text-2xl font-bold text-white sm:text-3xl">
@@ -58,12 +58,12 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
           <div className="absolute left-4 top-4 flex flex-wrap gap-2">
             {project.featured && (
-              <span className="rounded-full border border-accent-300/30 bg-accent-400/15 px-3 py-1 text-xs font-semibold text-accent-300 backdrop-blur">
+              <span className="rounded-sm border border-[#CDBB92] dark:border-accent-300/30 bg-[#F7F2E7]/95 dark:bg-accent-400/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#7C6840] dark:text-accent-300 backdrop-blur">
                 Featured
               </span>
             )}
             {project.status && (
-              <span className="rounded-full border border-white/10 bg-dark-950/60 px-3 py-1 text-xs font-medium text-dark-200 backdrop-blur">
+              <span className="rounded-sm border border-[#D8D2C8] dark:border-white/10 bg-white/90 dark:bg-dark-950/60 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-[#566273] dark:text-dark-200 backdrop-blur">
                 {project.status}
               </span>
             )}
@@ -78,8 +78,8 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
           </p>
         )}
 
-        <h3 className="text-2xl font-bold text-white lg:text-3xl">
-          <Link href={'/projects/' + project.id} className="transition-colors hover:text-primary-300">
+        <h3 className="text-3xl font-display font-medium text-[#10243E] dark:text-white lg:text-4xl">
+          <Link href={'/projects/' + project.id} className="transition-colors hover:text-[#526E8A] dark:hover:text-primary-300">
             {project.title}
           </Link>
         </h3>
@@ -93,11 +93,11 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-dark-800 bg-dark-900/50 p-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-dark-300">Problem</h4>
-            <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-dark-400">{project.problemSolved}</p>
+          <div className="rounded-sm border border-[#DDD7CC] dark:border-dark-800 bg-[#FAF8F3] dark:bg-dark-900/50 p-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#4C5968] dark:text-dark-300">Problem</h4>
+            <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-[#687382] dark:text-dark-400">{project.problemSolved}</p>
           </div>
-          <div className="rounded-xl border border-dark-800 bg-dark-900/50 p-4">
+          <div className="rounded-sm border border-[#DDD7CC] dark:border-dark-800 bg-[#FAF8F3] dark:bg-dark-900/50 p-4">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-dark-300">Outcome</h4>
             <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-dark-400">{project.outcome}</p>
           </div>
@@ -106,19 +106,19 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <Link
             href={'/projects/' + project.id}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-500"
+            className="inline-flex items-center gap-2 rounded-sm bg-[#10243E] dark:bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1B3656] dark:hover:bg-primary-500"
           >
             View engineering details
             <ChevronRight className="h-4 w-4" />
           </Link>
 
           {project.liveUrl && (
-            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-primary-300 hover:text-primary-200">
+            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-[#526E8A] hover:text-[#10243E] dark:text-primary-300 dark:hover:text-primary-200">
               <ExternalLink className="h-4 w-4" /> Live
             </a>
           )}
           {project.githubUrl && (
-            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-dark-300 hover:text-white">
+            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-[#566273] hover:text-[#10243E] dark:text-dark-300 dark:hover:text-white">
               <Github className="h-4 w-4" /> Code
             </a>
           )}
