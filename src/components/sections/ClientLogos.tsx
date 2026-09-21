@@ -53,9 +53,9 @@ export default function ClientLogos() {
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="flex flex-col items-center justify-center p-6 bg-dark-800/30 border border-dark-700/50
-                         rounded-lg hover:border-dark-600 hover:bg-dark-800/40 transition-all duration-300 group"
+                         rounded-lg hover:border-accent-500/40 hover:bg-dark-800/40 transition-all duration-300 group"
             >
-              <client.icon className="w-8 h-8 text-dark-400 group-hover:text-primary-400 transition-colors mb-3" />
+              <client.icon className="w-8 h-8 text-dark-400 group-hover:text-accent-300 transition-colors mb-3" />
               <p className="text-xs text-dark-400 group-hover:text-dark-300 text-center font-medium transition-colors">
                 {client.name}
               </p>
