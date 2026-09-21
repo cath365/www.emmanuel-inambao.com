@@ -54,7 +54,7 @@ export default function HowIWork() {
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 
   return (
-    <section ref={ref} id="process" className="py-20 lg:py-32">
+    <section ref={ref} id="process" className="py-20 lg:py-32 bg-[#F7F5EF] dark:bg-dark-950">
       <div className="section-container">
         {/* Header */}
         <motion.div
@@ -63,7 +63,7 @@ export default function HowIWork() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <p className="text-primary-400 font-semibold text-sm uppercase tracking-wider mb-3">
+          <p className="text-[#526E8A] dark:text-primary-400 font-semibold text-sm uppercase tracking-wider mb-3">
             My Process
           </p>
           <h2 className="section-heading">How I Work</h2>
@@ -83,22 +83,22 @@ export default function HowIWork() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="relative group"
             >
-              <div className="card h-full hover:translate-y-[-4px] transition-all duration-300">
+              <div className="card h-full hover:translate-y-[-1px] transition-all duration-200">
                 {/* Step Number */}
                 <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl
-                                bg-gradient-to-br ${step.color} mb-4`}>
+                                bg-[#10243E] dark:bg-gradient-to-br dark:${step.color} mb-4`}>
                   <step.icon className="w-6 h-6 text-white" />
                 </div>
 
                 {/* Number badge */}
-                <span className="absolute top-4 right-4 text-4xl font-black text-dark-800/50 light:text-slate-200/50 select-none">
+                <span className="absolute top-4 right-4 text-4xl font-black text-[#D6D0C7] dark:text-dark-800/50 select-none">
                   {step.number}
                 </span>
 
-                <h3 className="text-lg font-bold text-white light:text-slate-900 mb-2">
+                <h3 className="text-lg font-semibold text-[#10243E] dark:text-white mb-2">
                   {step.title}
                 </h3>
-                <p className="text-dark-400 text-sm leading-relaxed">
+                <p className="text-[#697483] dark:text-dark-400 text-sm leading-relaxed">
                   {step.description}
                 </p>
               </div>
