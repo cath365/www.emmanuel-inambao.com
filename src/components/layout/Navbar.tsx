@@ -48,7 +48,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-dark-950/96 light:bg-white/96 backdrop-blur-xl border-b border-dark-800/80 light:border-slate-200'
+          ? 'bg-dark-950/98 light:bg-white/98 backdrop-blur-xl border-b border-accent-700/40 light:border-slate-200'
           : 'bg-transparent'
       }`}
     >
@@ -57,10 +57,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-white font-semibold text-lg hover:text-primary-300 transition-colors tracking-tight"
+            className="flex items-center gap-2.5 text-dark-50 font-display font-medium text-xl hover:text-accent-300 transition-colors tracking-tight"
             aria-label="Emmanuel Inambao - Home"
           >
-            <Cpu className="w-5 h-5 text-primary-400" aria-hidden="true" />
+            <Cpu className="w-5 h-5 text-accent-400" aria-hidden="true" />
             <span className="hidden sm:inline">E.Inambao</span>
           </Link>
 
@@ -70,7 +70,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 transition-colors duration-200 font-medium text-sm"
+                className="text-dark-300 light:text-slate-600 hover:text-accent-300 light:hover:text-slate-900 transition-colors duration-200 font-medium text-sm"
               >
                 {link.label || t(link.labelKey || '')}
               </Link>
