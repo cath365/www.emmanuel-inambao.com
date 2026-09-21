@@ -62,7 +62,7 @@ export default function About() {
     <section
       id="about"
       ref={ref}
-      className="py-20 lg:py-32 bg-dark-900/50"
+      className="py-20 lg:py-28 bg-dark-900/35 border-y border-dark-800/60"
       aria-labelledby="about-heading"
     >
       <div className="section-container">
@@ -72,11 +72,11 @@ export default function About() {
           animate={isInView ? 'visible' : 'hidden'}
         >
           {/* Section header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
+          <motion.div variants={itemVariants} className="text-center mb-14">
             <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
               {t('about.title')}
             </span>
-            <h2 id="about-heading" className="section-heading mt-2">
+            <h2 id="about-heading" className="section-heading mt-3 tracking-tight">
               {t('about.heading')}
             </h2>
           </motion.div>
@@ -86,7 +86,7 @@ export default function About() {
             {/* Story section */}
             <motion.div variants={itemVariants} className="space-y-6">
               <p className="text-lg text-dark-200 leading-relaxed">
-                I'm <strong className="text-white">Professor Emmanuel Inambao</strong>, 
+                I'm <strong className="text-white">Emmanuel Inambao</strong>, 
                 an Electronic Engineer based in Lusaka, Zambia. With hands-on experience across embedded systems, IoT, robotics and full-stack development, 
                 I build complete systems — from sensors and firmware to APIs, mobile applications and dashboards.
               </p>
@@ -131,9 +131,9 @@ export default function About() {
                 <motion.div
                   key={pillar.title}
                   variants={itemVariants}
-                  className="card group"
+                  className="card group bg-dark-900/55 border-dark-800 rounded-lg hover:border-dark-600"
                 >
-                  <div className="w-12 h-12 rounded-lg bg-primary-600/10 flex items-center justify-center mb-4 group-hover:bg-primary-600/20 transition-colors">
+                  <div className="w-12 h-12 rounded-md bg-primary-600/10 flex items-center justify-center mb-4 group-hover:bg-primary-600/20 transition-colors">
                     <pillar.icon 
                       className="w-6 h-6 text-primary-500" 
                       aria-hidden="true" 

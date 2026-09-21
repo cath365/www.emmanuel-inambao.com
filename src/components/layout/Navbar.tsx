@@ -48,7 +48,7 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-dark-950/95 light:bg-white/95 backdrop-blur-md border-b border-dark-800 light:border-slate-200'
+          ? 'bg-dark-950/96 light:bg-white/96 backdrop-blur-xl border-b border-dark-800/80 light:border-slate-200'
           : 'bg-transparent'
       }`}
     >
@@ -57,15 +57,15 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 text-white font-bold text-xl hover:text-primary-400 transition-colors"
+            className="flex items-center gap-2.5 text-white font-semibold text-lg hover:text-primary-300 transition-colors tracking-tight"
             aria-label="Emmanuel Inambao - Home"
           >
-            <Cpu className="w-6 h-6 text-primary-500" aria-hidden="true" />
+            <Cpu className="w-5 h-5 text-primary-400" aria-hidden="true" />
             <span className="hidden sm:inline">E.Inambao</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -80,7 +80,7 @@ export default function Navbar() {
             <button
               onClick={openCommandPalette}
               className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-xs text-dark-400 bg-dark-800/50
-                         border border-dark-700 rounded-lg hover:border-dark-600 hover:text-dark-300 transition-all"
+                         border border-dark-700 rounded-md hover:border-dark-600 hover:text-dark-300 transition-all"
               aria-label="Search (Ctrl+K)"
             >
               <Search className="w-3.5 h-3.5" />
@@ -89,7 +89,7 @@ export default function Navbar() {
 
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="/#contact" className="btn-primary text-sm">
+            <Link href="/#contact" className="btn-primary text-sm rounded-md">
               {t('hero.cta.contact')}
             </Link>
           </div>

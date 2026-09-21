@@ -30,7 +30,7 @@ export default function Hero() {
   return (
     <section id="hero" className="relative" aria-label="Introduction">
       {/* Cover Banner - LinkedIn style */}
-      <div className="relative w-full h-48 sm:h-56 md:h-72 lg:h-80 overflow-hidden">
+      <div className="relative w-full h-44 sm:h-52 md:h-64 lg:h-72 overflow-hidden">
         {profile.coverImage ? (
           <Image
             src={profile.coverImage}
@@ -40,7 +40,7 @@ export default function Hero() {
             priority
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-dark-900 to-dark-950">
             {/* Default cover pattern */}
             <div
               className="absolute inset-0 opacity-10"
@@ -58,7 +58,7 @@ export default function Hero() {
 
       {/* Profile Card - overlapping the cover */}
       <div className="relative section-container -mt-16 sm:-mt-20 z-10">
-        <div className="bg-dark-900/90 backdrop-blur-sm border border-dark-700 rounded-2xl p-4 sm:p-6 md:p-8">
+        <div className="bg-dark-900/95 backdrop-blur-md border border-dark-700/80 rounded-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-black/10">
           {/* Top row: Profile photo + name + status */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
             {/* Profile Photo */}
@@ -68,7 +68,7 @@ export default function Hero() {
               transition={{ duration: 0.5 }}
               className="flex-shrink-0 -mt-16 sm:-mt-20 self-center sm:self-start"
             >
-              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-dark-900 shadow-2xl bg-dark-800">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-dark-900 shadow-lg bg-dark-800">
                 {profile.image ? (
                   <Image
                     src={profile.image}
@@ -91,7 +91,7 @@ export default function Hero() {
               <motion.div initial="hidden" animate="visible" variants={itemVariants}>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
                   {firstName}{' '}
-                  <span className="gradient-text">{lastName}</span>
+                  <span className="text-primary-300">{lastName}</span>
                 </h1>
               </motion.div>
 
@@ -135,8 +135,8 @@ export default function Hero() {
 
               {/* Status badge */}
               <motion.div initial="hidden" animate="visible" variants={itemVariants} className="mt-3">
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-full text-sm text-green-400">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/5 border border-green-500/20 rounded-full text-sm text-green-400">
+                  <span className="w-2 h-2 bg-green-500 rounded-full " />
                   {profile.status || 'Available for Engineering Projects'}
                 </span>
               </motion.div>
@@ -160,11 +160,11 @@ export default function Hero() {
             variants={itemVariants}
             className="flex flex-wrap items-center gap-3 mt-5 sm:mt-6"
           >
-            <Link href="/start-project" className="btn-primary group text-sm sm:text-base">
+            <Link href="/start-project" className="btn-primary group text-sm sm:text-base rounded-md">
               Start Your Project
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link href="/hire" className="btn-secondary group text-sm sm:text-base">
+            <Link href="/hire" className="btn-secondary group text-sm sm:text-base rounded-md">
               Hire / Work With Me
               <Briefcase className="w-4 h-4" />
             </Link>
@@ -183,7 +183,7 @@ export default function Hero() {
                 {t('hero.cta.cv')}
               </a>
             )}
-            <Link href="#contact" className="btn-accent text-sm sm:text-base">
+            <Link href="#contact" className="btn-accent text-sm sm:text-base rounded-md">
               <Mail className="w-4 h-4" />
               {t('hero.cta.contact')}
             </Link>
@@ -215,7 +215,7 @@ export default function Hero() {
       >
         <Link
           href="#about"
-          className="flex flex-col items-center gap-2 text-dark-500 hover:text-primary-400 transition-colors"
+          className="flex flex-col items-center gap-2 text-dark-500 hover:text-dark-300 transition-colors"
           aria-label="Scroll to About section"
         >
           <span className="text-sm font-medium">Scroll</span>
