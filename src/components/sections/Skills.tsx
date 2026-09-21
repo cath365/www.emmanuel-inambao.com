@@ -39,12 +39,12 @@ const iconMap = {
 function SkillBadge({ name, level }: { name: string; level: number }) {
   return (
     <div className="group relative">
-      <div className="flex items-center justify-between p-3 bg-dark-800/50 rounded-lg border border-dark-700 hover:border-primary-500/50 transition-all duration-300">
-        <span className="text-dark-200 text-sm font-medium">{name}</span>
-        <span className="text-primary-400 text-xs font-mono">{level}%</span>
+      <div className="flex items-center justify-between p-3 bg-white/65 dark:bg-dark-800/50 rounded-sm border border-[#DDD7CC] dark:border-dark-700 hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-all duration-300">
+        <span className="text-[#39495A] dark:text-dark-200 text-sm font-medium">{name}</span>
+        <span className="text-[#526E8A] dark:text-primary-400 text-xs font-mono">{level}%</span>
       </div>
       {/* Skill level bar */}
-      <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-b-lg transition-all duration-500 group-hover:h-1" 
+      <div className="absolute bottom-0 left-0 h-0.5 bg-[#526E8A] dark:bg-gradient-to-r dark:from-primary-500 dark:to-accent-500 rounded-b-lg transition-all duration-500 group-hover:h-1" 
            style={{ width: `${level}%` }} 
       />
     </div>
@@ -81,8 +81,8 @@ function SkillCard({
           <Icon className="w-6 h-6 text-white" aria-hidden="true" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-white">{category.title}</h3>
-          <p className="text-dark-400 text-sm mt-1">{category.description}</p>
+          <h3 className="text-xl font-bold text-[#10243E] dark:text-white">{category.title}</h3>
+          <p className="text-[#697483] dark:text-dark-400 text-sm mt-1">{category.description}</p>
         </div>
       </div>
       
@@ -118,7 +118,7 @@ export default function Skills() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
+          <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-wider">
             {t('skills.title')}
           </span>
           <h2 id="skills-heading" className="section-heading mt-2">
@@ -164,7 +164,7 @@ export default function Skills() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 text-center"
         >
-          <h3 className="text-lg font-semibold text-white mb-6">
+          <h3 className="text-lg font-semibold text-[#10243E] dark:text-white mb-6">
             Tools & Platforms I Work With
           </h3>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
@@ -184,7 +184,7 @@ export default function Skills() {
             ].map((tool) => (
               <span
                 key={tool}
-                className="tech-badge hover:border-primary-500/50 hover:text-primary-400 transition-all duration-200"
+                className="tech-badge hover:border-[#AAB6C2] hover:text-[#526E8A] dark:hover:border-primary-500/50 dark:hover:text-primary-400 transition-all duration-200"
               >
                 {tool}
               </span>
