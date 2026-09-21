@@ -8,7 +8,7 @@ import {
   Cpu,
   Factory,
   GraduationCap,
-  Handshake,
+  Users,
   Plane,
   ShieldCheck,
   Stethoscope,
@@ -37,7 +37,7 @@ const sectors = [
     href: '/projects',
   },
   {
-    icon: Handshake,
+    icon: Users,
     title: 'NGOs & development programs',
     text: 'Field data, assistive technology, mobile workflows and offline-first digital services.',
     href: '/hire',

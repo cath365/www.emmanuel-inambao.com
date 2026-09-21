@@ -5,14 +5,13 @@ import Link from 'next/link'
 import { useState } from 'react'
 import {
   ArrowRight,
-  BriefcaseBusiness,
+  Briefcase,
   CheckCircle2,
   Cpu,
   Download,
   ExternalLink,
   FileText,
   Globe2,
-  Handshake,
   Layers3,
   Mail,
   MapPin,
@@ -60,7 +59,7 @@ const capabilityBlocks = [
 
 const engagementOptions = [
   {
-    icon: BriefcaseBusiness,
+    icon: Briefcase,
     title: 'Remote engineering role',
     text: 'For teams hiring across embedded systems, IoT, robotics, product engineering or hardware-connected software.',
     action: 'Discuss a role',
@@ -74,7 +73,7 @@ const engagementOptions = [
     href: '/start-project',
   },
   {
-    icon: Handshake,
+    icon: Users,
     title: 'Technical partnership',
     text: 'For organizations looking for a long-term engineering collaborator on R&D, assistive technology, industrial systems or connected products.',
     action: 'Discuss partnership',
