@@ -30,7 +30,7 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex items-center gap-4">
               <a
-                href="https://github.com/bolo3574"
+                href="https://github.com/cath365"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 text-dark-400 hover:text-white hover:bg-dark-800 rounded-lg transition-all duration-200"
@@ -78,11 +78,11 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               {[
-                { key: 'nav.about', href: '#about' },
-                { key: 'nav.skills', href: '#skills' },
-                { key: 'nav.projects', href: '#projects' },
-                { key: 'nav.education', href: '#education' },
-                { key: 'nav.contact', href: '#contact' }
+                { key: 'nav.about', href: '/#about' },
+                { key: 'nav.skills', href: '/#skills' },
+                { key: 'nav.projects', href: '/#projects' },
+                { key: 'nav.education', href: '/#education' },
+                { key: 'nav.contact', href: '/#contact' }
               ].map((link) => (
                 <li key={link.key}>
                   <Link
@@ -101,6 +101,26 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Resources</h3>
             <ul className="space-y-2">
               <li>
+                <Link href="/hire" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
+                  Hire / Work With Me
+                </Link>
+              </li>
+              <li>
+                <Link href="/hire/dossier" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
+                  Professional Dossier
+                </Link>
+              </li>
+              <li>
+                <Link href="/capabilities" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
+                  Institutional Capabilities
+                </Link>
+              </li>
+              <li>
+                <Link href="/capabilities/request" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
+                  Institutional RFQ
+                </Link>
+              </li>
+              <li>
                 <Link href="/start-project" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
                   Start Project
                 </Link>
@@ -113,11 +133,6 @@ export default function Footer() {
               <li>
                 <Link href="/case-studies" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
                   Case Studies
-                </Link>
-              </li>
-              <li>
-                <Link href="/resume" className="text-dark-400 hover:text-primary-400 transition-colors duration-200">
-                  Resume
                 </Link>
               </li>
               <li>
@@ -145,7 +160,7 @@ export default function Footer() {
         <div className="mt-6 pt-6 border-t border-dark-800">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left">
             <p className="text-dark-500 text-sm">
-              &copy; {currentYear} Prof. Emmanuel Inambao. {t('footer.rights')}
+              &copy; {currentYear} Emmanuel Inambao. {t('footer.rights')}
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
               <Link

@@ -129,7 +129,7 @@ export default function Education() {
                 "True engineering excellence isn't measured by what you build alone, 
                 but by how many others you empower to build alongside you."
               </blockquote>
-              <p className="mt-4 text-dark-500">— Prof. Emmanuel Inambao</p>
+              <p className="mt-4 text-dark-500">— Emmanuel Inambao</p>
             </div>
           </motion.div>
 

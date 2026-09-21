@@ -8,14 +8,16 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 import { LanguageSwitcher, useLanguage } from '@/lib/i18n'
 
 // Navigation links configuration
-const navLinks = [
-  { href: '#about', labelKey: 'nav.about' },
-  { href: '#skills', labelKey: 'nav.skills' },
-  { href: '#projects', labelKey: 'nav.projects' },
+const navLinks: Array<{ href: string; labelKey?: string; label?: string }> = [
+  { href: '/#about', labelKey: 'nav.about' },
+  { href: '/#skills', labelKey: 'nav.skills' },
+  { href: '/#projects', labelKey: 'nav.projects' },
+  { href: '/hire', label: 'Hire / Work With Me' },
+  { href: '/capabilities', label: 'Capabilities' },
   { href: '/start-project', labelKey: 'hero.cta.contact' },
   { href: '/case-studies', labelKey: 'nav.caseStudies' },
   { href: '/blog', labelKey: 'nav.blog' },
-  { href: '#contact', labelKey: 'nav.contact' },
+  { href: '/#contact', labelKey: 'nav.contact' },
 ]
 
 export default function Navbar() {
@@ -70,7 +72,7 @@ export default function Navbar() {
                 href={link.href}
                 className="text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 transition-colors duration-200 font-medium text-sm"
               >
-                {t(link.labelKey)}
+                {link.label || t(link.labelKey || '')}
               </Link>
             ))}
 
@@ -87,7 +89,7 @@ export default function Navbar() {
 
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="#contact" className="btn-primary text-sm">
+            <Link href="/#contact" className="btn-primary text-sm">
               {t('hero.cta.contact')}
             </Link>
           </div>
@@ -133,7 +135,7 @@ export default function Navbar() {
                       className="block py-3 px-4 text-center text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 hover:bg-dark-800/50 light:hover:bg-slate-100
                                  rounded-lg transition-all duration-200 font-medium"
                     >
-                      {t(link.labelKey)}
+                      {link.label || t(link.labelKey || '')}
                     </Link>
                   </motion.div>
                 ))}
@@ -144,7 +146,7 @@ export default function Navbar() {
                   className="pt-2"
                 >
                   <Link
-                    href="#contact"
+                    href="/#contact"
                     onClick={handleLinkClick}
                     className="btn-primary w-full text-center"
                   >

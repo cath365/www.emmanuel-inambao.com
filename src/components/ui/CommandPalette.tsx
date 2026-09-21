@@ -5,26 +5,31 @@ import { Command } from 'cmdk'
 import { useRouter } from 'next/navigation'
 import {
   Search, Home, User, Code, Briefcase, Mail, FileText,
-  BookOpen, Award, Download, Sun, Moon, Globe, X,
+  BookOpen, Download, Sun, Moon, Globe, X,
   Cpu, Zap, Shield, Wrench, MessageSquare, Calendar, Calculator
 } from 'lucide-react'
 
 const sections = [
   { name: 'Home', href: '/', icon: Home, group: 'Navigation' },
-  { name: 'About', href: '#about', icon: User, group: 'Navigation' },
-  { name: 'Skills', href: '#skills', icon: Code, group: 'Navigation' },
-  { name: 'Projects', href: '#projects', icon: Cpu, group: 'Navigation' },
-  { name: 'Experience', href: '#experience', icon: Briefcase, group: 'Navigation' },
-  { name: 'Services', href: '#services', icon: Wrench, group: 'Navigation' },
-  { name: 'Testimonials', href: '#testimonials', icon: MessageSquare, group: 'Navigation' },
-  { name: 'Contact', href: '#contact', icon: Mail, group: 'Navigation' },
+  { name: 'About', href: '/#about', icon: User, group: 'Navigation' },
+  { name: 'Skills', href: '/#skills', icon: Code, group: 'Navigation' },
+  { name: 'Projects', href: '/#projects', icon: Cpu, group: 'Navigation' },
+  { name: 'Experience', href: '/#experience', icon: Briefcase, group: 'Navigation' },
+  { name: 'Services', href: '/#services', icon: Wrench, group: 'Navigation' },
+  { name: 'Testimonials', href: '/#testimonials', icon: MessageSquare, group: 'Navigation' },
+  { name: 'Contact', href: '/#contact', icon: Mail, group: 'Navigation' },
   { name: 'Blog', href: '/blog', icon: BookOpen, group: 'Pages' },
   { name: 'Case Studies', href: '/case-studies', icon: FileText, group: 'Pages' },
+  { name: 'Hire / Work With Me', href: '/hire', icon: Briefcase, group: 'Pages' },
+  { name: 'Professional Dossier', href: '/hire/dossier', icon: FileText, group: 'Pages' },
+  { name: 'Institutional Capabilities', href: '/capabilities', icon: Shield, group: 'Pages' },
+  { name: 'Government ICT Capability', href: '/capabilities/government', icon: Shield, group: 'Pages' },
+  { name: 'Aviation Systems Capability', href: '/capabilities/aviation', icon: Cpu, group: 'Pages' },
+  { name: 'Institutional RFQ', href: '/capabilities/request', icon: FileText, group: 'Pages' },
   { name: 'Start Project', href: '/start-project', icon: Calculator, group: 'Pages' },
-  { name: 'Interactive Resume', href: '/resume', icon: Award, group: 'Pages' },
   { name: 'Changelog', href: '/changelog', icon: Zap, group: 'Pages' },
   { name: 'Download CV', href: '/cv/emmanuel-inambao-cv.pdf', icon: Download, group: 'Actions' },
-  { name: 'Book a Meeting', href: '#booking', icon: Calendar, group: 'Actions' },
+  { name: 'Book a Meeting', href: '/#booking', icon: Calendar, group: 'Actions' },
 ]
 
 export default function CommandPalette() {

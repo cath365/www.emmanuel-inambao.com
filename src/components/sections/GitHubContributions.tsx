@@ -3,7 +3,9 @@
 import { motion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 
-export default function GitHubContributions({ username = 'bolo3574' }: { username?: string }) {
+// Current public GitHub identity: @cath365
+
+export default function GitHubContributions({ username = 'cath365' }: { username?: string }) {
   return (
     <section className="py-12">
       <div className="container mx-auto px-4">
@@ -13,7 +15,6 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
           viewport={{ once: true }}
           className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg max-w-4xl mx-auto"
         >
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <svg className="w-8 h-8 text-gray-900 dark:text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -21,26 +22,34 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
               </svg>
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  GitHub Activity
+                  GitHub Engineering Activity
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-500">
-                  @{username}
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  @{username} · current project and repository account
                 </p>
               </div>
             </div>
           </div>
 
-          {/* GitHub contribution graph embed via img */}
+          <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-600 dark:text-blue-400">
+              Current GitHub account
+            </p>
+            <p className="mt-1 font-semibold text-gray-900 dark:text-white">@{username}</p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+              Portfolio source code, current project repositories and public contribution activity are linked through this account.
+            </p>
+          </div>
+
           <div className="overflow-x-auto">
             <img
               src={`https://ghchart.rshah.org/${username}`}
-              alt={`${username}'s GitHub contribution chart`}
+              alt={`GitHub contribution activity for @${username}`}
               className="w-full max-w-[750px] mx-auto dark:invert dark:hue-rotate-180"
               loading="lazy"
             />
           </div>
 
-          {/* View on GitHub link */}
           <div className="mt-6 text-center">
             <a
               href={`https://github.com/${username}`}
@@ -48,7 +57,7 @@ export default function GitHubContributions({ username = 'bolo3574' }: { usernam
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
             >
-              View full profile on GitHub
+              View @{username} on GitHub
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           </div>

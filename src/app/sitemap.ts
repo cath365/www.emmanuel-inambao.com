@@ -9,6 +9,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified, changeFrequency: 'monthly', priority: 1 },
     { url: baseUrl + '/projects', lastModified, changeFrequency: 'weekly', priority: 0.95 },
+    { url: baseUrl + '/hire', lastModified, changeFrequency: 'monthly', priority: 0.95 },
+    { url: baseUrl + '/hire/dossier', lastModified, changeFrequency: 'monthly', priority: 0.8 },
+    { url: baseUrl + '/capabilities', lastModified, changeFrequency: 'monthly', priority: 0.9 },
+    { url: baseUrl + '/capabilities/government', lastModified, changeFrequency: 'monthly', priority: 0.88 },
+    { url: baseUrl + '/capabilities/aviation', lastModified, changeFrequency: 'monthly', priority: 0.88 },
+    { url: baseUrl + '/capabilities/request', lastModified, changeFrequency: 'monthly', priority: 0.85 },
     { url: baseUrl + '/case-studies', lastModified, changeFrequency: 'monthly', priority: 0.9 },
     { url: baseUrl + '/blog', lastModified, changeFrequency: 'weekly', priority: 0.85 },
     { url: baseUrl + '/start-project', lastModified, changeFrequency: 'monthly', priority: 0.9 },

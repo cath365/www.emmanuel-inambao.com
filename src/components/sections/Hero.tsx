@@ -164,6 +164,10 @@ export default function Hero() {
               Start Your Project
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
+            <Link href="/hire" className="btn-secondary group text-sm sm:text-base">
+              Hire / Work With Me
+              <Briefcase className="w-4 h-4" />
+            </Link>
             <Link href="#projects" className="btn-primary group text-sm sm:text-base">
               {t('hero.cta.projects')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

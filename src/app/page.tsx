@@ -31,7 +31,7 @@ export default function Home() {
       <Projects />
       <EngineeringCTA />
       <Skills />
-      <GitHubContributions username="bolo3574" />
+      <GitHubContributions username="cath365" />
       <Services />
       <HowIWork />
       <AchievementTimeline />

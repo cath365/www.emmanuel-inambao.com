@@ -4,10 +4,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
+import EngineeringProjectDeepDive from '@/components/projects/EngineeringProjectDeepDive'
+import { engineeringProjectDetails } from '@/lib/project-engineering-details'
 
 export default function ProjectDetailClient({ slug }: { slug: string }) {
   const { projects } = useProjects()
   const project = projects.find(item => item.id === slug)
+  const engineeringDetail = engineeringProjectDetails[slug]
 
   if (!project) {
     return (
@@ -95,7 +98,9 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           </section>
         </div>
 
-        {project.architecture && project.architecture.length > 0 && (
+        {engineeringDetail ? (
+          <EngineeringProjectDeepDive detail={engineeringDetail} />
+        ) : project.architecture && project.architecture.length > 0 ? (
           <section className="mt-6 rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
             <h2 className="text-2xl font-bold text-white">Architecture</h2>
             <p className="mt-2 text-sm text-dark-500">Core layers and data/control flow.</p>
@@ -108,7 +113,7 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
               ))}
             </div>
           </section>
-        )}
+        ) : null}
 
         <section className="mt-6 grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">

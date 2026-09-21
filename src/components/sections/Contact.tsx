@@ -51,8 +51,8 @@ export default function Contact() {
     {
       icon: Github,
       label: 'GitHub',
-      href: profile.socialLinks.github || 'https://github.com/bolo3574',
-      username: '@bolo3574',
+      href: profile.socialLinks.github || 'https://github.com/cath365',
+      username: '@cath365',
     },
     {
       icon: Linkedin,
