@@ -66,7 +66,7 @@ export default function Services() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group relative bg-gradient-to-br from-dark-800 to-dark-900 border border-dark-700 rounded-2xl overflow-hidden hover:border-primary-500/50 transition-all duration-300"
+                  className="group relative bg-dark-900/80 border border-dark-700/80 border-t border-t-accent-600/40 rounded-sm overflow-hidden hover:border-accent-500/40 transition-colors duration-200"
                 >
                   {service.image && (
                     <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -80,7 +80,7 @@ export default function Services() {
                   )}
                   <div className="relative p-8">
                     <div className="flex items-start gap-6">
-                      <div className="w-16 h-16 rounded-xl bg-primary-600/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600/30 transition-colors">
+                      <div className="w-16 h-16 rounded-sm border border-dark-700 bg-dark-950 flex items-center justify-center flex-shrink-0 group-hover:border-accent-500/40 transition-colors">
                         <IconComponent className="w-8 h-8 text-primary-500" />
                       </div>
                       <div className="flex-1">
@@ -126,9 +126,9 @@ export default function Services() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group bg-dark-800/50 border border-dark-700 rounded-xl p-6 hover:border-primary-500/50 transition-all duration-300"
+                className="group bg-dark-900/70 border border-dark-700/80 rounded-sm p-6 hover:border-accent-500/40 transition-colors duration-200"
               >
-                <div className="w-12 h-12 rounded-lg bg-primary-600/20 flex items-center justify-center mb-4 group-hover:bg-primary-600/30 transition-colors">
+                <div className="w-12 h-12 rounded-sm border border-dark-700 bg-dark-950 flex items-center justify-center mb-4 group-hover:border-accent-500/40 transition-colors">
                   <IconComponent className="w-6 h-6 text-primary-500" />
                 </div>
                 
