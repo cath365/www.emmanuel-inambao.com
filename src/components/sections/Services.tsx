@@ -37,7 +37,7 @@ export default function Services() {
   const otherServices = services.filter(s => !s.featured)
 
   return (
-    <section id="services" className="py-20 bg-dark-950">
+    <section id="services" className="py-20 bg-[#FCFBF7] dark:bg-dark-950 border-y border-[#E1DBD1] dark:border-dark-800/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -46,10 +46,10 @@ export default function Services() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-display font-medium text-[#10243E] dark:text-white mb-4">
             {t('services.title')}
           </h2>
-          <p className="text-dark-300 max-w-2xl mx-auto">
+          <p className="text-[#667384] dark:text-dark-300 max-w-2xl mx-auto">
             {t('services.subtitle')}
           </p>
         </motion.div>
@@ -66,7 +66,7 @@ export default function Services() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group relative bg-gradient-to-br from-dark-800 to-dark-900 border border-dark-700 rounded-2xl overflow-hidden hover:border-primary-500/50 transition-all duration-300"
+                  className="group relative bg-white/70 dark:bg-gradient-to-br dark:from-dark-800 dark:to-dark-900 border border-[#DDD7CC] dark:border-dark-700 rounded-sm overflow-hidden hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-all duration-300"
                 >
                   {service.image && (
                     <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -80,26 +80,26 @@ export default function Services() {
                   )}
                   <div className="relative p-8">
                     <div className="flex items-start gap-6">
-                      <div className="w-16 h-16 rounded-xl bg-primary-600/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600/30 transition-colors">
+                      <div className="w-16 h-16 rounded-sm bg-[#EEF1F3] dark:bg-primary-600/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-600/30 transition-colors">
                         <IconComponent className="w-8 h-8 text-primary-500" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-xl font-semibold text-white group-hover:text-primary-400 transition-colors">
+                          <h3 className="text-xl font-semibold text-[#10243E] dark:text-white group-hover:text-[#526E8A] dark:group-hover:text-primary-400 transition-colors">
                             {service.title}
                           </h3>
                           {service.price && (
-                            <span className="text-primary-400 font-semibold">
+                            <span className="text-[#526E8A] dark:text-primary-400 font-semibold">
                               {service.price}
                             </span>
                           )}
                         </div>
-                        <p className="text-dark-300 mb-4">{service.description}</p>
+                        <p className="text-[#566273] dark:text-dark-300 mb-4">{service.description}</p>
                         
                         {service.features.length > 0 && (
                           <ul className="space-y-2">
                             {service.features.map((feature, i) => (
-                              <li key={i} className="flex items-center gap-2 text-dark-400 text-sm">
+                              <li key={i} className="flex items-center gap-2 text-[#697483] dark:text-dark-400 text-sm">
                                 <CheckCircle2 className="w-4 h-4 text-primary-500 flex-shrink-0" />
                                 <span>{feature}</span>
                               </li>
@@ -126,14 +126,14 @@ export default function Services() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group bg-dark-800/50 border border-dark-700 rounded-xl p-6 hover:border-primary-500/50 transition-all duration-300"
+                className="group bg-white/65 dark:bg-dark-800/50 border border-[#DDD7CC] dark:border-dark-700 rounded-sm p-6 hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-lg bg-primary-600/20 flex items-center justify-center mb-4 group-hover:bg-primary-600/30 transition-colors">
+                <div className="w-12 h-12 rounded-sm bg-[#EEF1F3] dark:bg-primary-600/20 flex items-center justify-center mb-4 group-hover:bg-primary-600/30 transition-colors">
                   <IconComponent className="w-6 h-6 text-primary-500" />
                 </div>
                 
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-white group-hover:text-primary-400 transition-colors">
+                  <h3 className="text-lg font-semibold text-[#10243E] dark:text-white group-hover:text-[#526E8A] dark:group-hover:text-primary-400 transition-colors">
                     {service.title}
                   </h3>
                   {service.price && (
@@ -143,14 +143,14 @@ export default function Services() {
                   )}
                 </div>
                 
-                <p className="text-dark-400 text-sm mb-4 line-clamp-2">
+                <p className="text-[#697483] dark:text-dark-400 text-sm mb-4 line-clamp-2">
                   {service.description}
                 </p>
 
                 {service.features.length > 0 && (
                   <ul className="space-y-1">
                     {service.features.slice(0, 3).map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-dark-500 text-xs">
+                      <li key={i} className="flex items-center gap-2 text-[#7C8792] dark:text-dark-500 text-xs">
                         <CheckCircle2 className="w-3 h-3 text-primary-500/70 flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
