@@ -541,11 +541,11 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       }
     }
     
-    // Services / Hire / Need help - trigger lead capture
+    // Services / pricing / quotation
     if (lowerQuery.includes('service') || lowerQuery.includes('offer') || lowerQuery.includes('hire') || lowerQuery.includes('help') || lowerQuery.includes('need') || lowerQuery.includes('interested') || lowerQuery.includes('quote') || lowerQuery.includes('price') || lowerQuery.includes('cost')) {
       return {
-        response: `Emmanuel currently offers:\n\n${serviceLines}\n\nWould you like to send an inquiry? Emmanuel will get back to you personally!`,
-        options: ['📩 Send inquiry', 'Book a meeting', 'See projects']
+        response: `For new project quotations, Emmanuel's current pricing starts from:\n\n• Website — ZMW 5,000\n• E-commerce — + ZMW 3,000\n• Admin dashboard — + ZMW 2,500\n• Payment integration — + ZMW 2,000\n• Mobile application — ZMW 12,000\n• IoT integration — custom quotation\n\nThe AI Project Quotation assistant can ask the scope questions, explain each charge and generate a downloadable quotation.`,
+        options: ['Get AI quotation', '📩 Send inquiry', 'Book a meeting']
       }
     }
 
@@ -678,6 +678,10 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   }
 
   const handleOptionClick = (option: string) => {
+    if (option === 'Get AI quotation') {
+      window.location.href = '/start-project'
+      return
+    }
     handleSend(option)
   }
 
