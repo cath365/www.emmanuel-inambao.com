@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw
+  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -23,8 +23,9 @@ import MediaUploader from '@/components/admin/MediaUploader'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 import SkillsEditor from '@/components/admin/SkillsEditor'
+import CaseStudyManager from '@/components/admin/CaseStudyManager'
 
-type TabType = 'projects' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = 'projects' | 'caseStudies' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -231,6 +232,17 @@ export default function AdminDashboard() {
             >
               <FolderOpen className="w-5 h-5" />
               Projects
+            </button>
+            <button
+              onClick={() => setActiveTab('caseStudies')}
+              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+                activeTab === 'caseStudies'
+                  ? 'text-primary-400 border-primary-500'
+                  : 'text-dark-400 border-transparent hover:text-white'
+              }`}
+            >
+              <Sparkles className="w-5 h-5" />
+              AI Case Studies
             </button>
             <button
               onClick={() => setActiveTab('profile')}
@@ -621,6 +633,15 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
+            </motion.div>
+          ) : activeTab === 'caseStudies' ? (
+            <motion.div
+              key="caseStudies"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <CaseStudyManager />
             </motion.div>
           ) : activeTab === 'profile' ? (
             <motion.div
