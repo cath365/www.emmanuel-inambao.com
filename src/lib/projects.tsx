@@ -1,8 +1,8 @@
 'use client'
 
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { defaultProjects, mergeWithCurrentCatalog, type Project } from '@/lib/project-catalog'
-import { persistPortfolioData } from '@/lib/portfolio-persistence'
 
 export type { Project } from '@/lib/project-catalog'
 
