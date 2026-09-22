@@ -268,6 +268,24 @@ export default function StartProjectPage() {
     setQuoteId(id)
 
     try {
+      const pdfResponse = await fetch('/api/quotation/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quoteId: id,
+          client,
+          selection,
+          store: true,
+        }),
+      })
+
+      if (!pdfResponse.ok) {
+        throw new Error('The quotation PDF could not be generated.')
+      }
+
+      const pdfPath = pdfResponse.headers.get('X-Quotation-Pdf-Path') || ''
+      const blob = await pdfResponse.blob()
+
       const leadResponse = await fetch('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -278,7 +296,13 @@ export default function StartProjectPage() {
           service: 'Accepted AI Project Quotation',
           details: buildLeadDetails(id),
           submittedAt: new Date().toISOString(),
-          status: 'new',
+          quotation: {
+            quoteId: id,
+            selection,
+            pdfPath,
+            clientCompany: client.company,
+            createdAt: new Date().toISOString(),
+          },
         }),
       })
 
@@ -292,22 +316,6 @@ export default function StartProjectPage() {
         saved: leadResult.saved === true,
         emailSent: leadResult.emailSent === true,
       })
-
-      const pdfResponse = await fetch('/api/quotation/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quoteId: id,
-          client,
-          selection,
-        }),
-      })
-
-      if (!pdfResponse.ok) {
-        throw new Error('The quotation was sent, but the PDF could not be generated.')
-      }
-
-      const blob = await pdfResponse.blob()
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
       anchor.href = url

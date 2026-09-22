@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { list } from '@vercel/blob'
-import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
+import { defaultProjects, isProjectPublished, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
 import { createGroqCompletion } from '@/lib/groq'
 
@@ -84,9 +84,11 @@ function isRateLimited(id: string) {
 
 function compactPortfolioContext(sections: Record<string, unknown>) {
   const profile = sections.profile && typeof sections.profile === 'object' ? sections.profile : null
-  const projects = Array.isArray(sections.projects) && sections.projects.length > 0
-    ? mergeWithCurrentCatalog(sections.projects)
-    : defaultProjects
+  const projects = (
+    Array.isArray(sections.projects) && sections.projects.length > 0
+      ? mergeWithCurrentCatalog(sections.projects)
+      : defaultProjects
+  ).filter(isProjectPublished)
   const services = Array.isArray(sections.services) ? sections.services : []
   const skills = Array.isArray(sections.skills) ? sections.skills : []
   const experiences = Array.isArray(sections.experiences) ? sections.experiences : []

@@ -8,10 +8,16 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
+  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles, Download
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
+import {
+  editableProject,
+  projectContent,
+  type ProjectMedia,
+  type ProjectPublicationStatus,
+} from '@/lib/project-catalog'
 import { useProfile, Profile } from '@/lib/profile'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -87,7 +93,7 @@ export default function AdminDashboard() {
       setSaveState(detail.state)
 
       if (detail.state === 'saved') {
-        setNotification({ type: 'success', message: 'Changes published to the live portfolio.' })
+        setNotification({ type: 'success', message: 'Changes saved to cloud storage.' })
         resetTimer = setTimeout(() => setSaveState('idle'), 2500)
       }
 
@@ -160,14 +166,43 @@ export default function AdminDashboard() {
     router.push('/admin/login')
   }
 
-  const handleSaveProject = (project: Project) => {
-    if (isCreating) {
-      addProject(project)
-      setNotification({ type: 'success', message: 'Project created successfully!' })
+  const handleSaveProject = (project: Project, mode: ProjectPublicationStatus) => {
+    const now = new Date().toISOString()
+
+    if (mode === 'draft') {
+      if (isCreating || project.publicationStatus === 'draft') {
+        const draftProject: Project = {
+          ...project,
+          publicationStatus: 'draft',
+          updatedAt: now,
+          draft: undefined,
+        }
+
+        if (isCreating) addProject(draftProject)
+        else updateProject(project.id, draftProject)
+      } else {
+        updateProject(project.id, {
+          draft: projectContent(project),
+          updatedAt: now,
+        })
+      }
+
+      setNotification({ type: 'success', message: 'Draft saved. The current public version was not changed.' })
     } else {
-      updateProject(project.id, project)
-      setNotification({ type: 'success', message: 'Project updated successfully!' })
+      const publishedProject: Project = {
+        ...project,
+        publicationStatus: 'published',
+        publishedAt: project.publishedAt || now,
+        updatedAt: now,
+        draft: undefined,
+      }
+
+      if (isCreating) addProject(publishedProject)
+      else updateProject(project.id, publishedProject)
+
+      setNotification({ type: 'success', message: 'Project published to the portfolio.' })
     }
+
     setEditingProject(null)
     setIsCreating(false)
   }
@@ -176,6 +211,11 @@ export default function AdminDashboard() {
     deleteProject(id)
     setDeleteConfirm(null)
     setNotification({ type: 'success', message: 'Project deleted successfully!' })
+  }
+
+  const handleDiscardProjectDraft = (id: string) => {
+    updateProject(id, { draft: undefined, updatedAt: new Date().toISOString() })
+    setNotification({ type: 'success', message: 'Draft discarded. The published project was left unchanged.' })
   }
 
   const handleCreateNew = () => {
@@ -195,7 +235,9 @@ export default function AdminDashboard() {
       playStoreUrl: '',
       websiteUrl: '',
       docsUrl: '',
-      videoUrl: ''
+      videoUrl: '',
+      media: [],
+      publicationStatus: 'draft'
     }
     setEditingProject(newProject)
     setIsCreating(true)
@@ -260,7 +302,7 @@ export default function AdminDashboard() {
                 {saveState === 'saving'
                   ? 'Publishing...'
                   : saveState === 'saved'
-                    ? 'Published'
+                    ? 'Saved'
                     : saveState === 'error'
                       ? 'Save failed'
                       : 'All changes synced'}
@@ -521,18 +563,32 @@ export default function AdminDashboard() {
                               <h3 className="text-lg font-semibold text-white truncate">
                                 {project.title || 'Untitled Project'}
                               </h3>
-                              {project.featured && (
-                                <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded mt-1">
-                                  Featured
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  project.publicationStatus === 'draft'
+                                    ? 'bg-yellow-500/15 text-yellow-400'
+                                    : 'bg-green-500/15 text-green-400'
+                                }`}>
+                                  {project.publicationStatus === 'draft' ? 'Draft' : 'Published'}
                                 </span>
-                              )}
+                                {project.draft && (
+                                  <span className="inline-flex items-center rounded-full bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-400">
+                                    Unpublished changes
+                                  </span>
+                                )}
+                                {project.featured && (
+                                  <span className="inline-flex items-center rounded-full bg-accent-500/20 px-2.5 py-1 text-xs font-semibold text-accent-400">
+                                    Featured
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 flex-shrink-0">
                               <button
                                 onClick={() => {
-                                  setEditingProject(project)
+                                  setEditingProject(editableProject(project))
                                   setIsCreating(false)
                                 }}
                                 className="p-2 text-dark-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors"
@@ -540,6 +596,15 @@ export default function AdminDashboard() {
                               >
                                 <Edit2 className="w-5 h-5" />
                               </button>
+                              {project.draft && (
+                                <button
+                                  onClick={() => handleDiscardProjectDraft(project.id)}
+                                  className="rounded-lg px-2.5 py-2 text-xs font-medium text-blue-300 transition-colors hover:bg-blue-500/10 hover:text-blue-200"
+                                  title="Discard unpublished changes"
+                                >
+                                  Discard draft
+                                </button>
+                              )}
                               <button
                                 onClick={() => setDeleteConfirm(project.id)}
                                 className="p-2 text-dark-400 hover:text-red-400 hover:bg-dark-700 rounded-lg transition-colors"
@@ -1309,7 +1374,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
 interface ProjectModalProps {
   project: Project
   isNew: boolean
-  onSave: (project: Project) => void
+  onSave: (project: Project, mode: ProjectPublicationStatus) => void
   onClose: () => void
 }
 
@@ -1317,7 +1382,10 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
   const [formData, setFormData] = useState<Project>(project)
   const [techInput, setTechInput] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const mediaInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1349,9 +1417,94 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     }
   }
 
+  const saveProject = (mode: ProjectPublicationStatus) => {
+    onSave(formData, mode)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    saveProject('published')
+  }
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    setUploadingMedia(true)
+    const uploaded: ProjectMedia[] = []
+
+    try {
+      for (const file of files) {
+        const form = new FormData()
+        form.append('file', file)
+        form.append('type', 'project-media')
+        form.append('projectId', formData.id)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+        })
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || `Could not upload ${file.name}`)
+        }
+
+        const mediaType: ProjectMedia['type'] =
+          file.type.startsWith('video/')
+            ? 'video'
+            : file.type.startsWith('image/')
+              ? 'photo'
+              : 'document'
+
+        uploaded.push({
+          src: data.url,
+          alt: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' '),
+          caption: '',
+          type: mediaType,
+          fit: mediaType === 'photo' ? 'cover' : undefined,
+          fileName: file.name,
+          mimeType: file.type,
+          size: file.size,
+        })
+      }
+
+      setFormData(current => ({
+        ...current,
+        media: [...(current.media || []), ...uploaded],
+      }))
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Project media upload failed.')
+    } finally {
+      setUploadingMedia(false)
+      if (mediaInputRef.current) mediaInputRef.current.value = ''
+    }
+  }
+
+  const updateMedia = (index: number, updates: Partial<ProjectMedia>) => {
+    setFormData(current => ({
+      ...current,
+      media: (current.media || []).map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...updates } : item
+      ),
+    }))
+  }
+
+  const removeMedia = (index: number) => {
+    setFormData(current => ({
+      ...current,
+      media: (current.media || []).filter((_, itemIndex) => itemIndex !== index),
+    }))
+  }
+
+  const moveMedia = (index: number, direction: -1 | 1) => {
+    const items = [...(formData.media || [])]
+    const target = index + direction
+    if (target < 0 || target >= items.length) return
+    const [item] = items.splice(index, 1)
+    items.splice(target, 0, item)
+    setFormData({ ...formData, media: items })
   }
 
   const addTechnology = () => {
@@ -1401,6 +1554,42 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
 
         {/* Modal form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {showPreview && (
+            <div className="rounded-2xl border border-primary-500/30 bg-dark-950/80 p-5 sm:p-6">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Private preview</p>
+                  <h3 className="mt-1 text-xl font-semibold text-white">How this project will read when published</h3>
+                </div>
+                <button type="button" onClick={() => setShowPreview(false)} className="text-sm text-dark-400 hover:text-white">
+                  Close preview
+                </button>
+              </div>
+              <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+                <div className="relative aspect-video overflow-hidden rounded-xl border border-dark-700 bg-dark-900 lg:aspect-square">
+                  {formData.image && formData.image !== '/images/projects/default.jpg' ? (
+                    <Image src={formData.image} alt={formData.title || 'Project preview'} fill className="object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-dark-500"><ImageIcon className="h-10 w-10" /></div>
+                  )}
+                </div>
+                <div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-yellow-500/15 px-2.5 py-1 text-xs font-semibold text-yellow-400">PREVIEW</span>
+                    {formData.featured && <span className="rounded-full bg-accent-500/15 px-2.5 py-1 text-xs font-semibold text-accent-400">Featured</span>}
+                  </div>
+                  <h3 className="mt-3 text-2xl font-bold text-white">{formData.title || 'Untitled project'}</h3>
+                  <p className="mt-2 text-sm leading-6 text-primary-300">{formData.purpose || 'Add a project purpose.'}</p>
+                  <p className="mt-4 text-sm leading-6 text-dark-300">{formData.problemSolved || 'Add the problem this project solves.'}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {formData.techStack.slice(0, 8).map(tech => <span key={tech} className="tech-badge text-xs">{tech}</span>)}
+                  </div>
+                  <p className="mt-4 text-xs text-dark-500">{(formData.media || []).length} linked media/document item(s)</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Project Image */}
           <div>
             <label className="block text-sm font-medium text-dark-300 mb-2">
@@ -1583,6 +1772,81 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             )}
           </div>
 
+          {/* Project Media & Documents */}
+          <div className="rounded-xl border border-dark-700 bg-dark-900/35 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-base font-semibold text-white">Project media & documents</h4>
+                <p className="mt-1 text-sm text-dark-400">Attach project photos, screenshots, videos, PDFs, reports and other evidence.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => mediaInputRef.current?.click()}
+                disabled={uploadingMedia}
+                className="btn-secondary flex items-center gap-2"
+              >
+                {uploadingMedia ? (
+                  <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Uploading...</>
+                ) : (
+                  <><Upload className="h-4 w-4" /> Add files</>
+                )}
+              </button>
+              <input
+                ref={mediaInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                onChange={handleMediaUpload}
+                className="hidden"
+              />
+            </div>
+
+            {(formData.media || []).length === 0 ? (
+              <div className="mt-4 rounded-lg border border-dashed border-dark-700 p-6 text-center text-sm text-dark-500">
+                No linked media yet.
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {(formData.media || []).map((item, index) => (
+                  <div key={item.src + index} className="rounded-lg border border-dark-700 bg-dark-900 p-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                      <div className="flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-dark-800">
+                        {item.type === 'video' ? (
+                          <Video className="h-6 w-6 text-purple-400" />
+                        ) : item.type === 'document' ? (
+                          <FileText className="h-6 w-6 text-yellow-400" />
+                        ) : (
+                          <div className="relative h-full w-full">
+                            <Image src={item.src} alt={item.alt || item.fileName || 'Project media'} fill className="object-cover" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-dark-800 px-2 py-1 text-xs font-semibold uppercase text-dark-300">
+                            {item.type || 'photo'}
+                          </span>
+                          <span className="truncate text-sm font-medium text-white">{item.fileName || item.alt || 'Project asset'}</span>
+                        </div>
+                        <input
+                          value={item.caption || ''}
+                          onChange={e => updateMedia(index, { caption: e.target.value })}
+                          placeholder="Caption or context for this file"
+                          className="mt-3 w-full rounded-lg border border-dark-700 bg-dark-950 px-3 py-2 text-sm text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveMedia(index, -1)} disabled={index === 0} className="rounded p-2 text-dark-400 hover:bg-dark-800 hover:text-white disabled:opacity-30" title="Move up">↑</button>
+                        <button type="button" onClick={() => moveMedia(index, 1)} disabled={index === (formData.media || []).length - 1} className="rounded p-2 text-dark-400 hover:bg-dark-800 hover:text-white disabled:opacity-30" title="Move down">↓</button>
+                        <button type="button" onClick={() => removeMedia(index)} className="rounded p-2 text-red-400 hover:bg-red-500/10" title="Remove"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Links Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-dark-300 flex items-center gap-2">
@@ -1690,21 +1954,32 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t border-dark-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-dark-300 hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn-primary flex items-center gap-2"
-            >
-              <Save className="w-5 h-5" />
-              {isNew ? 'Create Project' : 'Save Changes'}
-            </button>
+          <div className="flex flex-col gap-3 border-t border-dark-700 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-xs leading-5 text-dark-500">
+              Save Draft keeps changes private. Publish makes this version visible on the public portfolio.
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 text-dark-300 hover:text-white">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPreview(value => !value)}
+                className="flex items-center gap-2 rounded-lg border border-dark-600 px-4 py-2 text-sm font-medium text-dark-200 hover:bg-dark-700"
+              >
+                <Monitor className="h-4 w-4" /> {showPreview ? 'Hide Preview' : 'Preview'}
+              </button>
+              <button
+                type="button"
+                onClick={() => saveProject('draft')}
+                className="flex items-center gap-2 rounded-lg bg-dark-700 px-4 py-2 text-sm font-medium text-white hover:bg-dark-600"
+              >
+                <Save className="h-4 w-4" /> Save Draft
+              </button>
+              <button type="submit" className="btn-primary flex items-center gap-2">
+                <Globe className="h-4 w-4" /> Publish
+              </button>
+            </div>
           </div>
         </form>
       </motion.div>
@@ -1712,7 +1987,29 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
   )
 }
 
-// Service Leads Panel Component
+// Service Leads / Quotation CRM
+type LeadStatus =
+  | 'new'
+  | 'quotation-sent'
+  | 'accepted'
+  | 'deposit-paid'
+  | 'in-progress'
+  | 'completed'
+  | 'lost'
+
+interface LeadQuotation {
+  quoteId: string
+  currency: 'ZMW'
+  lineItems: Array<{ id: string; label: string; amount: number | null; reason: string }>
+  knownTotal: number
+  upfrontAmount: number
+  balanceAmount: number
+  hasCustomPricing: boolean
+  pdfPath?: string
+  clientCompany?: string
+  createdAt: string
+}
+
 interface ServiceLead {
   id: string
   name: string
@@ -1720,19 +2017,48 @@ interface ServiceLead {
   service: string
   details: string
   submittedAt: string
-  status: 'new' | 'contacted' | 'closed'
+  status: LeadStatus
+  notes?: string
+  updatedAt?: string
+  quotation?: LeadQuotation
+}
+
+const CRM_STAGES: Array<{
+  id: LeadStatus
+  label: string
+  description: string
+  badge: string
+}> = [
+  { id: 'new', label: 'New', description: 'Needs first review', badge: 'bg-yellow-500/15 text-yellow-400' },
+  { id: 'quotation-sent', label: 'Quotation Sent', description: 'Waiting for client', badge: 'bg-blue-500/15 text-blue-400' },
+  { id: 'accepted', label: 'Accepted', description: 'Scope accepted', badge: 'bg-cyan-500/15 text-cyan-400' },
+  { id: 'deposit-paid', label: 'Deposit Paid', description: '35% received', badge: 'bg-emerald-500/15 text-emerald-400' },
+  { id: 'in-progress', label: 'In Progress', description: 'Project delivery', badge: 'bg-purple-500/15 text-purple-400' },
+  { id: 'completed', label: 'Completed', description: 'Delivered', badge: 'bg-green-500/15 text-green-400' },
+  { id: 'lost', label: 'Lost', description: 'Not proceeding', badge: 'bg-red-500/15 text-red-400' },
+]
+
+function formatLeadZmw(amount: number) {
+  return `ZMW ${Number(amount || 0).toLocaleString('en-ZM', { maximumFractionDigits: 2 })}`
 }
 
 function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
   const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [expandedLead, setExpandedLead] = useState<string | null>(null)
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
+  const [message, setMessage] = useState('')
 
   const loadLeads = (silent = false) => {
     if (!silent) setLoading(true)
-    fetch('/api/service-inquiry')
-      .then(r => r.json())
-      .then(data => setLeads(data.leads || []))
-      .catch(() => setLeads([]))
+    fetch('/api/service-inquiry', { credentials: 'include', cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Could not load leads')
+        setLeads(data.leads || [])
+      })
+      .catch(error => setMessage(error instanceof Error ? error.message : 'Could not load leads'))
       .finally(() => {
         if (!silent) setLoading(false)
       })
@@ -1740,178 +2066,279 @@ function ServiceLeadsPanel() {
 
   useEffect(() => {
     loadLeads()
-
-    // Keep panel live without requiring manual refresh.
-    const intervalId = setInterval(() => loadLeads(true), 10000)
+    const intervalId = setInterval(() => loadLeads(true), 15000)
     const onFocus = () => loadLeads(true)
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') loadLeads(true)
-    }
-
     window.addEventListener('focus', onFocus)
-    document.addEventListener('visibilitychange', onVisibility)
-
     return () => {
       clearInterval(intervalId)
       window.removeEventListener('focus', onFocus)
-      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
-  const updateLeadStatus = async (id: string, status: ServiceLead['status']) => {
-    await fetch('/api/service-inquiry', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
-    })
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l))
+  const patchLead = async (id: string, updates: Partial<Pick<ServiceLead, 'status' | 'notes'>>) => {
+    setBusyId(id)
+    setMessage('')
+    try {
+      const response = await fetch('/api/service-inquiry', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id, ...updates }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Could not update lead')
+      if (data.lead) {
+        setLeads(previous => previous.map(lead => lead.id === id ? data.lead : lead))
+      } else {
+        setLeads(previous => previous.map(lead => lead.id === id ? { ...lead, ...updates } : lead))
+      }
+      setMessage('CRM updated.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not update lead')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   const deleteLead = async (id: string) => {
-    await fetch('/api/service-inquiry', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
-    setLeads(prev => prev.filter(l => l.id !== id))
+    setBusyId(id)
+    try {
+      const response = await fetch('/api/service-inquiry', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id }),
+      })
+      if (!response.ok) throw new Error('Could not delete lead')
+      setLeads(previous => previous.filter(lead => lead.id !== id))
+      setMessage('Lead deleted.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not delete lead')
+    } finally {
+      setBusyId(null)
+    }
   }
 
-  const newLeads = leads.filter(l => l.status === 'new')
-  const contactedLeads = leads.filter(l => l.status === 'contacted')
-  const closedLeads = leads.filter(l => l.status === 'closed')
+  const activeLeads = leads.filter(lead => !['completed', 'lost'].includes(lead.status))
+  const quotationLeads = leads.filter(lead => Boolean(lead.quotation))
+  const pipelineValue = activeLeads.reduce((sum, lead) => sum + (lead.quotation?.knownTotal || 0), 0)
+  const expectedUpfront = activeLeads.reduce((sum, lead) => sum + (lead.quotation?.upfrontAmount || 0), 0)
+  const depositsPaid = leads.filter(lead => ['deposit-paid', 'in-progress', 'completed'].includes(lead.status)).length
 
   if (loading) {
     return (
-      <div className="text-center py-16">
-        <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto" />
-      </div>
-    )
-  }
-
-  if (leads.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <Bell className="w-16 h-16 text-dark-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">No Service Inquiries Yet</h3>
-        <p className="text-dark-400 mb-4">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
-        <button onClick={loadLeads} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
-          Refresh
-        </button>
+      <div className="py-16 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Service Inquiries</h2>
-        <div className="flex items-center gap-3">
-          <button onClick={loadLeads} className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg hover:text-white transition-colors text-sm">
-            Refresh
-          </button>
-          {newLeads.length > 0 && (
-            <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-              {newLeads.length} New
-            </span>
-          )}
+    <div className="min-w-0">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Sales pipeline</p>
+          <h2 className="mt-1 text-2xl font-bold text-white">Leads & Quotations CRM</h2>
+          <p className="mt-1 max-w-2xl text-sm text-dark-400">
+            Track enquiries from first contact through quotation, deposit, delivery and completion.
+          </p>
+        </div>
+        <button onClick={() => loadLeads()} className="btn-secondary flex items-center gap-2 self-start lg:self-auto">
+          <RefreshCw className="h-4 w-4" /> Refresh
+        </button>
+      </div>
+
+      {message && (
+        <div className="mb-5 rounded-lg border border-dark-700 bg-dark-900/60 px-4 py-3 text-sm text-dark-300">
+          {message}
+        </div>
+      )}
+
+      <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">Open leads</p>
+          <p className="mt-2 text-2xl font-bold text-white">{activeLeads.length}</p>
+        </div>
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">Quoted pipeline</p>
+          <p className="mt-2 text-2xl font-bold text-white">{formatLeadZmw(pipelineValue)}</p>
+        </div>
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">35% upfront value</p>
+          <p className="mt-2 text-2xl font-bold text-emerald-400">{formatLeadZmw(expectedUpfront)}</p>
+        </div>
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">Quotation records</p>
+          <p className="mt-2 text-2xl font-bold text-white">{quotationLeads.length}</p>
+          <p className="mt-1 text-xs text-dark-500">{depositsPaid} reached deposit/delivery</p>
         </div>
       </div>
 
-      {/* New Leads */}
-      {newLeads.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5" /> New Inquiries
-          </h3>
-          <div className="space-y-4">
-            {newLeads.map(lead => (
-              <div key={lead.id} className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="text-lg font-semibold text-white">{lead.name}</h4>
-                      <span className="text-xs bg-yellow-500 text-dark-900 px-2 py-0.5 rounded-full font-bold">NEW</span>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-dark-300 mb-3">
-                      <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {lead.email}</span>
-                      <span className="flex items-center gap-1"><Settings className="w-4 h-4" /> {lead.service}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {new Date(lead.submittedAt).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-dark-300">{lead.details}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <a
-                      href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
-                      className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
-                    >
-                      <Mail className="w-4 h-4" /> Reply
-                    </a>
-                    <button
-                      onClick={() => updateLeadStatus(lead.id, 'contacted')}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
-                    >
-                      <Check className="w-4 h-4" /> Contacted
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {leads.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-dark-700 py-16 text-center">
+          <Bell className="mx-auto h-12 w-12 text-dark-600" />
+          <h3 className="mt-4 text-lg font-semibold text-white">No leads yet</h3>
+          <p className="mt-2 text-sm text-dark-400">AI quotation requests and service enquiries will appear here.</p>
         </div>
-      )}
-
-      {/* Contacted Leads */}
-      {contactedLeads.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-green-400 mb-4">Contacted ({contactedLeads.length})</h3>
-          <div className="space-y-3">
-            {contactedLeads.map(lead => (
-              <div key={lead.id} className="bg-dark-800/50 border border-dark-700 rounded-xl p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      ) : (
+        <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {CRM_STAGES.map(stage => {
+            const stageLeads = leads.filter(lead => lead.status === stage.id)
+            return (
+              <section key={stage.id} className="min-w-0 rounded-xl border border-dark-700 bg-dark-900/35 p-4">
+                <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-white font-medium">{lead.name} — <span className="text-dark-400">{lead.service}</span></p>
-                    <p className="text-dark-400 text-sm">{lead.email} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => updateLeadStatus(lead.id, 'closed')}
-                      className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors"
-                    >
-                      Close
-                    </button>
-                    <button
-                      onClick={() => deleteLead(lead.id)}
-                      className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg text-sm hover:bg-red-600/30 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stage.badge}`}>{stage.label}</span>
+                      <span className="text-xs text-dark-500">{stageLeads.length}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-dark-500">{stage.description}</p>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Closed Leads */}
-      {closedLeads.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-dark-500 mb-4">Closed ({closedLeads.length})</h3>
-          <div className="space-y-2">
-            {closedLeads.map(lead => (
-              <div key={lead.id} className="bg-dark-800/30 border border-dark-800 rounded-lg p-3 opacity-60">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <p className="text-dark-400 text-sm">{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
-                  <button
-                    onClick={() => deleteLead(lead.id)}
-                    className="text-dark-600 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="space-y-3">
+                  {stageLeads.length === 0 && (
+                    <div className="rounded-lg border border-dashed border-dark-800 px-3 py-6 text-center text-xs text-dark-600">
+                      No leads in this stage
+                    </div>
+                  )}
+
+                  {stageLeads.map(lead => {
+                    const notesValue = noteDrafts[lead.id] ?? lead.notes ?? ''
+                    const quote = lead.quotation
+                    const isExpanded = expandedLead === lead.id
+
+                    return (
+                      <article key={lead.id} className="min-w-0 rounded-lg border border-dark-700 bg-dark-950/75 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h4 className="truncate font-semibold text-white">{lead.name}</h4>
+                            <p className="mt-1 truncate text-xs text-dark-400">{lead.email}</p>
+                          </div>
+                          <button
+                            onClick={() => deleteLead(lead.id)}
+                            disabled={busyId === lead.id}
+                            className="rounded p-1.5 text-dark-600 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
+                            title="Delete lead"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <p className="mt-3 text-sm font-medium text-dark-200">{lead.service}</p>
+                        <p className="mt-1 text-xs text-dark-500">{new Date(lead.submittedAt).toLocaleString()}</p>
+
+                        {quote && (
+                          <div className="mt-4 rounded-lg border border-primary-500/20 bg-primary-950/20 p-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-semibold text-primary-300">{quote.quoteId}</p>
+                                {quote.clientCompany && <p className="mt-0.5 text-xs text-dark-500">{quote.clientCompany}</p>}
+                              </div>
+                              {quote.pdfPath && (
+                                <a
+                                  href={`/api/service-inquiry/quotation?id=${encodeURIComponent(lead.id)}`}
+                                  className="inline-flex items-center gap-1 rounded-md bg-dark-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-dark-700"
+                                >
+                                  <Download className="h-3.5 w-3.5" /> PDF
+                                </a>
+                              )}
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-dark-500">Total</span>
+                                <p className="font-semibold text-white">{formatLeadZmw(quote.knownTotal)}</p>
+                              </div>
+                              <div>
+                                <span className="text-dark-500">35% upfront</span>
+                                <p className="font-semibold text-emerald-400">{formatLeadZmw(quote.upfrontAmount)}</p>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-dark-500">65% balance</span>
+                                <p className="font-semibold text-dark-200">{formatLeadZmw(quote.balanceAmount)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-4">
+                          <label className="mb-1 block text-xs font-medium text-dark-500">Pipeline stage</label>
+                          <select
+                            value={lead.status}
+                            disabled={busyId === lead.id}
+                            onChange={event => patchLead(lead.id, { status: event.target.value as LeadStatus })}
+                            className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
+                          >
+                            {CRM_STAGES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+                          </select>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <a
+                            href={`mailto:${lead.email}?subject=Re: ${encodeURIComponent(lead.service)}&body=Hi%20${encodeURIComponent(lead.name)},%0A%0AThank%20you%20for%20your%20project%20inquiry.%0A%0ABest%20regards,%0AEmmanuel%20Inambao`}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary-600/20 px-2.5 py-1.5 text-xs font-medium text-primary-300 hover:bg-primary-600/30"
+                          >
+                            <Mail className="h-3.5 w-3.5" /> Reply
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedLead(isExpanded ? null : lead.id)}
+                            className="inline-flex items-center gap-1 rounded-md bg-dark-800 px-2.5 py-1.5 text-xs font-medium text-dark-300 hover:text-white"
+                          >
+                            <FileText className="h-3.5 w-3.5" /> {isExpanded ? 'Hide details' : 'Details & notes'}
+                          </button>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="mt-4 space-y-3 border-t border-dark-800 pt-4">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wider text-dark-500">Inquiry / scope</p>
+                              <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-dark-300">{lead.details || 'No details provided.'}</p>
+                            </div>
+
+                            {quote?.lineItems?.length ? (
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-dark-500">Quotation items</p>
+                                <div className="mt-2 space-y-1.5">
+                                  {quote.lineItems.map(item => (
+                                    <div key={item.id} className="flex items-start justify-between gap-3 text-xs">
+                                      <span className="text-dark-300">{item.label}</span>
+                                      <span className="shrink-0 font-medium text-white">
+                                        {item.amount === null ? 'Custom' : formatLeadZmw(item.amount)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+
+                            <div>
+                              <label className="text-xs font-semibold uppercase tracking-wider text-dark-500">Internal notes</label>
+                              <textarea
+                                rows={4}
+                                value={notesValue}
+                                onChange={event => setNoteDrafts(previous => ({ ...previous, [lead.id]: event.target.value }))}
+                                placeholder="Next action, payment reference, follow-up notes..."
+                                className="mt-2 w-full resize-y rounded-lg border border-dark-700 bg-dark-900 px-3 py-2 text-xs text-white placeholder-dark-600 focus:border-primary-500 focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                disabled={busyId === lead.id}
+                                onClick={() => patchLead(lead.id, { notes: notesValue })}
+                                className="mt-2 inline-flex items-center gap-1 rounded-md bg-dark-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-dark-600 disabled:opacity-40"
+                              >
+                                <Save className="h-3.5 w-3.5" /> Save notes
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </article>
+                    )
+                  })}
                 </div>
-              </div>
-            ))}
-          </div>
+              </section>
+            )
+          })}
         </div>
       )}
     </div>

@@ -2,12 +2,14 @@ export interface ProjectMedia {
   src: string
   alt: string
   caption?: string
-  type?: 'photo' | 'screenshot' | 'diagram'
+  type?: 'photo' | 'screenshot' | 'diagram' | 'video' | 'document'
   fit?: 'cover' | 'contain'
+  fileName?: string
+  mimeType?: string
+  size?: number
 }
 
-export interface Project {
-  id: string
+export interface ProjectContent {
   title: string
   purpose: string
   image: string
@@ -28,6 +30,51 @@ export interface Project {
   docsUrl?: string
   videoUrl?: string
   media?: ProjectMedia[]
+}
+
+export type ProjectPublicationStatus = 'draft' | 'published'
+
+export interface Project extends ProjectContent {
+  id: string
+  publicationStatus?: ProjectPublicationStatus
+  publishedAt?: string
+  updatedAt?: string
+  draft?: ProjectContent
+}
+
+export function projectContent(project: Project): ProjectContent {
+  return {
+    title: project.title,
+    purpose: project.purpose,
+    image: project.image,
+    techStack: project.techStack,
+    problemSolved: project.problemSolved,
+    systemLogic: project.systemLogic,
+    outcome: project.outcome,
+    featured: project.featured,
+    role: project.role,
+    status: project.status,
+    architecture: project.architecture,
+    highlights: project.highlights,
+    githubUrl: project.githubUrl,
+    liveUrl: project.liveUrl,
+    appStoreUrl: project.appStoreUrl,
+    playStoreUrl: project.playStoreUrl,
+    websiteUrl: project.websiteUrl,
+    docsUrl: project.docsUrl,
+    videoUrl: project.videoUrl,
+    media: project.media,
+  }
+}
+
+export function editableProject(project: Project): Project {
+  return project.draft
+    ? { ...project, ...project.draft }
+    : project
+}
+
+export function isProjectPublished(project: Project) {
+  return project.publicationStatus !== 'draft'
 }
 
 export const defaultProjects: Project[] = [
@@ -256,10 +303,40 @@ export const legacyProjectIds = new Set([
 ])
 
 export function mergeWithCurrentCatalog(data: unknown): Project[] {
-  if (!Array.isArray(data)) return defaultProjects
+  if (!Array.isArray(data) || data.length === 0) {
+    return defaultProjects.map(project => ({ ...project, publicationStatus: 'published' as const }))
+  }
 
-  const incoming = data.filter((item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item))
-  const customProjects = incoming.filter(project => !legacyProjectIds.has(project.id) && !defaultProjects.some(current => current.id === project.id))
+  const incoming = data.filter(
+    (item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item)
+  )
+  const incomingById = new Map(incoming.map(project => [project.id, project]))
 
-  return [...defaultProjects, ...customProjects]
+  // Saved admin content is authoritative. Catalogue defaults only fill fields that
+  // did not exist in older saved records and introduce newly coded projects.
+  const mergedDefaults = defaultProjects.map(defaultProject => {
+    const saved = incomingById.get(defaultProject.id)
+    if (!saved) {
+      return { ...defaultProject, publicationStatus: 'published' as const }
+    }
+
+    return {
+      ...defaultProject,
+      ...saved,
+      publicationStatus: saved.publicationStatus || 'published',
+    }
+  })
+
+  const customProjects = incoming
+    .filter(
+      project =>
+        !legacyProjectIds.has(project.id) &&
+        !defaultProjects.some(current => current.id === project.id)
+    )
+    .map(project => ({
+      ...project,
+      publicationStatus: project.publicationStatus || 'published',
+    }))
+
+  return [...mergedDefaults, ...customProjects]
 }

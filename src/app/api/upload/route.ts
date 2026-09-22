@@ -122,7 +122,8 @@ export async function POST(request: NextRequest) {
     const isCV = type === 'cv'
     const isVideo = type === 'video' || type === 'testimonial-video' || type === 'testimonials'
     const isAudio = type === 'audio'
-    const isResource = type === 'resource'
+    const isProjectMedia = type === 'project-media'
+    const isResource = type === 'resource' || isProjectMedia
     const isGallery = type === 'gallery'
     
     let validTypes: string[]
@@ -182,10 +183,10 @@ export async function POST(request: NextRequest) {
 
     // Validate file size (max 100MB for videos, 50MB for resources, 10MB for audio/CV, 5MB for images)
     let maxSize: number
-    if (isVideo) {
+    if (isVideo || (isProjectMedia && file.type.startsWith('video/'))) {
       maxSize = 100 * 1024 * 1024 // 100MB for videos
     } else if (isResource) {
-      maxSize = 50 * 1024 * 1024 // 50MB for resources
+      maxSize = 50 * 1024 * 1024 // 50MB for documents/project resources
     } else if (isCV || isAudio) {
       maxSize = 10 * 1024 * 1024 // 10MB for CV and audio
     } else {
@@ -193,7 +194,7 @@ export async function POST(request: NextRequest) {
     }
     
     if (file.size > maxSize) {
-      const maxSizeStr = isVideo ? '100MB' : (isResource ? '50MB' : ((isCV || isAudio) ? '10MB' : '10MB'))
+      const maxSizeStr = (isVideo || (isProjectMedia && file.type.startsWith('video/'))) ? '100MB' : (isResource ? '50MB' : ((isCV || isAudio) ? '10MB' : '10MB'))
       return NextResponse.json(
         { error: `File too large. Maximum size is ${maxSizeStr}` },
         { status: 400 }
@@ -219,6 +220,10 @@ export async function POST(request: NextRequest) {
     } else if (type === 'project' && projectId) {
       folder = 'portfolio/projects'
       publicId = `project-${projectId}-${Date.now()}`
+    } else if (type === 'project-media' && projectId) {
+      const safeProjectId = projectId.replace(/[^a-zA-Z0-9_-]/g, '_')
+      folder = `portfolio/projects/${safeProjectId}`
+      publicId = `asset-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_').replace(/\.[^/.]+$/, '')}`
     } else if (type === 'video' || type === 'testimonial-video') {
       folder = 'portfolio/videos'
       publicId = `video-${Date.now()}`

@@ -1,7 +1,10 @@
 import { NextRequest } from 'next/server'
+import { put } from '@vercel/blob'
+import { getClientIP, rateLimit } from '@/lib/rate-limit'
 import {
   buildProjectQuotation,
   formatZmw,
+  normalizeProjectQuoteSelection,
   type ProjectQuoteSelection,
 } from '@/lib/project-quotation'
 
@@ -15,6 +18,7 @@ interface PdfRequest {
     company?: string
   }
   selection: ProjectQuoteSelection
+  store?: boolean
 }
 
 type RGB = [number, number, number]
@@ -342,19 +346,56 @@ function buildProfessionalQuotation(body: PdfRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as PdfRequest
+    const ip = getClientIP(request)
+    const rl = rateLimit(`quotation-pdf:${ip}`, 6, 10 * 60_000)
 
-    if (!body?.quoteId || !body?.client?.name || !body?.client?.email || !body?.selection) {
-      return new Response('Missing quotation details', { status: 400 })
+    if (!rl.allowed) {
+      return new Response('Too many quotation requests. Please try again later.', {
+        status: 429,
+        headers: { 'Retry-After': String(Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000))) },
+      })
+    }
+
+    const raw = (await request.json()) as PdfRequest
+    const quoteId = clean(raw?.quoteId).slice(0, 80)
+    const name = clean(raw?.client?.name).slice(0, 160)
+    const email = clean(raw?.client?.email).slice(0, 320)
+    const company = clean(raw?.client?.company).slice(0, 200)
+
+    if (
+      !quoteId ||
+      !name ||
+      !/^\S+@\S+\.\S+$/.test(email) ||
+      !raw?.selection
+    ) {
+      return new Response('Invalid or missing quotation details', { status: 400 })
+    }
+
+    const body: PdfRequest = {
+      quoteId,
+      client: { name, email, company },
+      selection: normalizeProjectQuoteSelection(raw.selection),
+      store: raw.store === true,
     }
 
     const pdf = buildProfessionalQuotation(body)
+    let storedPath = ''
+
+    if (body.store) {
+      const safeId = clean(body.quoteId).replace(/[^a-zA-Z0-9_-]/g, '_')
+      const stored = await put(`data/quotations/${safeId}.pdf`, pdf, {
+        access: 'private',
+        addRandomSuffix: true,
+      })
+      storedPath = stored.pathname
+    }
 
     return new Response(pdf, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${clean(body.quoteId)}.pdf"`,
         'Cache-Control': 'no-store',
+        ...(storedPath ? { 'X-Quotation-Pdf-Path': storedPath } : {}),
       },
     })
   } catch (error) {

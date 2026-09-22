@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench, FileText, Download, PlayCircle } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
 import EngineeringProjectDeepDive from '@/components/projects/EngineeringProjectDeepDive'
 import { engineeringProjectDetails } from '@/lib/project-engineering-details'
@@ -11,6 +11,12 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
   const { projects } = useProjects()
   const project = projects.find(item => item.id === slug)
   const engineeringDetail = engineeringProjectDetails[slug]
+  const visualMedia = project?.media?.filter(item => item.type !== 'document' && item.type !== 'video') || []
+  const primaryVisual = visualMedia[0]
+  const evidenceMedia = project?.media?.filter(item => {
+    if (item.type === 'document' || item.type === 'video') return true
+    return item.src !== project.image
+  }) || []
 
   if (!project) {
     return (
@@ -59,10 +65,10 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           {project.image ? (
             <Image
               src={project.image}
-              alt={project.media?.[0]?.alt || project.title}
+              alt={primaryVisual?.alt || project.title}
               fill
               priority
-              className={project.media?.[0]?.fit === 'contain' ? 'object-contain' : 'object-cover'}
+              className={primaryVisual?.fit === 'contain' ? 'object-contain' : 'object-cover'}
               sizes="(max-width: 1200px) 100vw, 1200px"
             />
           ) : (
@@ -76,10 +82,10 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           )}
         </div>
 
-        {project.media?.[0]?.caption && (
+        {primaryVisual?.caption && (
           <div className="mt-3 flex flex-col gap-2 rounded-xl border border-dark-800 bg-dark-900/45 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Project evidence</span>
-            <p className="max-w-4xl text-sm leading-relaxed text-dark-400">{project.media[0].caption}</p>
+            <p className="max-w-4xl text-sm leading-relaxed text-dark-400">{primaryVisual.caption}</p>
           </div>
         )}
 
@@ -133,28 +139,67 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           </div>
         </section>
 
-        {project.media && project.media.length > 1 && (
+        {evidenceMedia.length > 0 && (
           <section className="mt-6 rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Project evidence</p>
-              <h2 className="mt-2 text-2xl font-bold text-white">Hardware, product and deployment proof</h2>
-              <p className="mt-2 text-sm text-dark-500">Real project photos and screens from development and deployment.</p>
+              <h2 className="mt-2 text-2xl font-bold text-white">Photos, videos and project documents</h2>
+              <p className="mt-2 text-sm text-dark-500">Supporting material attached directly to this project from the admin dashboard.</p>
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {project.media.slice(1).map((item, index) => (
-                <figure key={item.src + index} className="overflow-hidden rounded-xl border border-dark-800 bg-dark-950/70">
-                  <div className="relative aspect-video bg-dark-950">
-                    <Image
-                      src={item.src}
-                      alt={item.alt}
-                      fill
-                      className={item.fit === 'contain' ? 'object-contain' : 'object-cover'}
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-                  {item.caption && <figcaption className="p-4 text-sm leading-relaxed text-dark-400">{item.caption}</figcaption>}
-                </figure>
-              ))}
+              {evidenceMedia.map((item, index) => {
+                if (item.type === 'document') {
+                  return (
+                    <a
+                      key={item.src + index}
+                      href={item.src}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-40 flex-col justify-between rounded-xl border border-dark-800 bg-dark-950/70 p-5 transition hover:border-primary-500/40"
+                    >
+                      <div>
+                        <FileText className="h-8 w-8 text-yellow-400" />
+                        <h3 className="mt-4 font-semibold text-white">{item.fileName || item.alt || 'Project document'}</h3>
+                        {item.caption && <p className="mt-2 text-sm leading-relaxed text-dark-400">{item.caption}</p>}
+                      </div>
+                      <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary-400">
+                        <Download className="h-4 w-4" /> Open document
+                      </span>
+                    </a>
+                  )
+                }
+
+                if (item.type === 'video') {
+                  return (
+                    <figure key={item.src + index} className="overflow-hidden rounded-xl border border-dark-800 bg-dark-950/70">
+                      <div className="relative bg-black">
+                        <video src={item.src} controls preload="metadata" className="aspect-video w-full object-contain" />
+                        <PlayCircle className="pointer-events-none absolute right-3 top-3 h-6 w-6 text-white/70" />
+                      </div>
+                      {(item.caption || item.fileName) && (
+                        <figcaption className="p-4 text-sm leading-relaxed text-dark-400">
+                          {item.caption || item.fileName}
+                        </figcaption>
+                      )}
+                    </figure>
+                  )
+                }
+
+                return (
+                  <figure key={item.src + index} className="overflow-hidden rounded-xl border border-dark-800 bg-dark-950/70">
+                    <div className="relative aspect-video bg-dark-950">
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        className={item.fit === 'contain' ? 'object-contain' : 'object-cover'}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </div>
+                    {item.caption && <figcaption className="p-4 text-sm leading-relaxed text-dark-400">{item.caption}</figcaption>}
+                  </figure>
+                )
+              })}
             </div>
           </section>
         )}
