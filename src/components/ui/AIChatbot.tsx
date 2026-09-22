@@ -634,7 +634,35 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       return
     }
 
-    // Zero-cost smart mode: answer from the live portfolio data in the browser.
+    // Smart mode: use Groq with live portfolio data, then fall back locally if the provider is unavailable.
+    try {
+      const conversation = [...messages, userMessage]
+        .filter(message => message.role === 'user' || message.role === 'assistant')
+        .slice(-10)
+        .map(message => ({ role: message.role, content: message.content }))
+
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation }),
+      })
+
+      if (response.ok) {
+        const payload = await response.json()
+        if (typeof payload?.answer === 'string' && payload.answer.trim()) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: payload.answer.trim(),
+            options: ['See projects', 'Book a meeting', '📩 Send inquiry'],
+          }])
+          setIsTyping(false)
+          return
+        }
+      }
+    } catch (error) {
+      console.error('AI provider request failed:', error)
+    }
+
     await thinkingDelay()
     const answer = getSmartLocalAnswer(text)
     setMessages(prev => [...prev, {
