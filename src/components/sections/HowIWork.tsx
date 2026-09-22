@@ -63,8 +63,8 @@ export default function HowIWork() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <p className="text-[#526E8A] dark:text-primary-400 font-semibold text-sm uppercase tracking-wider mb-3">
-            My Process
+          <p className="text-[#526E8A] dark:text-primary-400 font-medium text-sm uppercase tracking-[0.18em] mb-3">
+            05 — Delivery Method
           </p>
           <h2 className="section-heading">How I Work</h2>
           <p className="section-subheading mx-auto">
@@ -85,8 +85,7 @@ export default function HowIWork() {
             >
               <div className="card h-full hover:translate-y-[-1px] transition-all duration-200">
                 {/* Step Number */}
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl
-                                bg-[#10243E] dark:bg-gradient-to-br dark:${step.color} mb-4`}>
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-sm bg-[#10243E] dark:bg-primary-600 mb-4">
                   <step.icon className="w-6 h-6 text-white" />
                 </div>
 
