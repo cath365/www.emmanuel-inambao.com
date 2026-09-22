@@ -24,10 +24,13 @@ export default function Experience() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
+          <p className="mb-3 text-sm font-medium uppercase tracking-[0.18em] text-[#526E8A] dark:text-primary-400">
+            06 — Experience
+          </p>
           <h2 className="text-3xl sm:text-4xl font-display font-medium text-[#10243E] dark:text-white mb-4">
             {t('experience.title')}
           </h2>
-          <p className="text-[#667384] dark:text-[#566273] dark:text-dark-300 max-w-2xl mx-auto">
+          <p className="text-[#667384] dark:text-dark-300 max-w-2xl mx-auto">
             {t('experience.subtitle')}
           </p>
         </motion.div>
