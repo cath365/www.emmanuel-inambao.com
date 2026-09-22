@@ -13,11 +13,13 @@ import {
   Globe2,
   LayoutDashboard,
   MessageCircle,
+  Plus,
   RefreshCcw,
   Send,
   ShoppingCart,
   Smartphone,
   Cpu,
+  X,
 } from 'lucide-react'
 import { useProfile } from '@/lib/profile'
 import {
@@ -55,6 +57,7 @@ const DEFAULT_SELECTION: ProjectQuoteSelection = {
   mobilePlatform: 'not-sure',
   iotIntegration: false,
   iotDetails: '',
+  customFeatures: [],
   projectDescription: '',
   timeline: 'flexible',
 }
@@ -131,12 +134,31 @@ export default function StartProjectPage() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [quoteId, setQuoteId] = useState('')
+  const [featureDraft, setFeatureDraft] = useState('')
 
   const quotation = useMemo(() => buildProjectQuotation(selection), [selection])
   const anyDeliverable = selection.website || selection.mobileApplication || selection.iotIntegration
 
   const toggle = (key: 'website' | 'mobileApplication' | 'iotIntegration') => {
     setSelection(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const addCustomFeature = () => {
+    const feature = featureDraft.trim()
+    if (!feature) return
+    setSelection(prev => {
+      const exists = prev.customFeatures.some(item => item.toLowerCase() === feature.toLowerCase())
+      if (exists || prev.customFeatures.length >= 30) return prev
+      return { ...prev, customFeatures: [...prev.customFeatures, feature] }
+    })
+    setFeatureDraft('')
+  }
+
+  const removeCustomFeature = (index: number) => {
+    setSelection(prev => ({
+      ...prev,
+      customFeatures: prev.customFeatures.filter((_, itemIndex) => itemIndex !== index),
+    }))
   }
 
   const goForward = () => {
@@ -174,7 +196,9 @@ export default function StartProjectPage() {
     if (step === 'contact') {
       if (!client.name.trim() || !/^\S+@\S+\.\S+$/.test(client.email)) return
       setStep('review')
-      void askAi('Explain this quotation to the client and explain why each selected item is charged.')
+      void askAi(
+        'Explain this quotation to the client, explain why each selected item is charged, show the 35% upfront calculation, and encourage a sensible next step without changing any fixed price.'
+      )
     }
   }
 
@@ -299,6 +323,7 @@ export default function StartProjectPage() {
     setStep('deliverables')
     setAiAnswer('')
     setAiQuestion('Why does this quotation cost this amount?')
+    setFeatureDraft('')
     setQuoteId('')
     setStatus('idle')
     setErrorMessage('')
@@ -407,8 +432,56 @@ export default function StartProjectPage() {
                   title="Payment integration"
                   detail="+ ZMW 2,000 — gateway integration, verification and payment-flow testing"
                 />
+                <div className="rounded-sm border border-[#D8D2C8] bg-[#F6F3EC] p-5 dark:border-dark-700 dark:bg-dark-900/60">
+                  <div className="flex flex-col gap-1">
+                    <p className="font-semibold text-[#10243E] dark:text-white">Additional custom features</p>
+                    <p className="text-sm leading-6 text-[#697483] dark:text-dark-400">
+                      Add any extra feature not covered above. Each additional feature adds exactly ZMW 350 to the quotation.
+                    </p>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={featureDraft}
+                      onChange={e => setFeatureDraft(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          addCustomFeature()
+                        }
+                      }}
+                      placeholder="Example: SMS notifications"
+                      className="min-w-0 flex-1 rounded-sm border border-[#D4CEC4] bg-white px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                    />
+                    <button type="button" onClick={addCustomFeature} className="btn-secondary">
+                      <Plus className="h-4 w-4" /> Add feature
+                    </button>
+                  </div>
+                  {selection.customFeatures.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {selection.customFeatures.map((feature, index) => (
+                        <div
+                          key={`${feature}-${index}`}
+                          className="flex items-center justify-between gap-3 rounded-sm border border-[#DDD7CC] bg-white/70 px-3 py-2 dark:border-dark-700 dark:bg-dark-800/50"
+                        >
+                          <span className="text-sm text-[#39495A] dark:text-dark-200">{feature}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-[#10243E] dark:text-white">+ ZMW 350</span>
+                            <button
+                              type="button"
+                              onClick={() => removeCustomFeature(index)}
+                              aria-label={`Remove ${feature}`}
+                              className="text-[#7A8491] transition hover:text-red-600 dark:text-dark-400 dark:hover:text-red-400"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <p className="pt-2 text-sm text-[#7A8491] dark:text-dark-500">
-                  These are optional additions. Leave a feature unselected if you do not need it.
+                  Optional additions can be removed or phased later if you want to reduce the initial project scope.
                 </p>
               </div>
             )}
@@ -538,15 +611,39 @@ export default function StartProjectPage() {
 
                 <div className="rounded-sm border border-[#D8D2C8] bg-[#F1EEE7] p-5 dark:border-dark-700 dark:bg-dark-800/40">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#7A8491] dark:text-dark-500">
-                    Known subtotal
+                    Project total
                   </p>
                   <p className="mt-2 font-display text-3xl font-medium text-[#10243E] dark:text-white">
                     {formatZmw(quotation.knownTotal)}
                     {quotation.hasCustomPricing && ' + custom IoT'}
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">
-                    This is a preliminary quotation based on the selected scope. Third-party fees, purchased hardware,
-                    hosting and requirements outside this scope are confirmed separately.
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-sm border border-[#D8D2C8] bg-white/70 p-4 dark:border-dark-700 dark:bg-dark-900/50">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7A8491] dark:text-dark-500">
+                        Upfront · 35%
+                      </p>
+                      <p className="mt-1 text-xl font-semibold text-[#10243E] dark:text-white">
+                        {formatZmw(quotation.upfrontAmount)}
+                      </p>
+                      <p className="mt-1 text-xs text-[#697483] dark:text-dark-400">
+                        {formatZmw(quotation.knownTotal)} × 35%
+                      </p>
+                    </div>
+                    <div className="rounded-sm border border-[#D8D2C8] bg-white/70 p-4 dark:border-dark-700 dark:bg-dark-900/50">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#7A8491] dark:text-dark-500">
+                        Remaining · 65%
+                      </p>
+                      <p className="mt-1 text-xl font-semibold text-[#10243E] dark:text-white">
+                        {formatZmw(quotation.balanceAmount)}
+                      </p>
+                      <p className="mt-1 text-xs text-[#697483] dark:text-dark-400">
+                        Remaining balance after the upfront payment
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                    You do not need to pay the full known total upfront. The initial project payment is 35%.
+                    Third-party fees, purchased hardware, hosting and requirements outside this scope are confirmed separately.
                   </p>
                 </div>
 
@@ -672,10 +769,20 @@ export default function StartProjectPage() {
                 </div>
 
                 <div className="mt-5">
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#7A8491] dark:text-dark-500">Known subtotal</p>
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#7A8491] dark:text-dark-500">Project total</p>
                   <p className="mt-1 font-display text-3xl font-medium text-[#10243E] dark:text-white">
                     {formatZmw(quotation.knownTotal)}
                   </p>
+                  <div className="mt-4 space-y-2 border-t border-[#D7D0C4] pt-4 dark:border-dark-800">
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-[#697483] dark:text-dark-400">Upfront payment · 35%</span>
+                      <span className="font-semibold text-[#10243E] dark:text-white">{formatZmw(quotation.upfrontAmount)}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-[#697483] dark:text-dark-400">Remaining balance · 65%</span>
+                      <span className="font-semibold text-[#10243E] dark:text-white">{formatZmw(quotation.balanceAmount)}</span>
+                    </div>
+                  </div>
                   {quotation.hasCustomPricing && (
                     <p className="mt-1 text-xs leading-5 text-[#7A8491] dark:text-dark-500">
                       + IoT/custom engineering after technical discovery
@@ -693,6 +800,9 @@ export default function StartProjectPage() {
                 <li>Admin dashboard: + ZMW 2,500</li>
                 <li>Payment integration: + ZMW 2,000</li>
                 <li>Mobile application: ZMW 12,000 base</li>
+                <li>Each additional feature: + ZMW 350</li>
+                <li>Upfront payment: 35% of known total</li>
+                <li>Remaining balance: 65%</li>
                 <li>IoT integration: custom quotation</li>
               </ul>
             </div>
