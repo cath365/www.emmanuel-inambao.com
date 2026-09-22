@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import CaseStudyList from './CaseStudyList'
+import { getAllCaseStudies } from '@/lib/case-study-store'
 
 export const metadata: Metadata = {
   title: 'Engineering Case Studies',
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
   alternates: { canonical: '/case-studies' },
 }
 
-export default function CaseStudiesPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function CaseStudiesPage() {
+  const studies = await getAllCaseStudies()
   return (
     <main className="min-h-screen bg-dark-950 pb-20 pt-24">
       <div className="section-container">
@@ -25,7 +29,7 @@ export default function CaseStudiesPage() {
           </p>
         </div>
 
-        <CaseStudyList />
+        <CaseStudyList studies={studies} />
       </div>
     </main>
   )

@@ -57,7 +57,7 @@ All secrets are server-side only. Never prefix with `NEXT_PUBLIC_` unless you wa
 | `FORMSPREE_ID` | one of | Fallback contact-form backend — https://formspree.io |
 | `CLOUDINARY_CLOUD_NAME` | admin | Media uploader |
 | `CLOUDINARY_API_KEY` | admin | Media uploader |
-| `CLOUDINARY_API_SECRET` | admin | Media uploader |\n| `OPENAI_API_KEY` | AI assistant | Server-side OpenAI API key for the portfolio assistant |\n| `OPENAI_MODEL` | optional | AI model override; defaults to `gpt-5.6-terra` |
+| `CLOUDINARY_API_SECRET` | admin | Media uploader |\n| `GROQ_API_KEY` | AI | Server-side Groq API key for portfolio Q&A and case-study generation |\n| `GROQ_MODEL` | optional | Groq model override; defaults to `llama-3.3-70b-versatile` |
 
 Without `ADMIN_*` or `SESSION_SECRET`, admin login is disabled. Without a contact-form backend, `/api/contact` returns 503. Without Cloudinary, `/api/upload` returns 500. All three are enforced at runtime and logged to the server console in dev.
 
@@ -114,7 +114,7 @@ The UI gracefully falls back (gradient cover, monogram avatar, hidden CV button)
 
 - **Data layer**: Admin-managed content (profile, projects, etc.) lives in `src/lib/*.tsx` React contexts. On first load, each context fetches from `/api/portfolio-data?key=…` (Vercel Blob). Writes POST back to the same endpoint. `localStorage` is a client-side cache only.
 - **Auth**: `src/lib/auth-config.ts` exports `signSession` / `verifySession`. All protected API routes call `isAuthenticated()` from `src/lib/auth-helpers.ts` — do not re-implement cookie parsing.
-- **Media**: All user-uploaded media goes through `/api/upload` → Cloudinary (never the filesystem). Cloudinary URLs are whitelisted in `next.config.js`.\n- **Portfolio AI**: `/api/ai/chat` is server-side only. It loads current portfolio data, sends a compact grounded context to OpenAI, limits conversation length, and falls back to deterministic portfolio actions if the provider is unavailable. Never expose `OPENAI_API_KEY` to the browser.
+- **Media**: All user-uploaded media goes through `/api/upload` → Cloudinary (never the filesystem). Cloudinary URLs are whitelisted in `next.config.js`.\n- **Portfolio AI**: `/api/ai/chat` is server-side only. It loads current Vercel Blob portfolio data on each request, sends grounded context to Groq, limits conversation length, and the browser falls back to the local portfolio assistant if Groq is unavailable. `/api/ai/case-study` is authenticated and can generate/update structured case studies from saved projects. Never expose `GROQ_API_KEY` to the browser.
 - **PWA**: `public/sw.js` is a network-first service worker registered by `ServiceWorkerRegistrar`. It skips `/api/*` and `/admin`.
 
 ## License

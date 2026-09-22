@@ -1,14 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { caseStudies, caseStudiesBySlug } from '@/lib/case-studies'
+import { getCaseStudyBySlug } from '@/lib/case-study-store'
 import CaseStudyContent from './CaseStudyContent'
 
-export function generateStaticParams() {
-  return caseStudies.map(study => ({ slug: study.slug }))
-}
+export const dynamic = 'force-dynamic'
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const study = caseStudiesBySlug[params.slug]
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const study = await getCaseStudyBySlug(params.slug)
 
   if (!study) return { title: 'Case Study Not Found' }
 
@@ -19,8 +17,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   }
 }
 
-export default function CaseStudyPage({ params }: { params: { slug: string } }) {
-  const study = caseStudiesBySlug[params.slug]
+export default async function CaseStudyPage({ params }: { params: { slug: string } }) {
+  const study = await getCaseStudyBySlug(params.slug)
   if (!study) notFound()
   return <CaseStudyContent study={study} />
 }
