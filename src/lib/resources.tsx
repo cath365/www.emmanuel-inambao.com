@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { persistPortfolioData } from '@/lib/portfolio-persistence'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export interface Resource {
   id: string
