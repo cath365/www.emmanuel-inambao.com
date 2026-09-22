@@ -37,7 +37,7 @@ export default function CaseStudyManager() {
   const [resultsText, setResultsText] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
-  const [generationSource, setGenerationSource] = useState<'ai' | 'local' | ''>('')
+  const [generationSource, setGenerationSource] = useState<'groq' | 'local' | ''>('')
 
   const selectedProject = useMemo(
     () => projects.find(project => project.id === selectedProjectId),
@@ -88,11 +88,11 @@ export default function CaseStudyManager() {
         return
       }
 
-      setGenerationSource(payload.source === 'ai' ? 'ai' : 'local')
+      setGenerationSource(payload.source === 'groq' ? 'groq' : 'local')
       setEditor(payload.caseStudy)
       setMessage(
-        payload.source === 'ai'
-          ? 'AI draft generated from the saved project data. Review it before publishing.'
+        payload.source === 'groq'
+          ? 'Groq AI draft generated from the saved project data. Review it before publishing.'
           : 'Draft generated from the saved project data. The AI provider was unavailable, so the evidence-based local generator was used.'
       )
     } catch {
@@ -224,7 +224,7 @@ export default function CaseStudyManager() {
             <div>
               <h2 className="text-lg font-semibold text-white">Review generated draft</h2>
               <p className="mt-1 text-xs text-dark-500">
-                Generator: {generationSource === 'ai' ? 'OpenAI grounded generation' : generationSource === 'local' ? 'Local evidence-based fallback' : 'saved draft'}
+                Generator: {generationSource === 'groq' ? 'Groq grounded generation' : generationSource === 'local' ? 'Local evidence-based fallback' : 'saved draft'}
               </p>
             </div>
             <button type="button" onClick={publish} disabled={busy} className="btn-primary gap-2">
