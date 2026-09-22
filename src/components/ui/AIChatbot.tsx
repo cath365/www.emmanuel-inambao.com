@@ -394,6 +394,38 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     return answer
   }
 
+  const getPortfolioAnswer = async (text: string) => {
+    const conversation = [
+      ...messages
+        .filter(message => message.content.trim().length > 0)
+        .map(message => ({ role: message.role, content: message.content })),
+      { role: 'user' as const, content: text },
+    ].slice(-10)
+
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation }),
+      })
+
+      if (response.ok) {
+        const payload = await response.json()
+        if (typeof payload?.answer === 'string' && payload.answer.trim()) {
+          trackEvent('/intent/ai-question', 'ai-chatbot')
+          return {
+            response: payload.answer.trim(),
+            options: ['📩 Send inquiry', 'Book a meeting', 'See projects'],
+          }
+        }
+      }
+    } catch {
+      // The local assistant below keeps the portfolio useful when the AI provider is unavailable.
+    }
+
+    return getSmartLocalAnswer(text)
+  }
+
   const thinkingDelay = () => new Promise<void>(resolve => {
     window.setTimeout(resolve, 550)
   })
@@ -572,7 +604,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       if (lead.active) resetLeadFlow()
 
       await thinkingDelay()
-      const answer = getSmartLocalAnswer(text)
+      const answer = await getPortfolioAnswer(text)
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: answer.response,
@@ -634,9 +666,9 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       return
     }
 
-    // Zero-cost smart mode: answer from the live portfolio data in the browser.
+    // Use the server-side grounded AI when configured. Fall back to the live local portfolio assistant.
     await thinkingDelay()
-    const answer = getSmartLocalAnswer(text)
+    const answer = await getPortfolioAnswer(text)
     setMessages(prev => [...prev, {
       role: 'assistant',
       content: answer.response,
