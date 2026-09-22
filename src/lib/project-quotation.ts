@@ -52,8 +52,45 @@ export function formatZmw(amount: number) {
 
 export function normalizeCustomFeatures(features: string[] | undefined) {
   return Array.from(
-    new Set((features || []).map(feature => feature.trim()).filter(Boolean))
+    new Set(
+      (features || [])
+        .filter((feature): feature is string => typeof feature === 'string')
+        .map(feature => feature.trim().slice(0, 120))
+        .filter(Boolean)
+    )
   ).slice(0, 30)
+}
+
+export function normalizeProjectQuoteSelection(input: unknown): ProjectQuoteSelection {
+  const raw = input && typeof input === 'object'
+    ? input as Partial<ProjectQuoteSelection>
+    : {}
+
+  const mobilePlatforms: MobilePlatform[] = ['android', 'ios', 'both', 'not-sure']
+  const timelines: ProjectTimeline[] = ['flexible', '4-8-weeks', '2-4-weeks', 'urgent']
+
+  return {
+    website: raw.website === true,
+    ecommerce: raw.ecommerce === true,
+    adminDashboard: raw.adminDashboard === true,
+    paymentIntegration: raw.paymentIntegration === true,
+    mobileApplication: raw.mobileApplication === true,
+    mobilePlatform: mobilePlatforms.includes(raw.mobilePlatform as MobilePlatform)
+      ? raw.mobilePlatform as MobilePlatform
+      : 'not-sure',
+    iotIntegration: raw.iotIntegration === true,
+    iotDetails: typeof raw.iotDetails === 'string' ? raw.iotDetails.trim().slice(0, 5000) : '',
+    customFeatures: normalizeCustomFeatures(
+      Array.isArray(raw.customFeatures) ? raw.customFeatures : []
+    ),
+    projectDescription:
+      typeof raw.projectDescription === 'string'
+        ? raw.projectDescription.trim().slice(0, 8000)
+        : '',
+    timeline: timelines.includes(raw.timeline as ProjectTimeline)
+      ? raw.timeline as ProjectTimeline
+      : 'flexible',
+  }
 }
 
 export function buildProjectQuotation(selection: ProjectQuoteSelection): ProjectQuotation {
