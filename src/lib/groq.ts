@@ -40,6 +40,7 @@ export async function createGroqCompletion(options: GroqRequestOptions): Promise
         max_completion_tokens: options.maxCompletionTokens ?? 900,
         temperature: options.temperature ?? 0.25,
         reasoning_effort: options.reasoningEffort ?? 'low',
+        reasoning_format: options.responseFormat?.type === 'json_object' ? 'hidden' : undefined,
         response_format: options.responseFormat ?? { type: 'text' },
       }),
       signal: AbortSignal.timeout(options.timeoutMs ?? 20_000),
