@@ -29,7 +29,6 @@ export async function persistPortfolioData(key: string, data: unknown) {
 
     if (!response.ok || payload?.success !== true) {
       const message = payload?.error || `Unable to save ${key}.`
-      emit({ key, state: 'error', message })
       throw new Error(message)
     }
 
