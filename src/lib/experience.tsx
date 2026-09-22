@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 
 export interface Experience {
   id: string
@@ -61,11 +62,7 @@ const defaultExperiences: Experience[] = [
 const ExperienceContext = createContext<ExperienceContextType | undefined>(undefined)
 
 function saveToServer(data: Experience[]) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'experiences', data }),
-  }).catch(e => console.error('Failed to save experiences:', e))
+  void persistPortfolioData('experiences', data).catch(error => console.error('Failed to save experiences:', error))
 }
 
 export function ExperienceProvider({ children }: { children: ReactNode }) {
