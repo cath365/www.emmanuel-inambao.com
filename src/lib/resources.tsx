@@ -70,11 +70,7 @@ function saveResourcesToServer(data: Resource[]) {
 }
 
 function saveAudioToServer(url: string) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'audio', data: url }),
-  }).catch(e => console.error('Failed to save audio:', e))
+  void persistPortfolioData('audio', url).catch(error => console.error('Failed to save audio:', error))
 }
 
 export function ResourcesProvider({ children }: { children: ReactNode }) {
