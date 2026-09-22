@@ -38,6 +38,7 @@ export default function CaseStudyManager() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [generationSource, setGenerationSource] = useState<'groq' | 'local' | ''>('')
+  const [groqStatus, setGroqStatus] = useState<'checking' | 'connected' | 'missing'>('checking')
 
   const selectedProject = useMemo(
     () => projects.find(project => project.id === selectedProjectId),
@@ -56,6 +57,11 @@ export default function CaseStudyManager() {
 
   useEffect(() => {
     loadSaved()
+
+    fetch('/api/ai/status', { cache: 'no-store' })
+      .then(response => response.json())
+      .then(payload => setGroqStatus(payload?.configured ? 'connected' : 'missing'))
+      .catch(() => setGroqStatus('missing'))
   }, [])
 
   const setEditor = (study: CaseStudy) => {
@@ -185,6 +191,24 @@ export default function CaseStudyManager() {
           Generate evidence-based case studies from the same project records used by the public portfolio and AI assistant.
           Generated text is never published until you review and save it.
         </p>
+        <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-dark-700 bg-dark-900/60 px-3 py-2 text-xs">
+          <span
+            className={`h-2 w-2 rounded-full ${
+              groqStatus === 'connected'
+                ? 'bg-green-400'
+                : groqStatus === 'missing'
+                  ? 'bg-amber-400'
+                  : 'bg-dark-500'
+            }`}
+          />
+          <span className="text-dark-300">
+            {groqStatus === 'connected'
+              ? 'Groq AI connected'
+              : groqStatus === 'missing'
+                ? 'Groq API key not detected — local evidence-based fallback is active'
+                : 'Checking Groq AI configuration…'}
+          </span>
+        </div>
       </div>
 
       <section className="rounded-xl border border-dark-700 bg-dark-800/40 p-5">
