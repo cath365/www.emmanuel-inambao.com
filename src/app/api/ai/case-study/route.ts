@@ -61,7 +61,11 @@ export async function POST(request: NextRequest) {
     }
 
     const projects = await readProjects()
-    const project = projects.find(item => item.id === projectId)
+    const snapshot =
+      body?.project && typeof body.project === 'object' && body.project.id === projectId
+        ? body.project
+        : null
+    const project = projects.find(item => item.id === projectId) || snapshot
 
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
