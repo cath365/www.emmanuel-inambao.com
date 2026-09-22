@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
+  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles, Download
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
