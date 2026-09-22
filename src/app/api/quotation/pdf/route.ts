@@ -11,7 +11,8 @@ interface PdfRequest {
   quoteId: string
   client: {
     name: string
-    email: string
+    email?: string
+    phone?: string
     company?: string
   }
   selection: ProjectQuoteSelection
@@ -227,16 +228,24 @@ function buildProfessionalQuotation(body: PdfRequest) {
   page.push(textCommand(new Date().toLocaleDateString('en-ZM'), 432, 622, 10, true, NAVY))
   y = 582
 
-  if (body.client.company || body.client.email) {
+  if (body.client.company || body.client.email || body.client.phone) {
     sectionTitle('Client details')
     if (body.client.company) {
       page.push(textCommand('Organization', 46, y, 8.5, true, MID))
       page.push(textCommand(clean(body.client.company), 145, y, 9.5, false, DARK))
       y -= 17
     }
-    page.push(textCommand('Email', 46, y, 8.5, true, MID))
-    page.push(textCommand(clean(body.client.email), 145, y, 9.5, false, DARK))
-    y -= 26
+    if (body.client.email) {
+      page.push(textCommand('Email', 46, y, 8.5, true, MID))
+      page.push(textCommand(clean(body.client.email), 145, y, 9.5, false, DARK))
+      y -= 17
+    }
+    if (body.client.phone) {
+      page.push(textCommand('WhatsApp', 46, y, 8.5, true, MID))
+      page.push(textCommand(clean(body.client.phone), 145, y, 9.5, false, DARK))
+      y -= 17
+    }
+    y -= 9
   }
 
   sectionTitle('Project scope')
@@ -344,8 +353,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as PdfRequest
 
-    if (!body?.quoteId || !body?.client?.name || !body?.client?.email || !body?.selection) {
-      return new Response('Missing quotation details', { status: 400 })
+    const email = String(body?.client?.email || '').trim()
+    const phoneDigits = String(body?.client?.phone || '').replace(/\D/g, '')
+
+    if (
+      !body?.quoteId ||
+      !body?.client?.name ||
+      !body?.selection ||
+      (!email && phoneDigits.length < 7) ||
+      (email && !/^\S+@\S+\.\S+$/.test(email))
+    ) {
+      return new Response('Missing or invalid quotation details', { status: 400 })
     }
 
     const pdf = buildProfessionalQuotation(body)
