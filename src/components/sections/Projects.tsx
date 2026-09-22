@@ -16,7 +16,7 @@ export default function Projects() {
   const featuredProjects = projects.filter(project => project.featured).slice(0, 5)
 
   return (
-    <section id="projects" ref={ref} className="bg-dark-900/45 py-20 lg:py-28" aria-labelledby="projects-heading">
+    <section id="projects" ref={ref} className="bg-[#F1EEE7] dark:bg-dark-900/45 py-20 lg:py-28 border-y border-[#DED8CE] dark:border-dark-800/50" aria-labelledby="projects-heading">
       <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -25,7 +25,7 @@ export default function Projects() {
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >
           <div>
-            <span className="text-sm font-medium uppercase tracking-[0.2em] text-primary-500">{t('projects.title')}</span>
+            <span className="text-sm font-medium uppercase tracking-[0.2em] text-[#526E8A] dark:text-primary-500">01 — Engineering Work</span>
             <h2 id="projects-heading" className="section-heading mt-2">Flagship systems built for real-world use.</h2>
             <p className="section-subheading mt-4">
               Embedded control, IoT, robotics and full-stack platforms presented as engineering systems — problem, architecture, implementation and outcome.

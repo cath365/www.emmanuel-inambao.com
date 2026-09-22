@@ -28,7 +28,7 @@ export default function Hero() {
   const lastName = nameParts[nameParts.length - 1]
 
   return (
-    <section id="hero" className="relative" aria-label="Introduction">
+    <section id="hero" className="relative bg-[#F7F5EF] dark:bg-dark-950" aria-label="Introduction">
       {/* Cover Banner - LinkedIn style */}
       <div className="relative w-full h-44 sm:h-52 md:h-64 lg:h-72 overflow-hidden">
         {profile.coverImage ? (
@@ -40,7 +40,7 @@ export default function Hero() {
             priority
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-dark-900 to-dark-950">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#DCE4E9] via-[#E9E6DF] to-[#F7F5EF] dark:from-slate-800 dark:via-dark-900 dark:to-dark-950">
             {/* Default cover pattern */}
             <div
               className="absolute inset-0 opacity-10"
@@ -49,16 +49,16 @@ export default function Hero() {
               }}
             />
             {/* Gradient overlay for depth */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-dark-950/80 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#F7F5EF]/90 to-transparent dark:from-dark-950/80" />
           </div>
         )}
         {/* Bottom gradient fade into profile section */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-dark-950 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#F7F5EF] to-transparent dark:from-dark-950" />
       </div>
 
       {/* Profile Card - overlapping the cover */}
       <div className="relative section-container -mt-16 sm:-mt-20 z-10">
-        <div className="bg-dark-900/95 backdrop-blur-md border border-dark-700/80 rounded-xl p-4 sm:p-6 md:p-8 shadow-xl shadow-black/10">
+        <div className="bg-[#FCFBF7]/96 dark:bg-dark-900/95 backdrop-blur-md border border-[#D9D2C4] dark:border-dark-700/80 rounded-sm p-4 sm:p-6 md:p-8 shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:shadow-xl dark:shadow-black/10">
           {/* Top row: Profile photo + name + status */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
             {/* Profile Photo */}
@@ -68,7 +68,7 @@ export default function Hero() {
               transition={{ duration: 0.5 }}
               className="flex-shrink-0 -mt-16 sm:-mt-20 self-center sm:self-start"
             >
-              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-dark-900 shadow-lg bg-dark-800">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#FCFBF7] dark:border-dark-900 shadow-lg bg-[#E9E6DF] dark:bg-dark-800">
                 {profile.image ? (
                   <Image
                     src={profile.image}
@@ -89,9 +89,9 @@ export default function Hero() {
             {/* Name + Title + Status */}
             <div className="flex-1 text-center sm:text-left pt-0 sm:pt-2">
               <motion.div initial="hidden" animate="visible" variants={itemVariants}>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium text-[#10243E] dark:text-white tracking-tight font-display">
                   {firstName}{' '}
-                  <span className="text-primary-300">{lastName}</span>
+                  <span className="text-[#526E8A] dark:text-primary-300">{lastName}</span>
                 </h1>
               </motion.div>
 
@@ -99,7 +99,7 @@ export default function Hero() {
                 initial="hidden"
                 animate="visible"
                 variants={itemVariants}
-                className="text-base sm:text-lg md:text-xl text-dark-300 font-medium mt-1"
+                className="text-base sm:text-lg md:text-xl text-[#465465] dark:text-dark-300 font-medium mt-1"
               >
                 <TypeWriter
                   words={[
@@ -108,7 +108,7 @@ export default function Hero() {
                     'Full-Stack Systems Engineer',
                     'AI-Integrated Product Builder',
                   ]}
-                  className="text-primary-400"
+                  className="text-[#526E8A] dark:text-primary-400"
                 />
               </motion.p>
 
@@ -117,7 +117,7 @@ export default function Hero() {
                 initial="hidden"
                 animate="visible"
                 variants={itemVariants}
-                className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 mt-3 text-sm text-dark-400"
+                className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 mt-3 text-sm text-[#667384] dark:text-dark-400"
               >
                 <span className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
@@ -135,7 +135,7 @@ export default function Hero() {
 
               {/* Status badge */}
               <motion.div initial="hidden" animate="visible" variants={itemVariants} className="mt-3">
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/5 border border-green-500/20 rounded-full text-sm text-green-400">
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#F1EEE7] dark:bg-green-500/5 border border-[#CDBB92] dark:border-green-500/20 rounded-sm text-xs uppercase tracking-[0.08em] text-[#7C6840] dark:text-green-400">
                   <span className="w-2 h-2 bg-green-500 rounded-full " />
                   {profile.status || 'Available for Engineering Projects'}
                 </span>
@@ -148,7 +148,7 @@ export default function Hero() {
             initial="hidden"
             animate="visible"
             variants={itemVariants}
-            className="text-sm sm:text-base text-dark-400 mt-4 sm:mt-6 leading-relaxed max-w-3xl"
+            className="text-sm sm:text-base text-[#566273] dark:text-dark-400 mt-4 sm:mt-6 leading-relaxed max-w-3xl"
           >
             {profile.bio}
           </motion.p>
@@ -215,7 +215,7 @@ export default function Hero() {
       >
         <Link
           href="#about"
-          className="flex flex-col items-center gap-2 text-dark-500 hover:text-dark-300 transition-colors"
+          className="flex flex-col items-center gap-2 text-[#7A8491] dark:text-dark-500 hover:text-[#10243E] dark:hover:text-dark-300 transition-colors"
           aria-label="Scroll to About section"
         >
           <span className="text-sm font-medium">Scroll</span>

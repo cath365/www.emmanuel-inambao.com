@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
-const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills']
+const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies']
 
 function blobPath(key: string) {
   return `data/portfolio/${key}.json`

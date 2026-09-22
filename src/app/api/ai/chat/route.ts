@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { list } from '@vercel/blob'
 import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
+import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
+import { createGroqCompletion } from '@/lib/groq'
 
 export const runtime = 'nodejs'
 
@@ -9,7 +11,7 @@ type ChatMessage = {
   content: string
 }
 
-const PORTFOLIO_KEYS = ['profile', 'projects', 'services', 'skills', 'experiences', 'certifications'] as const
+const PORTFOLIO_KEYS = ['profile', 'projects', 'services', 'skills', 'experiences', 'certifications', 'caseStudies'] as const
 const MAX_MESSAGES = 12
 const MAX_MESSAGE_LENGTH = 1600
 const RATE_WINDOW_MS = 60_000
@@ -89,6 +91,12 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
   const skills = Array.isArray(sections.skills) ? sections.skills : []
   const experiences = Array.isArray(sections.experiences) ? sections.experiences : []
   const certifications = Array.isArray(sections.certifications) ? sections.certifications : []
+  const storedCaseStudies = Array.isArray(sections.caseStudies) ? sections.caseStudies : []
+  const caseStudyMap = new Map<string, any>()
+  for (const study of staticCaseStudies) caseStudyMap.set(study.slug, study)
+  for (const study of storedCaseStudies) {
+    if (study?.slug) caseStudyMap.set(study.slug, study)
+  }
 
   return {
     profile,
@@ -137,6 +145,19 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
       date: certification?.date,
       credentialId: certification?.credentialId,
     })),
+    caseStudies: Array.from(caseStudyMap.values()).map((study: any) => ({
+      slug: study?.slug,
+      title: study?.title,
+      subtitle: study?.subtitle,
+      overview: study?.overview,
+      status: study?.status,
+      role: study?.role,
+      challenge: study?.challenge,
+      solution: study?.solution,
+      results: study?.results,
+      technologies: study?.technologies,
+      architecture: study?.architecture,
+    })),
   }
 }
 
@@ -145,13 +166,15 @@ function systemPrompt(portfolioContext: unknown) {
 
 CORE BEHAVIOUR
 - Answer naturally, clearly and professionally.
-- Ground factual claims about Emmanuel ONLY in the PORTFOLIO DATA below.
+- Ground factual claims about Emmanuel ONLY in the PORTFOLIO DATA below. Project and case-study records may be updated from the admin dashboard, so treat the supplied data as the current source of truth.
 - Never invent qualifications, clients, employment, project results, prices, metrics, availability, certifications, technologies or personal details.
 - If a requested fact is not in the data, say it is not documented in the portfolio and offer the most useful next step.
 - Distinguish a deployed project from a prototype, concept or active R&D project using its recorded status.
 - When discussing a prospective client's idea, explain how Emmanuel's documented skills/projects are relevant and outline a plausible technical approach. Clearly label that approach as a proposal, not something already built.
 - Ask at most 1-2 focused scoping questions when they would materially help.
-- Do not promise a price, delivery date, availability or commercial commitment unless explicitly present in the data. You may mention displayed service starting prices, while noting that a real quote depends on scope.
+- For NEW PROJECT QUOTATIONS, use these current pricing rules instead of any legacy service price strings in PORTFOLIO DATA: Website ZMW 5,000 base; E-commerce + ZMW 3,000; Admin dashboard + ZMW 2,500; Payment integration + ZMW 2,000; Mobile application ZMW 12,000 base; every additional custom feature + ZMW 350; IoT integration custom quotation after technical discovery. The upfront payment is 35% of the known total and the remaining balance is 65%.
+- Never invent or alter a project quotation price. If a visitor raises a budget concern, explain value and suggest removing or phasing optional scope rather than changing fixed prices. Do not promise discounts. If a visitor wants a quote, tell them to use the AI Project Quotation flow at /start-project, which asks scope questions, explains charges, calculates the 35% upfront amount and generates a downloadable quotation.
+- Do not promise a delivery date, availability, discount or other commercial commitment unless explicitly documented.
 - Prefer concise answers: usually 2-5 short paragraphs or a compact list.\n- Reply in the visitor's language when it is clear from their message.
 - Understand follow-up references such as "it", "that project" and "the app" from the conversation.
 - If the visitor wants to book, contact, hire, request a quote or send a project brief, tell them to use the portfolio's Book a meeting or Send inquiry action. Do not claim an action succeeded unless the website confirms it.
@@ -171,30 +194,10 @@ PORTFOLIO DATA
 ${JSON.stringify(portfolioContext)}`
 }
 
-function extractResponseText(payload: any): string {
-  if (typeof payload?.output_text === 'string' && payload.output_text.trim()) {
-    return payload.output_text.trim()
-  }
-
-  const parts: string[] = []
-  for (const output of payload?.output || []) {
-    for (const content of output?.content || []) {
-      if (typeof content?.text === 'string') parts.push(content.text)
-    }
-  }
-
-  return parts.join('\n').trim()
-}
-
 export async function POST(request: NextRequest) {
   const id = clientId(request)
   if (isRateLimited(id)) {
     return NextResponse.json({ error: 'Too many requests. Please try again shortly.' }, { status: 429 })
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    return NextResponse.json({ error: 'AI assistant is not configured.' }, { status: 503 })
   }
 
   try {
@@ -210,39 +213,32 @@ export async function POST(request: NextRequest) {
     )
     const context = compactPortfolioContext(Object.fromEntries(entries))
 
-    const transcript = messages
-      .map(message => `${message.role === 'user' ? 'Visitor' : 'Assistant'}: ${message.content}`)
-      .join('\n\n')
-
-    const openAIResponse = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-5.6-terra',
-        instructions: systemPrompt(context),
-        input: transcript,
-        max_output_tokens: 700,
-      }),
-      signal: AbortSignal.timeout(20_000),
+    const groq = await createGroqCompletion({
+      model: process.env.GROQ_CHAT_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+      messages: [
+        { role: 'system', content: systemPrompt(context) },
+        ...messages,
+      ],
+      maxCompletionTokens: 700,
+      temperature: 0.2,
+      reasoningEffort: 'low',
+      timeoutMs: 20_000,
     })
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text()
-      console.error('Portfolio AI provider error:', openAIResponse.status, errorText.slice(0, 500))
+    if (!groq.ok) {
+      if (groq.reason === 'not_configured') {
+        return NextResponse.json({ error: 'AI assistant is not configured.' }, { status: 503 })
+      }
+
+      console.error('Groq portfolio AI error:', groq.status, groq.detail)
       return NextResponse.json({ error: 'AI provider unavailable.' }, { status: 502 })
     }
 
-    const payload = await openAIResponse.json()
-    const answer = extractResponseText(payload)
-
-    if (!answer) {
-      return NextResponse.json({ error: 'AI returned an empty response.' }, { status: 502 })
-    }
-
-    return NextResponse.json({ answer })
+    return NextResponse.json({
+      answer: groq.text,
+      provider: 'groq',
+      model: groq.model,
+    })
   } catch (error) {
     console.error('Portfolio AI route error:', error)
     return NextResponse.json({ error: 'Unable to answer right now.' }, { status: 500 })

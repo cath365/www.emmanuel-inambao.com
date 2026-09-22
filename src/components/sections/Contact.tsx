@@ -140,7 +140,7 @@ export default function Contact() {
     <section
       id="contact"
       ref={ref}
-      className="py-20 lg:py-32"
+      className="py-20 lg:py-32 bg-[#F7F5EF] dark:bg-dark-950"
       aria-labelledby="contact-heading"
     >
       <div className="section-container">
@@ -151,8 +151,8 @@ export default function Contact() {
         >
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-              {t('contact.title')}
+            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-[0.18em]">
+              08 — Contact
             </span>
             <h2 id="contact-heading" className="section-heading mt-2">
               {t('contact.subtitle')}
@@ -165,7 +165,7 @@ export default function Contact() {
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
             {/* Contact Information */}
             <motion.div variants={itemVariants}>
-              <h3 className="text-xl font-bold text-white mb-6">
+              <h3 className="text-xl font-semibold text-[#10243E] dark:text-white mb-6">
                 Contact Information
               </h3>
               
@@ -174,13 +174,13 @@ export default function Contact() {
                 {contactInfo.map((item) => {
                   const Icon = item.icon
                   const content = (
-                    <div className="flex items-center gap-4 p-4 bg-dark-800/50 border border-dark-700 rounded-xl hover:border-primary-500/50 transition-all duration-300">
-                      <div className="p-3 rounded-lg bg-primary-600/10">
-                        <Icon className="w-5 h-5 text-primary-400" aria-hidden="true" />
+                    <div className="flex items-center gap-4 p-4 bg-white/65 dark:bg-dark-800/50 border border-[#DDD7CC] dark:border-dark-700 rounded-sm hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-colors duration-200">
+                      <div className="p-3 rounded-sm bg-[#EEF1F3] dark:bg-primary-600/10">
+                        <Icon className="w-5 h-5 text-[#526E8A] dark:text-primary-400" aria-hidden="true" />
                       </div>
                       <div>
-                        <p className="text-dark-400 text-sm">{item.label}</p>
-                        <p className="text-white font-medium">{item.value}</p>
+                        <p className="text-[#697483] dark:text-dark-400 text-sm">{item.label}</p>
+                        <p className="text-[#10243E] dark:text-white font-medium">{item.value}</p>
                       </div>
                     </div>
                   )
@@ -202,7 +202,7 @@ export default function Contact() {
               </div>
 
               {/* Social links */}
-              <h3 className="text-xl font-bold text-white mb-4">
+              <h3 className="text-xl font-semibold text-[#10243E] dark:text-white mb-4">
                 Connect Online
               </h3>
               <div className="flex flex-wrap gap-3">
@@ -214,13 +214,13 @@ export default function Contact() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-dark-800/50 border border-dark-700 rounded-xl hover:border-primary-500/50 transition-all duration-300 group"
+                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-white/65 dark:bg-dark-800/50 border border-[#DDD7CC] dark:border-dark-700 rounded-sm hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-colors duration-200 group"
                       aria-label={`${social.label}: ${social.username}`}
                     >
-                      <Icon className="w-5 h-5 text-dark-400 group-hover:text-primary-400 transition-colors" aria-hidden="true" />
+                      <Icon className="w-5 h-5 text-[#697483] dark:text-dark-400 group-hover:text-[#526E8A] dark:text-primary-400 transition-colors" aria-hidden="true" />
                       <div>
                         <p className="text-white text-sm font-medium">{social.label}</p>
-                        <p className="text-dark-500 text-xs">{social.username}</p>
+                        <p className="text-[#7C8792] dark:text-dark-500 text-xs">{social.username}</p>
                       </div>
                     </a>
                   )
@@ -228,12 +228,12 @@ export default function Contact() {
               </div>
 
               {/* Availability note */}
-              <div className="mt-8 p-4 bg-green-900/20 border border-green-700/30 rounded-xl">
+              <div className="mt-8 p-4 bg-[#F1EEE7] dark:bg-green-900/20 border border-[#CDBB92] dark:border-green-700/30 rounded-sm">
                 <div className="flex items-start gap-3">
-                  <div className="w-3 h-3 mt-1 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+                  <div className="w-3 h-3 mt-1 rounded-full bg-[#B59A62] dark:bg-green-500" aria-hidden="true" />
                   <div>
-                    <p className="text-green-400 font-medium">Available for Projects</p>
-                    <p className="text-dark-400 text-sm mt-1">
+                    <p className="text-[#7C6840] dark:text-green-400 font-medium">Available for Projects</p>
+                    <p className="text-[#697483] dark:text-dark-400 text-sm mt-1">
                       Currently accepting new engineering projects and consultations.
                       Response time: typically within 24 hours.
                     </p>
@@ -246,8 +246,8 @@ export default function Contact() {
             <motion.div variants={itemVariants}>
               <div className="card">
                 <div className="flex items-center gap-3 mb-6">
-                  <MessageSquare className="w-5 h-5 text-primary-400" aria-hidden="true" />
-                  <h3 className="text-xl font-bold text-white">Send a Message</h3>
+                  <MessageSquare className="w-5 h-5 text-[#526E8A] dark:text-primary-400" aria-hidden="true" />
+                  <h3 className="text-xl font-semibold text-[#10243E] dark:text-white">Send a Message</h3>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -265,7 +265,7 @@ export default function Contact() {
                   <div>
                     <label 
                       htmlFor="name" 
-                      className="block text-sm font-medium text-dark-300 mb-2"
+                      className="block text-sm font-medium text-[#465465] dark:text-dark-300 mb-2"
                     >
                       {t('contact.name')} *
                     </label>
@@ -276,7 +276,7 @@ export default function Contact() {
                       value={formData.name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
+                      className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white placeholder-[#9A9FA4] dark:placeholder-dark-500 focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors"
                       placeholder="John Doe"
                     />
                   </div>
@@ -285,7 +285,7 @@ export default function Contact() {
                   <div>
                     <label 
                       htmlFor="email" 
-                      className="block text-sm font-medium text-dark-300 mb-2"
+                      className="block text-sm font-medium text-[#465465] dark:text-dark-300 mb-2"
                     >
                       {t('contact.email')} *
                     </label>
@@ -296,7 +296,7 @@ export default function Contact() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
+                      className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white placeholder-[#9A9FA4] dark:placeholder-dark-500 focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -305,7 +305,7 @@ export default function Contact() {
                   <div>
                     <label 
                       htmlFor="subject" 
-                      className="block text-sm font-medium text-dark-300 mb-2"
+                      className="block text-sm font-medium text-[#465465] dark:text-dark-300 mb-2"
                     >
                       Subject *
                     </label>
@@ -315,7 +315,7 @@ export default function Contact() {
                       value={formData.subject}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
+                      className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors"
                     >
                       <option value="">Select a topic</option>
                       <option value="project">Project Inquiry</option>
@@ -330,7 +330,7 @@ export default function Contact() {
                   <div>
                     <label 
                       htmlFor="message" 
-                      className="block text-sm font-medium text-dark-300 mb-2"
+                      className="block text-sm font-medium text-[#465465] dark:text-dark-300 mb-2"
                     >
                       {t('contact.message')} *
                     </label>
@@ -341,7 +341,7 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       rows={5}
-                      className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white placeholder-[#9A9FA4] dark:placeholder-dark-500 focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors resize-none"
                       placeholder="Tell me about your project or inquiry..."
                     />
                   </div>
@@ -400,13 +400,13 @@ export default function Contact() {
                 </form>
 
                 {/* Direct email option */}
-                <div className="mt-6 pt-6 border-t border-dark-700">
-                  <p className="text-dark-400 text-sm text-center mb-3">
+                <div className="mt-6 pt-6 border-t border-[#D7D0C4] dark:border-dark-700">
+                  <p className="text-[#697483] dark:text-dark-400 text-sm text-center mb-3">
                     Prefer email? Reach me directly at:
                   </p>
                   <a 
                     href={`mailto:${profile.email}?subject=Portfolio%20Contact`} 
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-dark-800/50 border border-dark-700 rounded-lg text-primary-400 hover:bg-dark-700/50 hover:border-primary-500/50 transition-all"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-dark-800/50 border border-dark-700 rounded-lg text-[#526E8A] dark:text-primary-400 hover:bg-dark-700/50 hover:border-primary-500/50 transition-all"
                   >
                     <Mail className="w-5 h-5" />
                     {profile.email}

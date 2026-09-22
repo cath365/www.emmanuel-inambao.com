@@ -52,6 +52,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Georgia', 'Cambria', '"Times New Roman"', 'serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       animation: {

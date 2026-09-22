@@ -354,8 +354,8 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
 
   if (includesAny(q, ['service', 'services', 'offer', 'hire', 'price', 'cost', 'quote'])) {
     return {
-      response: `Documented services include:\n\n${context.services.map(service => `• ${service.title} — ${service.price || 'scope-based pricing'}`).join('\n')}\n\nDisplayed prices are starting points only; a real quote depends on scope, hardware, integrations, testing and deployment requirements.`,
-      options: ['📩 Send inquiry', 'Book a meeting', 'See projects'],
+      response: `For new project quotations, Emmanuel's current pricing rules are:\n\n• Website — ZMW 5,000 base\n• E-commerce — + ZMW 3,000\n• Admin dashboard — + ZMW 2,500\n• Payment integration — + ZMW 2,000\n• Mobile application — ZMW 12,000 base\n• Each additional custom feature — + ZMW 350\n• IoT integration — custom quotation after technical discovery\n\nThe upfront project payment is 35% of the known quotation total, with the remaining 65% shown separately. The AI quotation assistant explains each charge, can discuss scope and budget trade-offs, and generates a downloadable quotation when the client accepts the estimate.`,
+      options: ['Get AI quotation', '📩 Send inquiry', 'Book a meeting'],
     }
   }
 

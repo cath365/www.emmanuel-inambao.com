@@ -59,10 +59,10 @@ export default function StatsCounter() {
           transition={{ duration: 0.5, delay: index * 0.1 }}
           className="text-center"
         >
-          <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-1">
+          <div className="text-3xl sm:text-4xl lg:text-5xl font-display font-medium text-[#10243E] dark:text-white mb-1">
             <AnimatedNumber value={stat.value} suffix={stat.suffix} />
           </div>
-          <div className="text-dark-400 text-sm font-medium">{stat.label}</div>
+          <div className="text-[#6B7480] dark:text-dark-400 text-sm font-medium">{stat.label}</div>
         </motion.div>
       ))}
     </div>

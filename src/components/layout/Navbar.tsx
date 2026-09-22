@@ -48,8 +48,8 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? 'bg-dark-950/96 light:bg-white/96 backdrop-blur-xl border-b border-dark-800/80 light:border-slate-200'
-          : 'bg-transparent'
+          ? 'bg-[#F7F5EF]/96 dark:bg-dark-950/96 backdrop-blur-xl border-b border-[#DDD7CC] dark:border-dark-800/80'
+          : 'bg-[#F7F5EF]/90 dark:bg-transparent backdrop-blur-md border-b border-[#E5E0D6]/80 dark:border-transparent'
       }`}
     >
       <nav className="section-container" aria-label="Main navigation">
@@ -57,10 +57,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2.5 text-white font-semibold text-lg hover:text-primary-300 transition-colors tracking-tight"
+            className="flex items-center gap-2.5 text-[#10243E] dark:text-white font-semibold text-lg hover:text-[#526E8A] dark:hover:text-primary-300 transition-colors tracking-tight"
             aria-label="Emmanuel Inambao - Home"
           >
-            <Cpu className="w-5 h-5 text-primary-400" aria-hidden="true" />
+            <Cpu className="w-5 h-5 text-[#526E8A] dark:text-primary-400" aria-hidden="true" />
             <span className="hidden sm:inline">E.Inambao</span>
           </Link>
 
@@ -70,7 +70,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 transition-colors duration-200 font-medium text-sm"
+                className="text-[#566273] dark:text-dark-300 hover:text-[#10243E] dark:hover:text-white transition-colors duration-200 font-medium text-sm"
               >
                 {link.label || t(link.labelKey || '')}
               </Link>
@@ -79,8 +79,8 @@ export default function Navbar() {
             {/* Command Palette Trigger */}
             <button
               onClick={openCommandPalette}
-              className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-xs text-dark-400 bg-dark-800/50
-                         border border-dark-700 rounded-md hover:border-dark-600 hover:text-dark-300 transition-all"
+              className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-xs text-[#667384] dark:text-dark-400 bg-white/45 dark:bg-dark-800/50
+                         border border-[#D9D4CA] dark:border-dark-700 rounded-sm hover:border-[#AAB6C2] dark:hover:border-dark-600 hover:text-[#10243E] dark:hover:text-dark-300 transition-all"
               aria-label="Search (Ctrl+K)"
             >
               <Search className="w-3.5 h-3.5" />
@@ -97,7 +97,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 text-dark-300 hover:text-white transition-colors"
+            className="lg:hidden p-2 text-[#566273] dark:text-dark-300 hover:text-[#10243E] dark:hover:text-white transition-colors"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
@@ -121,7 +121,7 @@ export default function Navbar() {
               transition={{ duration: 0.3 }}
               className="lg:hidden overflow-hidden"
             >
-              <div className="py-4 space-y-2 border-t border-dark-800 light:border-slate-200">
+              <div className="py-4 space-y-2 border-t border-[#DDD7CC] dark:border-dark-800">
                 {navLinks.map((link, index) => (
                   <motion.div
                     key={link.href}
@@ -132,7 +132,7 @@ export default function Navbar() {
                     <Link
                       href={link.href}
                       onClick={handleLinkClick}
-                      className="block py-3 px-4 text-center text-dark-300 light:text-slate-600 hover:text-white light:hover:text-slate-900 hover:bg-dark-800/50 light:hover:bg-slate-100
+                      className="block py-3 px-4 text-center text-[#566273] dark:text-dark-300 hover:text-[#10243E] dark:hover:text-white hover:bg-white/60 dark:hover:bg-dark-800/50
                                  rounded-lg transition-all duration-200 font-medium"
                     >
                       {link.label || t(link.labelKey || '')}

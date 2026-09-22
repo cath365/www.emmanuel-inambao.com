@@ -13,18 +13,17 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>('light')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    // Check localStorage and system preference
+    // Keep an explicit user choice, otherwise present the portfolio in light editorial mode.
     const stored = localStorage.getItem('theme') as Theme | null
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    
+
     if (stored) {
       setThemeState(stored)
-    } else if (!systemPrefersDark) {
+    } else {
       setThemeState('light')
     }
   }, [])
@@ -67,7 +66,7 @@ export function useTheme() {
   const context = useContext(ThemeContext)
   // Return default values if outside provider (for SSR/prerendering)
   if (context === undefined) {
-    return { theme: 'dark' as Theme, toggleTheme: () => {}, setTheme: () => {} }
+    return { theme: 'light' as Theme, toggleTheme: () => {}, setTheme: () => {} }
   }
   return context
 }
