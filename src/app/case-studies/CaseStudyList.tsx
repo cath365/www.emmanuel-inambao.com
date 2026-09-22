@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
-import { caseStudies } from '@/lib/case-studies'
+import type { CaseStudy } from '@/lib/case-studies'
 
-export default function CaseStudyList() {
+export default function CaseStudyList({ studies }: { studies: CaseStudy[] }) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {caseStudies.map((study, index) => (
+      {studies.map((study, index) => (
         <motion.article
           key={study.slug}
           initial={{ opacity: 0, y: 20 }}
