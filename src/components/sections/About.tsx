@@ -73,8 +73,8 @@ export default function About() {
         >
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-14">
-            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-wider">
-              {t('about.title')}
+            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-[0.18em]">
+              02 — Professional Profile
             </span>
             <h2 id="about-heading" className="section-heading mt-3 tracking-tight">
               {t('about.heading')}
