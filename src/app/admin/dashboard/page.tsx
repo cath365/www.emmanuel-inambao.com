@@ -12,6 +12,12 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
+import {
+  editableProject,
+  projectContent,
+  type ProjectMedia,
+  type ProjectPublicationStatus,
+} from '@/lib/project-catalog'
 import { useProfile, Profile } from '@/lib/profile'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -87,7 +93,7 @@ export default function AdminDashboard() {
       setSaveState(detail.state)
 
       if (detail.state === 'saved') {
-        setNotification({ type: 'success', message: 'Changes published to the live portfolio.' })
+        setNotification({ type: 'success', message: 'Changes saved to cloud storage.' })
         resetTimer = setTimeout(() => setSaveState('idle'), 2500)
       }
 
@@ -160,14 +166,43 @@ export default function AdminDashboard() {
     router.push('/admin/login')
   }
 
-  const handleSaveProject = (project: Project) => {
-    if (isCreating) {
-      addProject(project)
-      setNotification({ type: 'success', message: 'Project created successfully!' })
+  const handleSaveProject = (project: Project, mode: ProjectPublicationStatus) => {
+    const now = new Date().toISOString()
+
+    if (mode === 'draft') {
+      if (isCreating || project.publicationStatus === 'draft') {
+        const draftProject: Project = {
+          ...project,
+          publicationStatus: 'draft',
+          updatedAt: now,
+          draft: undefined,
+        }
+
+        if (isCreating) addProject(draftProject)
+        else updateProject(project.id, draftProject)
+      } else {
+        updateProject(project.id, {
+          draft: projectContent(project),
+          updatedAt: now,
+        })
+      }
+
+      setNotification({ type: 'success', message: 'Draft saved. The current public version was not changed.' })
     } else {
-      updateProject(project.id, project)
-      setNotification({ type: 'success', message: 'Project updated successfully!' })
+      const publishedProject: Project = {
+        ...project,
+        publicationStatus: 'published',
+        publishedAt: project.publishedAt || now,
+        updatedAt: now,
+        draft: undefined,
+      }
+
+      if (isCreating) addProject(publishedProject)
+      else updateProject(project.id, publishedProject)
+
+      setNotification({ type: 'success', message: 'Project published to the portfolio.' })
     }
+
     setEditingProject(null)
     setIsCreating(false)
   }
@@ -195,7 +230,9 @@ export default function AdminDashboard() {
       playStoreUrl: '',
       websiteUrl: '',
       docsUrl: '',
-      videoUrl: ''
+      videoUrl: '',
+      media: [],
+      publicationStatus: 'draft'
     }
     setEditingProject(newProject)
     setIsCreating(true)
@@ -260,7 +297,7 @@ export default function AdminDashboard() {
                 {saveState === 'saving'
                   ? 'Publishing...'
                   : saveState === 'saved'
-                    ? 'Published'
+                    ? 'Saved'
                     : saveState === 'error'
                       ? 'Save failed'
                       : 'All changes synced'}
@@ -521,18 +558,32 @@ export default function AdminDashboard() {
                               <h3 className="text-lg font-semibold text-white truncate">
                                 {project.title || 'Untitled Project'}
                               </h3>
-                              {project.featured && (
-                                <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded mt-1">
-                                  Featured
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  project.publicationStatus === 'draft'
+                                    ? 'bg-yellow-500/15 text-yellow-400'
+                                    : 'bg-green-500/15 text-green-400'
+                                }`}>
+                                  {project.publicationStatus === 'draft' ? 'Draft' : 'Published'}
                                 </span>
-                              )}
+                                {project.draft && (
+                                  <span className="inline-flex items-center rounded-full bg-blue-500/15 px-2.5 py-1 text-xs font-semibold text-blue-400">
+                                    Unpublished changes
+                                  </span>
+                                )}
+                                {project.featured && (
+                                  <span className="inline-flex items-center rounded-full bg-accent-500/20 px-2.5 py-1 text-xs font-semibold text-accent-400">
+                                    Featured
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 flex-shrink-0">
                               <button
                                 onClick={() => {
-                                  setEditingProject(project)
+                                  setEditingProject(editableProject(project))
                                   setIsCreating(false)
                                 }}
                                 className="p-2 text-dark-400 hover:text-primary-400 hover:bg-dark-700 rounded-lg transition-colors"
