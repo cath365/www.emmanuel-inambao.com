@@ -1,14 +1,20 @@
 'use client'
 
 import { persistPortfolioData } from '@/lib/portfolio-persistence'
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { defaultProjects, mergeWithCurrentCatalog, type Project } from '@/lib/project-catalog'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
+import {
+  defaultProjects,
+  isProjectPublished,
+  mergeWithCurrentCatalog,
+  type Project,
+} from '@/lib/project-catalog'
 
 export type { Project } from '@/lib/project-catalog'
 
 interface ProjectsContextType {
   projects: Project[]
-  addProject: (project: Omit<Project, 'id'>) => void
+  addProject: (project: Project) => void
   updateProject: (id: string, project: Partial<Project>) => void
   deleteProject: (id: string) => void
   getProject: (id: string) => Project | undefined
@@ -21,7 +27,10 @@ function saveToServer(data: Project[]) {
 }
 
 export function ProjectsProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(defaultProjects)
+  const pathname = usePathname()
+  const [projects, setProjects] = useState<Project[]>(
+    defaultProjects.map(project => ({ ...project, publicationStatus: 'published' }))
+  )
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -58,8 +67,11 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     if (isLoaded) localStorage.setItem('portfolio_projects', JSON.stringify(projects))
   }, [projects, isLoaded])
 
-  const addProject = (project: Omit<Project, 'id'>) => {
-    const newProject: Project = { ...project, id: 'project-' + Date.now() }
+  const addProject = (project: Project) => {
+    const newProject: Project = {
+      ...project,
+      id: project.id || 'project-' + Date.now(),
+    }
     setProjects(previous => {
       const updated = [...previous, newProject]
       saveToServer(updated)
@@ -83,10 +95,16 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const getProject = (id: string) => projects.find(project => project.id === id)
+  const isAdminRoute = pathname?.startsWith('/admin')
+  const visibleProjects = useMemo(
+    () => (isAdminRoute ? projects : projects.filter(isProjectPublished)),
+    [isAdminRoute, projects]
+  )
+
+  const getProject = (id: string) => visibleProjects.find(project => project.id === id)
 
   return (
-    <ProjectsContext.Provider value={{ projects, addProject, updateProject, deleteProject, getProject }}>
+    <ProjectsContext.Provider value={{ projects: visibleProjects, addProject, updateProject, deleteProject, getProject }}>
       {children}
     </ProjectsContext.Provider>
   )
