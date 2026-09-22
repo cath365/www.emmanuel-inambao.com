@@ -46,6 +46,9 @@ export default function Services() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
+          <p className="mb-3 text-sm font-medium uppercase tracking-[0.18em] text-[#526E8A] dark:text-primary-400">
+            04 — Services
+          </p>
           <h2 className="text-3xl sm:text-4xl font-display font-medium text-[#10243E] dark:text-white mb-4">
             {t('services.title')}
           </h2>
