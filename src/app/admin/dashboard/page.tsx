@@ -213,6 +213,11 @@ export default function AdminDashboard() {
     setNotification({ type: 'success', message: 'Project deleted successfully!' })
   }
 
+  const handleDiscardProjectDraft = (id: string) => {
+    updateProject(id, { draft: undefined, updatedAt: new Date().toISOString() })
+    setNotification({ type: 'success', message: 'Draft discarded. The published project was left unchanged.' })
+  }
+
   const handleCreateNew = () => {
     const newProject: Project = {
       id: Date.now().toString(),
@@ -591,6 +596,15 @@ export default function AdminDashboard() {
                               >
                                 <Edit2 className="w-5 h-5" />
                               </button>
+                              {project.draft && (
+                                <button
+                                  onClick={() => handleDiscardProjectDraft(project.id)}
+                                  className="rounded-lg px-2.5 py-2 text-xs font-medium text-blue-300 transition-colors hover:bg-blue-500/10 hover:text-blue-200"
+                                  title="Discard unpublished changes"
+                                >
+                                  Discard draft
+                                </button>
+                              )}
                               <button
                                 onClick={() => setDeleteConfirm(project.id)}
                                 className="p-2 text-dark-400 hover:text-red-400 hover:bg-dark-700 rounded-lg transition-colors"
