@@ -32,13 +32,26 @@ export default function Hero() {
       {/* Cover Banner - LinkedIn style */}
       <div className="relative w-full h-44 sm:h-52 md:h-64 lg:h-72 overflow-hidden">
         {profile.coverImage ? (
-          <Image
-            src={profile.coverImage}
-            alt="Cover"
-            fill
-            className="object-cover"
-            priority
-          />
+          <>
+            {/* Fill the banner without sacrificing the original composition. */}
+            <Image
+              src={profile.coverImage}
+              alt=""
+              fill
+              aria-hidden="true"
+              className="scale-110 object-cover object-center opacity-30 blur-2xl"
+              sizes="100vw"
+            />
+            {/* Keep the complete uploaded banner visible instead of cropping it. */}
+            <Image
+              src={profile.coverImage}
+              alt="Portfolio cover"
+              fill
+              className="object-contain object-center"
+              sizes="100vw"
+              priority
+            />
+          </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#DCE4E9] via-[#E9E6DF] to-[#F7F5EF] dark:from-slate-800 dark:via-dark-900 dark:to-dark-950">
             {/* Default cover pattern */}
