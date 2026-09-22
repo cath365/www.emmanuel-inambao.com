@@ -1,7 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { persistPortfolioData } from '@/lib/portfolio-persistence'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
 export interface SkillItem {
   name: string
