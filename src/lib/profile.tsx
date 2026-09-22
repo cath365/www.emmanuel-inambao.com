@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 
 export interface Profile {
   name: string
@@ -53,11 +54,7 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
 const STORAGE_KEY = 'portfolio_profile'
 
 function saveToServer(data: Profile) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'profile', data }),
-  }).catch(e => console.error('Failed to save profile:', e))
+  void persistPortfolioData('profile', data).catch(error => console.error('Failed to save profile:', error))
 }
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
