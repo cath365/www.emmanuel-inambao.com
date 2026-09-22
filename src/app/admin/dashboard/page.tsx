@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw
+  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -40,6 +40,7 @@ export default function AdminDashboard() {
   const [newLeadsCount, setNewLeadsCount] = useState(0)
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0)
   const [todayVisitsCount, setTodayVisitsCount] = useState(0)
+  const [generatingCaseStudy, setGeneratingCaseStudy] = useState<string | null>(null)
 
   const formatBadge = (value: number) => (value > 99 ? '99+' : String(value))
 
@@ -144,6 +145,44 @@ export default function AdminDashboard() {
     deleteProject(id)
     setDeleteConfirm(null)
     setNotification({ type: 'success', message: 'Project deleted successfully!' })
+  }
+
+  const handleGenerateCaseStudy = async (project: Project) => {
+    if (!project.id || generatingCaseStudy) return
+
+    setGeneratingCaseStudy(project.id)
+    setNotification(null)
+
+    try {
+      const response = await fetch('/api/ai/case-study', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ projectId: project.id }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        setNotification({
+          type: 'error',
+          message: result.error || 'Case study generation failed.',
+        })
+        return
+      }
+
+      setNotification({
+        type: 'success',
+        message: `Case study generated: ${result.study?.title || project.title}`,
+      })
+    } catch {
+      setNotification({
+        type: 'error',
+        message: 'Could not reach the AI case-study generator.',
+      })
+    } finally {
+      setGeneratingCaseStudy(null)
+    }
   }
 
   const handleCreateNew = () => {
@@ -456,6 +495,15 @@ export default function AdminDashboard() {
 
                             {/* Actions */}
                             <div className="flex items-center gap-2 flex-shrink-0">
+                              <button
+                                onClick={() => handleGenerateCaseStudy(project)}
+                                disabled={generatingCaseStudy !== null}
+                                className="p-2 text-dark-400 hover:text-accent-400 hover:bg-dark-700 rounded-lg transition-colors disabled:cursor-wait disabled:opacity-50"
+                                title="Generate AI case study"
+                                aria-label={`Generate AI case study for ${project.title}`}
+                              >
+                                <Sparkles className={`w-5 h-5 ${generatingCaseStudy === project.id ? 'animate-pulse' : ''}`} />
+                              </button>
                               <button
                                 onClick={() => {
                                   setEditingProject(project)
