@@ -99,8 +99,8 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! 👋 I'm Emmanuel's portfolio assistant. Ask me about a specific project, his technical experience, whether his skills fit your idea, or how to work with him.\n\nWhat would you like to know?",
-      options: ['Book a meeting', 'View skills', 'See projects', 'Contact info'],
+      content: "Hi! 👋 I'm Emmanuel's AI client assistant. I can explain what Emmanuel builds, discuss your project idea, show relevant work, answer technical questions, and prepare a professional project quotation using fixed pricing rules.\n\nWhat would you like to do?",
+      options: ['Get AI quotation', 'What can Emmanuel build?', 'See projects', '📩 Send inquiry'],
     },
   ])
   const [input, setInput] = useState('')
@@ -415,7 +415,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
           trackEvent('/intent/ai-question', 'ai-chatbot')
           return {
             response: payload.answer.trim(),
-            options: ['📩 Send inquiry', 'Book a meeting', 'See projects'],
+            options: ['Get AI quotation', '📩 Send inquiry', 'Book a meeting', 'See projects'],
           }
         }
       }
@@ -520,8 +520,8 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     // Greetings
     if (lowerQuery.match(/^(hi|hello|hey|greetings)/)) {
       return {
-        response: `Hello! 👋 I'm Emmanuel's AI assistant. How can I help you today?`,
-        options: ['Book a meeting', 'View skills', 'See projects', 'Contact info']
+        response: `Hello! 👋 I'm Emmanuel's AI client assistant. I can explain his services and projects, discuss your idea, or prepare a project quotation.`,
+        options: ['Get AI quotation', 'What can Emmanuel build?', 'See projects', '📩 Send inquiry']
       }
     }
     
@@ -567,8 +567,8 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
     
     // Default
     return {
-      response: `I can help you with:\n\n• 📅 **Book a meeting** with Emmanuel\n• 💡 Learn about his **skills**\n• 🚀 See his **projects**\n• 📧 Get **contact info**\n\nWhat would you like?`,
-      options: ['Book a meeting', 'View skills', 'See projects', 'Contact info']
+      response: `I can help you understand what Emmanuel builds, explore relevant projects, discuss your idea, prepare a project quotation, send an inquiry, or book a meeting.\n\nWhat would you like to do?`,
+      options: ['Get AI quotation', 'What can Emmanuel build?', 'See projects', '📩 Send inquiry']
     }
   }
 
@@ -775,8 +775,8 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold">Portfolio Assistant</h3>
-                  <p className="text-xs text-white/80">Powered by Emmanuel&apos;s portfolio data</p>
+                  <h3 className="font-semibold">AI Client Assistant</h3>
+                  <p className="text-xs text-white/80">Projects • Services • Quotations</p>
                 </div>
               </div>
             </div>
