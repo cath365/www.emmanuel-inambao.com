@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
+  Globe, Smartphone, Play, Bell, Mail, MessageCircle, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -1654,11 +1654,21 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
 interface ServiceLead {
   id: string
   name: string
-  email: string
+  email?: string
+  phone?: string
   service: string
   details: string
   submittedAt: string
   status: 'new' | 'contacted' | 'closed'
+}
+
+function leadWhatsAppHref(phone?: string, name?: string) {
+  const digits = String(phone || '').replace(/\D/g, '')
+  if (digits.length < 7) return null
+
+  return `https://wa.me/${digits}?text=${encodeURIComponent(
+    `Hello ${name || 'there'}, this is Emmanuel Inambao. I am following up on your project inquiry.`
+  )}`
 }
 
 function ServiceLeadsPanel() {
@@ -1771,19 +1781,48 @@ function ServiceLeadsPanel() {
                       <span className="text-xs bg-yellow-500 text-dark-900 px-2 py-0.5 rounded-full font-bold">NEW</span>
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-dark-300 mb-3">
-                      <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {lead.email}</span>
+                      {lead.email && (
+                        <a
+                          href={`mailto:${lead.email}`}
+                          className="flex items-center gap-1 hover:text-primary-300 transition-colors"
+                        >
+                          <Mail className="w-4 h-4" /> {lead.email}
+                        </a>
+                      )}
+                      {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                        <a
+                          href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4" /> {lead.phone}
+                        </a>
+                      )}
                       <span className="flex items-center gap-1"><Settings className="w-4 h-4" /> {lead.service}</span>
                       <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {new Date(lead.submittedAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-dark-300">{lead.details}</p>
                   </div>
                   <div className="flex gap-2">
-                    <a
-                      href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
-                      className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
-                    >
-                      <Mail className="w-4 h-4" /> Reply
-                    </a>
+                    {lead.email && (
+                      <a
+                        href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
+                        className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
+                      >
+                        <Mail className="w-4 h-4" /> Email
+                      </a>
+                    )}
+                    {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                      <a
+                        href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
+                      >
+                        <MessageCircle className="w-4 h-4" /> WhatsApp
+                      </a>
+                    )}
                     <button
                       onClick={() => updateLeadStatus(lead.id, 'contacted')}
                       className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
@@ -1808,7 +1847,24 @@ function ServiceLeadsPanel() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <p className="text-white font-medium">{lead.name} — <span className="text-dark-400">{lead.service}</span></p>
-                    <p className="text-dark-400 text-sm">{lead.email} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-dark-400 text-sm">
+                      {lead.email && (
+                        <a href={`mailto:${lead.email}`} className="hover:text-primary-300 transition-colors">
+                          {lead.email}
+                        </a>
+                      )}
+                      {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                        <a
+                          href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" /> {lead.phone}
+                        </a>
+                      )}
+                      <span>· {new Date(lead.submittedAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -1839,7 +1895,19 @@ function ServiceLeadsPanel() {
             {closedLeads.map(lead => (
               <div key={lead.id} className="bg-dark-800/30 border border-dark-800 rounded-lg p-3 opacity-60">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <p className="text-dark-400 text-sm">{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-dark-400 text-sm">
+                    <span>{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</span>
+                    {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                      <a
+                        href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" /> {lead.phone}
+                      </a>
+                    )}
+                  </div>
                   <button
                     onClick={() => deleteLead(lead.id)}
                     className="text-dark-600 hover:text-red-400 transition-colors"
