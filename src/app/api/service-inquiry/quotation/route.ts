@@ -43,8 +43,16 @@ export async function GET(request: NextRequest) {
     const leads = await readLeads()
     const lead = leads.find(item => item.id === leadId)
     const pdfPath = lead?.quotation?.pdfPath
+    const quoteId = lead?.quotation?.quoteId || ''
+    const safeQuoteId = quoteId.replace(/[^a-zA-Z0-9_-]/g, '_')
 
-    if (!lead || !pdfPath || !pdfPath.startsWith('data/quotations/')) {
+    if (
+      !lead ||
+      !pdfPath ||
+      !safeQuoteId ||
+      !pdfPath.startsWith('data/quotations/') ||
+      !pdfPath.includes(safeQuoteId)
+    ) {
       return NextResponse.json({ error: 'Quotation PDF not found' }, { status: 404 })
     }
 
@@ -65,8 +73,6 @@ export async function GET(request: NextRequest) {
     }
 
     const pdf = await response.arrayBuffer()
-    const quoteId = lead.quotation?.quoteId || 'quotation'
-
     return new Response(pdf, {
       headers: {
         'Content-Type': 'application/pdf',
