@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createGroqCompletion } from '@/lib/groq'
+import { getClientIP, rateLimit } from '@/lib/rate-limit'
 import {
   buildProjectQuotation,
   fallbackQuoteExplanation,
@@ -20,6 +21,18 @@ function sanitizeQuestion(value: unknown) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request)
+    const rl = rateLimit(`ai-project-quote:${ip}`, 12, 60_000)
+
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many quotation questions. Please wait a moment and try again.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000))) },
+        }
+      )
+    }
     const body = (await request.json()) as QuoteAssistantRequest
     const question = sanitizeQuestion(body.question)
 
