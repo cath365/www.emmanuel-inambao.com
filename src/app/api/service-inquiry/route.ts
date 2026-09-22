@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
+import { getClientIP, rateLimit } from '@/lib/rate-limit'
 import {
   buildProjectQuotation,
   formatZmw,
+  normalizeProjectQuoteSelection,
   type ProjectQuoteSelection,
   type QuoteLineItem,
 } from '@/lib/project-quotation'
@@ -56,32 +58,6 @@ function normalizeStatus(value: unknown): LeadStatus {
   if (value === 'contacted') return 'quotation-sent'
   if (value === 'closed') return 'completed'
   return LEAD_STATUSES.includes(value as LeadStatus) ? (value as LeadStatus) : 'new'
-}
-
-function normalizeQuoteSelection(raw: any): ProjectQuoteSelection {
-  const mobilePlatforms = ['android', 'ios', 'both', 'not-sure'] as const
-  const timelines = ['flexible', '4-8-weeks', '2-4-weeks', 'urgent'] as const
-
-  return {
-    website: Boolean(raw?.website),
-    ecommerce: Boolean(raw?.ecommerce),
-    adminDashboard: Boolean(raw?.adminDashboard),
-    paymentIntegration: Boolean(raw?.paymentIntegration),
-    mobileApplication: Boolean(raw?.mobileApplication),
-    mobilePlatform: mobilePlatforms.includes(raw?.mobilePlatform) ? raw.mobilePlatform : 'not-sure',
-    iotIntegration: Boolean(raw?.iotIntegration),
-    iotDetails: typeof raw?.iotDetails === 'string' ? raw.iotDetails.slice(0, 5000) : '',
-    customFeatures: Array.isArray(raw?.customFeatures)
-      ? raw.customFeatures
-          .filter((item: unknown): item is string => typeof item === 'string')
-          .map((item: string) => item.trim())
-          .filter(Boolean)
-          .slice(0, 30)
-      : [],
-    projectDescription:
-      typeof raw?.projectDescription === 'string' ? raw.projectDescription.slice(0, 8000) : '',
-    timeline: timelines.includes(raw?.timeline) ? raw.timeline : 'flexible',
-  }
 }
 
 function normalizeLead(raw: any): ServiceLead {
@@ -201,7 +177,24 @@ export async function DELETE(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIP(request)
+    const rl = rateLimit(`service-inquiry:${ip}`, 5, 15 * 60_000)
+
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many inquiries. Please wait before submitting another request.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.max(1, Math.ceil((rl.resetAt - Date.now()) / 1000))) },
+        }
+      )
+    }
+
     const data = await request.json()
+
+    if (typeof data?.website === 'string' && data.website.trim()) {
+      return NextResponse.json({ success: true, saved: false, emailSent: false })
+    }
 
     if (!data?.name || !data?.email || !data?.service) {
       return NextResponse.json(
@@ -210,14 +203,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const email = String(data.email || '').trim().slice(0, 320)
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return NextResponse.json({ error: 'A valid email address is required' }, { status: 400 })
+    }
+
     let quotation: LeadQuotation | undefined
 
     if (data?.quotation?.selection && data?.quotation?.quoteId) {
-      const selection = normalizeQuoteSelection(data.quotation.selection)
+      const selection = normalizeProjectQuoteSelection(data.quotation.selection)
       const calculated = buildProjectQuotation(selection)
 
       quotation = {
-        quoteId: String(data.quotation.quoteId),
+        quoteId: String(data.quotation.quoteId).trim().slice(0, 80),
         currency: 'ZMW',
         lineItems: calculated.lineItems,
         knownTotal: calculated.knownTotal,
@@ -247,10 +245,13 @@ export async function POST(request: NextRequest) {
     const newLead: ServiceLead = {
       id: String(data.id || `lead-${Date.now()}`),
       name: String(data.name).slice(0, 200),
-      email: String(data.email).slice(0, 320),
+      email,
       service: String(data.service).slice(0, 200),
       details: String(data.details || '').slice(0, 12000),
-      submittedAt: data.submittedAt || new Date().toISOString(),
+      submittedAt:
+        typeof data.submittedAt === 'string' && !Number.isNaN(Date.parse(data.submittedAt))
+          ? data.submittedAt
+          : new Date().toISOString(),
       status: acceptedQuote ? 'accepted' : 'new',
       notes: '',
       updatedAt: new Date().toISOString(),
