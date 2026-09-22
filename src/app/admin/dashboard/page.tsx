@@ -1360,7 +1360,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
 interface ProjectModalProps {
   project: Project
   isNew: boolean
-  onSave: (project: Project) => void
+  onSave: (project: Project, mode: ProjectPublicationStatus) => void
   onClose: () => void
 }
 
@@ -1368,7 +1368,10 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
   const [formData, setFormData] = useState<Project>(project)
   const [techInput, setTechInput] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const mediaInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1400,9 +1403,94 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     }
   }
 
+  const saveProject = (mode: ProjectPublicationStatus) => {
+    onSave(formData, mode)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    saveProject('published')
+  }
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    setUploadingMedia(true)
+    const uploaded: ProjectMedia[] = []
+
+    try {
+      for (const file of files) {
+        const form = new FormData()
+        form.append('file', file)
+        form.append('type', 'project-media')
+        form.append('projectId', formData.id)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: form,
+          credentials: 'include',
+        })
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || `Could not upload ${file.name}`)
+        }
+
+        const mediaType: ProjectMedia['type'] =
+          file.type.startsWith('video/')
+            ? 'video'
+            : file.type.startsWith('image/')
+              ? 'photo'
+              : 'document'
+
+        uploaded.push({
+          src: data.url,
+          alt: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]+/g, ' '),
+          caption: '',
+          type: mediaType,
+          fit: mediaType === 'photo' ? 'cover' : undefined,
+          fileName: file.name,
+          mimeType: file.type,
+          size: file.size,
+        })
+      }
+
+      setFormData(current => ({
+        ...current,
+        media: [...(current.media || []), ...uploaded],
+      }))
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Project media upload failed.')
+    } finally {
+      setUploadingMedia(false)
+      if (mediaInputRef.current) mediaInputRef.current.value = ''
+    }
+  }
+
+  const updateMedia = (index: number, updates: Partial<ProjectMedia>) => {
+    setFormData(current => ({
+      ...current,
+      media: (current.media || []).map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...updates } : item
+      ),
+    }))
+  }
+
+  const removeMedia = (index: number) => {
+    setFormData(current => ({
+      ...current,
+      media: (current.media || []).filter((_, itemIndex) => itemIndex !== index),
+    }))
+  }
+
+  const moveMedia = (index: number, direction: -1 | 1) => {
+    const items = [...(formData.media || [])]
+    const target = index + direction
+    if (target < 0 || target >= items.length) return
+    const [item] = items.splice(index, 1)
+    items.splice(target, 0, item)
+    setFormData({ ...formData, media: items })
   }
 
   const addTechnology = () => {
@@ -1452,6 +1540,42 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
 
         {/* Modal form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {showPreview && (
+            <div className="rounded-2xl border border-primary-500/30 bg-dark-950/80 p-5 sm:p-6">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Private preview</p>
+                  <h3 className="mt-1 text-xl font-semibold text-white">How this project will read when published</h3>
+                </div>
+                <button type="button" onClick={() => setShowPreview(false)} className="text-sm text-dark-400 hover:text-white">
+                  Close preview
+                </button>
+              </div>
+              <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+                <div className="relative aspect-video overflow-hidden rounded-xl border border-dark-700 bg-dark-900 lg:aspect-square">
+                  {formData.image && formData.image !== '/images/projects/default.jpg' ? (
+                    <Image src={formData.image} alt={formData.title || 'Project preview'} fill className="object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-dark-500"><ImageIcon className="h-10 w-10" /></div>
+                  )}
+                </div>
+                <div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-yellow-500/15 px-2.5 py-1 text-xs font-semibold text-yellow-400">PREVIEW</span>
+                    {formData.featured && <span className="rounded-full bg-accent-500/15 px-2.5 py-1 text-xs font-semibold text-accent-400">Featured</span>}
+                  </div>
+                  <h3 className="mt-3 text-2xl font-bold text-white">{formData.title || 'Untitled project'}</h3>
+                  <p className="mt-2 text-sm leading-6 text-primary-300">{formData.purpose || 'Add a project purpose.'}</p>
+                  <p className="mt-4 text-sm leading-6 text-dark-300">{formData.problemSolved || 'Add the problem this project solves.'}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {formData.techStack.slice(0, 8).map(tech => <span key={tech} className="tech-badge text-xs">{tech}</span>)}
+                  </div>
+                  <p className="mt-4 text-xs text-dark-500">{(formData.media || []).length} linked media/document item(s)</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Project Image */}
           <div>
             <label className="block text-sm font-medium text-dark-300 mb-2">
@@ -1634,6 +1758,81 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             )}
           </div>
 
+          {/* Project Media & Documents */}
+          <div className="rounded-xl border border-dark-700 bg-dark-900/35 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-base font-semibold text-white">Project media & documents</h4>
+                <p className="mt-1 text-sm text-dark-400">Attach project photos, screenshots, videos, PDFs, reports and other evidence.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => mediaInputRef.current?.click()}
+                disabled={uploadingMedia}
+                className="btn-secondary flex items-center gap-2"
+              >
+                {uploadingMedia ? (
+                  <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> Uploading...</>
+                ) : (
+                  <><Upload className="h-4 w-4" /> Add files</>
+                )}
+              </button>
+              <input
+                ref={mediaInputRef}
+                type="file"
+                multiple
+                accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                onChange={handleMediaUpload}
+                className="hidden"
+              />
+            </div>
+
+            {(formData.media || []).length === 0 ? (
+              <div className="mt-4 rounded-lg border border-dashed border-dark-700 p-6 text-center text-sm text-dark-500">
+                No linked media yet.
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {(formData.media || []).map((item, index) => (
+                  <div key={item.src + index} className="rounded-lg border border-dark-700 bg-dark-900 p-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                      <div className="flex h-16 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md bg-dark-800">
+                        {item.type === 'video' ? (
+                          <Video className="h-6 w-6 text-purple-400" />
+                        ) : item.type === 'document' ? (
+                          <FileText className="h-6 w-6 text-yellow-400" />
+                        ) : (
+                          <div className="relative h-full w-full">
+                            <Image src={item.src} alt={item.alt || item.fileName || 'Project media'} fill className="object-cover" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-dark-800 px-2 py-1 text-xs font-semibold uppercase text-dark-300">
+                            {item.type || 'photo'}
+                          </span>
+                          <span className="truncate text-sm font-medium text-white">{item.fileName || item.alt || 'Project asset'}</span>
+                        </div>
+                        <input
+                          value={item.caption || ''}
+                          onChange={e => updateMedia(index, { caption: e.target.value })}
+                          placeholder="Caption or context for this file"
+                          className="mt-3 w-full rounded-lg border border-dark-700 bg-dark-950 px-3 py-2 text-sm text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={() => moveMedia(index, -1)} disabled={index === 0} className="rounded p-2 text-dark-400 hover:bg-dark-800 hover:text-white disabled:opacity-30" title="Move up">↑</button>
+                        <button type="button" onClick={() => moveMedia(index, 1)} disabled={index === (formData.media || []).length - 1} className="rounded p-2 text-dark-400 hover:bg-dark-800 hover:text-white disabled:opacity-30" title="Move down">↓</button>
+                        <button type="button" onClick={() => removeMedia(index)} className="rounded p-2 text-red-400 hover:bg-red-500/10" title="Remove"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Links Section */}
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-dark-300 flex items-center gap-2">
@@ -1741,21 +1940,32 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t border-dark-700">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-dark-300 hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn-primary flex items-center gap-2"
-            >
-              <Save className="w-5 h-5" />
-              {isNew ? 'Create Project' : 'Save Changes'}
-            </button>
+          <div className="flex flex-col gap-3 border-t border-dark-700 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-xs leading-5 text-dark-500">
+              Save Draft keeps changes private. Publish makes this version visible on the public portfolio.
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <button type="button" onClick={onClose} className="px-4 py-2 text-dark-300 hover:text-white">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPreview(value => !value)}
+                className="flex items-center gap-2 rounded-lg border border-dark-600 px-4 py-2 text-sm font-medium text-dark-200 hover:bg-dark-700"
+              >
+                <Monitor className="h-4 w-4" /> {showPreview ? 'Hide Preview' : 'Preview'}
+              </button>
+              <button
+                type="button"
+                onClick={() => saveProject('draft')}
+                className="flex items-center gap-2 rounded-lg bg-dark-700 px-4 py-2 text-sm font-medium text-white hover:bg-dark-600"
+              >
+                <Save className="h-4 w-4" /> Save Draft
+              </button>
+              <button type="submit" className="btn-primary flex items-center gap-2">
+                <Globe className="h-4 w-4" /> Publish
+              </button>
+            </div>
           </div>
         </form>
       </motion.div>
