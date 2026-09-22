@@ -4,6 +4,7 @@ import { getClientIP, rateLimit } from '@/lib/rate-limit'
 import {
   buildProjectQuotation,
   fallbackQuoteExplanation,
+  normalizeProjectQuoteSelection,
   quotationSummary,
   type ProjectQuoteSelection,
 } from '@/lib/project-quotation'
@@ -40,8 +41,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Question and quote context are required.' }, { status: 400 })
     }
 
-    const quotation = buildProjectQuotation(body.selection)
-    const fallback = fallbackQuoteExplanation(body.selection, quotation)
+    const selection = normalizeProjectQuoteSelection(body.selection)
+    const quotation = buildProjectQuotation(selection)
+    const fallback = fallbackQuoteExplanation(selection, quotation)
 
     const groq = await createGroqCompletion({
       model: process.env.GROQ_QUOTE_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
             `Client question: ${question}`,
             '',
             'Current deterministic quotation:',
-            quotationSummary(body.selection, quotation),
+            quotationSummary(selection, quotation),
           ].join('\n'),
         },
       ],
