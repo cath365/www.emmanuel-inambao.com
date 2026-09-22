@@ -187,20 +187,32 @@ export default function HireClient() {
           <div className="grid gap-0 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="relative min-h-[340px] border-b border-dark-800 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950 lg:min-h-[560px] lg:border-b-0 lg:border-r">
               {profile.image ? (
-                <Image
-                  src={profile.image}
-                  alt={profile.name}
-                  fill
-                  priority
-                  className="object-cover object-top opacity-90"
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                />
+                <>
+                  {/* Soft background fill keeps the hero visually full on every screen size. */}
+                  <Image
+                    src={profile.image}
+                    alt=""
+                    fill
+                    aria-hidden="true"
+                    className="scale-110 object-cover object-center opacity-30 blur-2xl"
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                  />
+                  {/* Foreground image is never cropped: the complete uploaded photo remains visible. */}
+                  <Image
+                    src={profile.image}
+                    alt={profile.name}
+                    fill
+                    priority
+                    className="object-contain object-center"
+                    sizes="(max-width: 1024px) 100vw, 40vw"
+                  />
+                </>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-7xl font-bold text-dark-700">
                   E
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/90 via-dark-950/5 to-transparent pointer-events-none" />
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                 <div className="inline-flex items-center gap-2 rounded-full border border-green-400/25 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-300 backdrop-blur">
                   <span className="h-2 w-2 rounded-full bg-green-400" />
