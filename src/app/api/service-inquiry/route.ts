@@ -7,7 +7,8 @@ const LEADS_BLOB_PATH = 'data/leads.json'
 interface ServiceLead {
   id: string
   name: string
-  email: string
+  email?: string
+  phone?: string
   service: string
   details: string
   submittedAt: string
@@ -94,9 +95,14 @@ export async function POST(request: NextRequest) {
   try {
     const data: ServiceLead = await request.json()
 
-    if (!data.name || !data.email || !data.service) {
+    const email = String(data.email || '').trim()
+    const phone = String(data.phone || '').trim()
+    const phoneDigits = phone.replace(/\D/g, '')
+    const validEmail = !email || /^\S+@\S+\.\S+$/.test(email)
+
+    if (!data.name || !data.service || !validEmail || (!email && phoneDigits.length < 7)) {
       return NextResponse.json(
-        { error: 'Name, email, and service are required' },
+        { error: 'Name, service, and at least one valid email or WhatsApp number are required' },
         { status: 400 }
       )
     }
@@ -105,7 +111,8 @@ export async function POST(request: NextRequest) {
     const newLead: ServiceLead = {
       id: data.id || `lead-${Date.now()}`,
       name: data.name,
-      email: data.email,
+      email,
+      phone,
       service: data.service,
       details: data.details || '',
       submittedAt: data.submittedAt || new Date().toISOString(),
@@ -120,7 +127,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email notification
-    const inquiryDetails = `🔔 NEW SERVICE INQUIRY\n\n👤 Name: ${data.name}\n📧 Email: ${data.email}\n🔧 Service: ${data.service}\n📝 Details: ${data.details || 'Not provided'}\n\n📅 Submitted: ${new Date(data.submittedAt || '').toLocaleString()}\n\nReply to ${data.email} to follow up.`
+    const inquiryDetails = [
+      '🔔 NEW SERVICE INQUIRY',
+      '',
+      `👤 Name: ${data.name}`,
+      `📧 Email: ${email || 'Not provided'}`,
+      `📱 WhatsApp: ${phone || 'Not provided'}`,
+      `🔧 Service: ${data.service}`,
+      `📝 Details: ${data.details || 'Not provided'}`,
+      '',
+      `📅 Submitted: ${new Date(data.submittedAt || new Date().toISOString()).toLocaleString()}`,
+      '',
+      email ? `Reply to ${email} to follow up.` : `Follow up on WhatsApp: ${phone}`,
+    ].join('\n')
 
     const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
     let emailSent = false
@@ -135,9 +154,8 @@ export async function POST(request: NextRequest) {
             subject: `🔔 New Service Inquiry: ${data.service} - ${data.name}`,
             from_name: 'Portfolio AI Chatbot',
             name: data.name,
-            email: data.email,
+            ...(email ? { email, replyto: email } : {}),
             message: inquiryDetails,
-            replyto: data.email,
           }),
         })
         if (response.ok) emailSent = true
@@ -152,7 +170,7 @@ export async function POST(request: NextRequest) {
         await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ name: data.name, email: data.email, _subject: `🔔 Service Inquiry: ${data.service}`, message: inquiryDetails }),
+          body: JSON.stringify({ name: data.name, ...(email ? { email } : {}), _subject: `🔔 Service Inquiry: ${data.service}`, message: inquiryDetails }),
         })
       } catch (e) {
         console.error('Formspree failed:', e)
