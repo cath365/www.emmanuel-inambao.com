@@ -1973,7 +1973,29 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
   )
 }
 
-// Service Leads Panel Component
+// Service Leads / Quotation CRM
+type LeadStatus =
+  | 'new'
+  | 'quotation-sent'
+  | 'accepted'
+  | 'deposit-paid'
+  | 'in-progress'
+  | 'completed'
+  | 'lost'
+
+interface LeadQuotation {
+  quoteId: string
+  currency: 'ZMW'
+  lineItems: Array<{ id: string; label: string; amount: number | null; reason: string }>
+  knownTotal: number
+  upfrontAmount: number
+  balanceAmount: number
+  hasCustomPricing: boolean
+  pdfPath?: string
+  clientCompany?: string
+  createdAt: string
+}
+
 interface ServiceLead {
   id: string
   name: string
@@ -1981,19 +2003,48 @@ interface ServiceLead {
   service: string
   details: string
   submittedAt: string
-  status: 'new' | 'contacted' | 'closed'
+  status: LeadStatus
+  notes?: string
+  updatedAt?: string
+  quotation?: LeadQuotation
+}
+
+const CRM_STAGES: Array<{
+  id: LeadStatus
+  label: string
+  description: string
+  badge: string
+}> = [
+  { id: 'new', label: 'New', description: 'Needs first review', badge: 'bg-yellow-500/15 text-yellow-400' },
+  { id: 'quotation-sent', label: 'Quotation Sent', description: 'Waiting for client', badge: 'bg-blue-500/15 text-blue-400' },
+  { id: 'accepted', label: 'Accepted', description: 'Scope accepted', badge: 'bg-cyan-500/15 text-cyan-400' },
+  { id: 'deposit-paid', label: 'Deposit Paid', description: '35% received', badge: 'bg-emerald-500/15 text-emerald-400' },
+  { id: 'in-progress', label: 'In Progress', description: 'Project delivery', badge: 'bg-purple-500/15 text-purple-400' },
+  { id: 'completed', label: 'Completed', description: 'Delivered', badge: 'bg-green-500/15 text-green-400' },
+  { id: 'lost', label: 'Lost', description: 'Not proceeding', badge: 'bg-red-500/15 text-red-400' },
+]
+
+function formatLeadZmw(amount: number) {
+  return `ZMW ${Number(amount || 0).toLocaleString('en-ZM', { maximumFractionDigits: 2 })}`
 }
 
 function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
   const [loading, setLoading] = useState(true)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [expandedLead, setExpandedLead] = useState<string | null>(null)
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
+  const [message, setMessage] = useState('')
 
   const loadLeads = (silent = false) => {
     if (!silent) setLoading(true)
-    fetch('/api/service-inquiry')
-      .then(r => r.json())
-      .then(data => setLeads(data.leads || []))
-      .catch(() => setLeads([]))
+    fetch('/api/service-inquiry', { credentials: 'include', cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Could not load leads')
+        setLeads(data.leads || [])
+      })
+      .catch(error => setMessage(error instanceof Error ? error.message : 'Could not load leads'))
       .finally(() => {
         if (!silent) setLoading(false)
       })
@@ -2001,178 +2052,279 @@ function ServiceLeadsPanel() {
 
   useEffect(() => {
     loadLeads()
-
-    // Keep panel live without requiring manual refresh.
-    const intervalId = setInterval(() => loadLeads(true), 10000)
+    const intervalId = setInterval(() => loadLeads(true), 15000)
     const onFocus = () => loadLeads(true)
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') loadLeads(true)
-    }
-
     window.addEventListener('focus', onFocus)
-    document.addEventListener('visibilitychange', onVisibility)
-
     return () => {
       clearInterval(intervalId)
       window.removeEventListener('focus', onFocus)
-      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
-  const updateLeadStatus = async (id: string, status: ServiceLead['status']) => {
-    await fetch('/api/service-inquiry', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
-    })
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l))
+  const patchLead = async (id: string, updates: Partial<Pick<ServiceLead, 'status' | 'notes'>>) => {
+    setBusyId(id)
+    setMessage('')
+    try {
+      const response = await fetch('/api/service-inquiry', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id, ...updates }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Could not update lead')
+      if (data.lead) {
+        setLeads(previous => previous.map(lead => lead.id === id ? data.lead : lead))
+      } else {
+        setLeads(previous => previous.map(lead => lead.id === id ? { ...lead, ...updates } : lead))
+      }
+      setMessage('CRM updated.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not update lead')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   const deleteLead = async (id: string) => {
-    await fetch('/api/service-inquiry', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
-    setLeads(prev => prev.filter(l => l.id !== id))
+    setBusyId(id)
+    try {
+      const response = await fetch('/api/service-inquiry', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id }),
+      })
+      if (!response.ok) throw new Error('Could not delete lead')
+      setLeads(previous => previous.filter(lead => lead.id !== id))
+      setMessage('Lead deleted.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not delete lead')
+    } finally {
+      setBusyId(null)
+    }
   }
 
-  const newLeads = leads.filter(l => l.status === 'new')
-  const contactedLeads = leads.filter(l => l.status === 'contacted')
-  const closedLeads = leads.filter(l => l.status === 'closed')
+  const activeLeads = leads.filter(lead => !['completed', 'lost'].includes(lead.status))
+  const quotationLeads = leads.filter(lead => Boolean(lead.quotation))
+  const pipelineValue = activeLeads.reduce((sum, lead) => sum + (lead.quotation?.knownTotal || 0), 0)
+  const expectedUpfront = activeLeads.reduce((sum, lead) => sum + (lead.quotation?.upfrontAmount || 0), 0)
+  const depositsPaid = leads.filter(lead => ['deposit-paid', 'in-progress', 'completed'].includes(lead.status)).length
 
   if (loading) {
     return (
-      <div className="text-center py-16">
-        <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto" />
-      </div>
-    )
-  }
-
-  if (leads.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <Bell className="w-16 h-16 text-dark-600 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-white mb-2">No Service Inquiries Yet</h3>
-        <p className="text-dark-400 mb-4">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
-        <button onClick={loadLeads} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
-          Refresh
-        </button>
+      <div className="py-16 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Service Inquiries</h2>
-        <div className="flex items-center gap-3">
-          <button onClick={loadLeads} className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg hover:text-white transition-colors text-sm">
-            Refresh
-          </button>
-          {newLeads.length > 0 && (
-            <span className="bg-red-500 text-white text-sm font-bold px-3 py-1 rounded-full">
-              {newLeads.length} New
-            </span>
-          )}
+    <div className="min-w-0">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Sales pipeline</p>
+          <h2 className="mt-1 text-2xl font-bold text-white">Leads & Quotations CRM</h2>
+          <p className="mt-1 max-w-2xl text-sm text-dark-400">
+            Track enquiries from first contact through quotation, deposit, delivery and completion.
+          </p>
+        </div>
+        <button onClick={() => loadLeads()} className="btn-secondary flex items-center gap-2 self-start lg:self-auto">
+          <RefreshCw className="h-4 w-4" /> Refresh
+        </button>
+      </div>
+
+      {message && (
+        <div className="mb-5 rounded-lg border border-dark-700 bg-dark-900/60 px-4 py-3 text-sm text-dark-300">
+          {message}
+        </div>
+      )}
+
+      <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">Open leads</p>
+          <p className="mt-2 text-2xl font-bold text-white">{activeLeads.length}</p>
+        </div>
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">Quoted pipeline</p>
+          <p className="mt-2 text-2xl font-bold text-white">{formatLeadZmw(pipelineValue)}</p>
+        </div>
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">35% upfront value</p>
+          <p className="mt-2 text-2xl font-bold text-emerald-400">{formatLeadZmw(expectedUpfront)}</p>
+        </div>
+        <div className="rounded-xl border border-dark-700 bg-dark-900/55 p-4">
+          <p className="text-xs uppercase tracking-wider text-dark-500">Quotation records</p>
+          <p className="mt-2 text-2xl font-bold text-white">{quotationLeads.length}</p>
+          <p className="mt-1 text-xs text-dark-500">{depositsPaid} reached deposit/delivery</p>
         </div>
       </div>
 
-      {/* New Leads */}
-      {newLeads.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5" /> New Inquiries
-          </h3>
-          <div className="space-y-4">
-            {newLeads.map(lead => (
-              <div key={lead.id} className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-6">
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="text-lg font-semibold text-white">{lead.name}</h4>
-                      <span className="text-xs bg-yellow-500 text-dark-900 px-2 py-0.5 rounded-full font-bold">NEW</span>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-dark-300 mb-3">
-                      <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {lead.email}</span>
-                      <span className="flex items-center gap-1"><Settings className="w-4 h-4" /> {lead.service}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {new Date(lead.submittedAt).toLocaleDateString()}</span>
-                    </div>
-                    <p className="text-dark-300">{lead.details}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <a
-                      href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
-                      className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
-                    >
-                      <Mail className="w-4 h-4" /> Reply
-                    </a>
-                    <button
-                      onClick={() => updateLeadStatus(lead.id, 'contacted')}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
-                    >
-                      <Check className="w-4 h-4" /> Contacted
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {leads.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-dark-700 py-16 text-center">
+          <Bell className="mx-auto h-12 w-12 text-dark-600" />
+          <h3 className="mt-4 text-lg font-semibold text-white">No leads yet</h3>
+          <p className="mt-2 text-sm text-dark-400">AI quotation requests and service enquiries will appear here.</p>
         </div>
-      )}
-
-      {/* Contacted Leads */}
-      {contactedLeads.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-green-400 mb-4">Contacted ({contactedLeads.length})</h3>
-          <div className="space-y-3">
-            {contactedLeads.map(lead => (
-              <div key={lead.id} className="bg-dark-800/50 border border-dark-700 rounded-xl p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      ) : (
+        <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {CRM_STAGES.map(stage => {
+            const stageLeads = leads.filter(lead => lead.status === stage.id)
+            return (
+              <section key={stage.id} className="min-w-0 rounded-xl border border-dark-700 bg-dark-900/35 p-4">
+                <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-white font-medium">{lead.name} — <span className="text-dark-400">{lead.service}</span></p>
-                    <p className="text-dark-400 text-sm">{lead.email} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => updateLeadStatus(lead.id, 'closed')}
-                      className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors"
-                    >
-                      Close
-                    </button>
-                    <button
-                      onClick={() => deleteLead(lead.id)}
-                      className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg text-sm hover:bg-red-600/30 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${stage.badge}`}>{stage.label}</span>
+                      <span className="text-xs text-dark-500">{stageLeads.length}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-dark-500">{stage.description}</p>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Closed Leads */}
-      {closedLeads.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-dark-500 mb-4">Closed ({closedLeads.length})</h3>
-          <div className="space-y-2">
-            {closedLeads.map(lead => (
-              <div key={lead.id} className="bg-dark-800/30 border border-dark-800 rounded-lg p-3 opacity-60">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <p className="text-dark-400 text-sm">{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
-                  <button
-                    onClick={() => deleteLead(lead.id)}
-                    className="text-dark-600 hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="space-y-3">
+                  {stageLeads.length === 0 && (
+                    <div className="rounded-lg border border-dashed border-dark-800 px-3 py-6 text-center text-xs text-dark-600">
+                      No leads in this stage
+                    </div>
+                  )}
+
+                  {stageLeads.map(lead => {
+                    const notesValue = noteDrafts[lead.id] ?? lead.notes ?? ''
+                    const quote = lead.quotation
+                    const isExpanded = expandedLead === lead.id
+
+                    return (
+                      <article key={lead.id} className="min-w-0 rounded-lg border border-dark-700 bg-dark-950/75 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h4 className="truncate font-semibold text-white">{lead.name}</h4>
+                            <p className="mt-1 truncate text-xs text-dark-400">{lead.email}</p>
+                          </div>
+                          <button
+                            onClick={() => deleteLead(lead.id)}
+                            disabled={busyId === lead.id}
+                            className="rounded p-1.5 text-dark-600 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-40"
+                            title="Delete lead"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <p className="mt-3 text-sm font-medium text-dark-200">{lead.service}</p>
+                        <p className="mt-1 text-xs text-dark-500">{new Date(lead.submittedAt).toLocaleString()}</p>
+
+                        {quote && (
+                          <div className="mt-4 rounded-lg border border-primary-500/20 bg-primary-950/20 p-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-semibold text-primary-300">{quote.quoteId}</p>
+                                {quote.clientCompany && <p className="mt-0.5 text-xs text-dark-500">{quote.clientCompany}</p>}
+                              </div>
+                              {quote.pdfPath && (
+                                <a
+                                  href={`/api/service-inquiry/quotation?id=${encodeURIComponent(lead.id)}`}
+                                  className="inline-flex items-center gap-1 rounded-md bg-dark-800 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-dark-700"
+                                >
+                                  <Download className="h-3.5 w-3.5" /> PDF
+                                </a>
+                              )}
+                            </div>
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-dark-500">Total</span>
+                                <p className="font-semibold text-white">{formatLeadZmw(quote.knownTotal)}</p>
+                              </div>
+                              <div>
+                                <span className="text-dark-500">35% upfront</span>
+                                <p className="font-semibold text-emerald-400">{formatLeadZmw(quote.upfrontAmount)}</p>
+                              </div>
+                              <div className="col-span-2">
+                                <span className="text-dark-500">65% balance</span>
+                                <p className="font-semibold text-dark-200">{formatLeadZmw(quote.balanceAmount)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-4">
+                          <label className="mb-1 block text-xs font-medium text-dark-500">Pipeline stage</label>
+                          <select
+                            value={lead.status}
+                            disabled={busyId === lead.id}
+                            onChange={event => patchLead(lead.id, { status: event.target.value as LeadStatus })}
+                            className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2 text-sm text-white focus:border-primary-500 focus:outline-none"
+                          >
+                            {CRM_STAGES.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
+                          </select>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <a
+                            href={`mailto:${lead.email}?subject=Re: ${encodeURIComponent(lead.service)}&body=Hi%20${encodeURIComponent(lead.name)},%0A%0AThank%20you%20for%20your%20project%20inquiry.%0A%0ABest%20regards,%0AEmmanuel%20Inambao`}
+                            className="inline-flex items-center gap-1 rounded-md bg-primary-600/20 px-2.5 py-1.5 text-xs font-medium text-primary-300 hover:bg-primary-600/30"
+                          >
+                            <Mail className="h-3.5 w-3.5" /> Reply
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setExpandedLead(isExpanded ? null : lead.id)}
+                            className="inline-flex items-center gap-1 rounded-md bg-dark-800 px-2.5 py-1.5 text-xs font-medium text-dark-300 hover:text-white"
+                          >
+                            <FileText className="h-3.5 w-3.5" /> {isExpanded ? 'Hide details' : 'Details & notes'}
+                          </button>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="mt-4 space-y-3 border-t border-dark-800 pt-4">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wider text-dark-500">Inquiry / scope</p>
+                              <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-dark-300">{lead.details || 'No details provided.'}</p>
+                            </div>
+
+                            {quote?.lineItems?.length ? (
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-dark-500">Quotation items</p>
+                                <div className="mt-2 space-y-1.5">
+                                  {quote.lineItems.map(item => (
+                                    <div key={item.id} className="flex items-start justify-between gap-3 text-xs">
+                                      <span className="text-dark-300">{item.label}</span>
+                                      <span className="shrink-0 font-medium text-white">
+                                        {item.amount === null ? 'Custom' : formatLeadZmw(item.amount)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+
+                            <div>
+                              <label className="text-xs font-semibold uppercase tracking-wider text-dark-500">Internal notes</label>
+                              <textarea
+                                rows={4}
+                                value={notesValue}
+                                onChange={event => setNoteDrafts(previous => ({ ...previous, [lead.id]: event.target.value }))}
+                                placeholder="Next action, payment reference, follow-up notes..."
+                                className="mt-2 w-full resize-y rounded-lg border border-dark-700 bg-dark-900 px-3 py-2 text-xs text-white placeholder-dark-600 focus:border-primary-500 focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                disabled={busyId === lead.id}
+                                onClick={() => patchLead(lead.id, { notes: notesValue })}
+                                className="mt-2 inline-flex items-center gap-1 rounded-md bg-dark-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-dark-600 disabled:opacity-40"
+                              >
+                                <Save className="h-3.5 w-3.5" /> Save notes
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </article>
+                    )
+                  })}
                 </div>
-              </div>
-            ))}
-          </div>
+              </section>
+            )
+          })}
         </div>
       )}
     </div>
