@@ -87,6 +87,7 @@ export default function AdminDashboard() {
       setSaveState(detail.state)
 
       if (detail.state === 'saved') {
+        setNotification({ type: 'success', message: 'Changes published to the live portfolio.' })
         resetTimer = setTimeout(() => setSaveState('idle'), 2500)
       }
 
