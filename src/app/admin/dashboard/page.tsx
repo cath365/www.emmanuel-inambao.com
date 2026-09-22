@@ -8,7 +8,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
+  Globe, Smartphone, Play, Bell, Mail, MessageCircle, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -42,8 +42,72 @@ export default function AdminDashboard() {
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0)
   const [todayVisitsCount, setTodayVisitsCount] = useState(0)
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [quoteAlertsEnabled, setQuoteAlertsEnabled] = useState(false)
+  const knownNewQuoteIdsRef = useRef<Set<string>>(new Set())
+  const liveBadgesInitializedRef = useRef(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
   const formatBadge = (value: number) => (value > 99 ? '99+' : String(value))
+
+  const playQuoteAlertTone = () => {
+    try {
+      const context = audioContextRef.current
+      if (!context) return
+
+      const now = context.currentTime
+      const gain = context.createGain()
+      gain.gain.setValueAtTime(0.0001, now)
+      gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.48)
+      gain.connect(context.destination)
+
+      const first = context.createOscillator()
+      first.type = 'sine'
+      first.frequency.setValueAtTime(740, now)
+      first.connect(gain)
+      first.start(now)
+      first.stop(now + 0.18)
+
+      const second = context.createOscillator()
+      second.type = 'sine'
+      second.frequency.setValueAtTime(988, now + 0.2)
+      second.connect(gain)
+      second.start(now + 0.2)
+      second.stop(now + 0.48)
+    } catch {
+      // Email and badges remain available if browser audio is unavailable.
+    }
+  }
+
+  const enableQuoteAlerts = async () => {
+    try {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioContext()
+      }
+      if (audioContextRef.current.state === 'suspended') {
+        await audioContextRef.current.resume()
+      }
+
+      if ('Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission()
+      }
+
+      setQuoteAlertsEnabled(true)
+      localStorage.setItem('admin-quote-alerts', 'enabled')
+      setNotification({ type: 'success', message: 'Quotation sound and browser alerts enabled.' })
+      playQuoteAlertTone()
+    } catch {
+      setQuoteAlertsEnabled(true)
+      localStorage.setItem('admin-quote-alerts', 'enabled')
+      setNotification({ type: 'success', message: 'Quotation badge alerts enabled. Email remains active.' })
+    }
+  }
+
+  useEffect(() => {
+    if (localStorage.getItem('admin-quote-alerts') === 'enabled') {
+      setQuoteAlertsEnabled(true)
+    }
+  }, [])
 
   const loadLiveBadges = async () => {
     try {
@@ -56,7 +120,46 @@ export default function AdminDashboard() {
       if (leadsRes.ok) {
         const leadData = await leadsRes.json()
         const leads = Array.isArray(leadData.leads) ? leadData.leads : []
-        setNewLeadsCount(leads.filter((l: { status: string }) => l.status === 'new').length)
+        const newLeads = leads.filter((l: { status: string }) => l.status === 'new')
+        const newQuotes = newLeads.filter((l: { service?: string }) =>
+          /quotation/i.test(String(l.service || ''))
+        )
+
+        setNewLeadsCount(newLeads.length)
+
+        const incomingQuotes = newQuotes.filter((lead: { id: string }) =>
+          !knownNewQuoteIdsRef.current.has(lead.id)
+        )
+
+        if (liveBadgesInitializedRef.current && incomingQuotes.length > 0) {
+          const newest = incomingQuotes[0] as { id: string; name?: string }
+
+          setNotification({
+            type: 'success',
+            message: `New quotation from ${newest.name || 'a client'} is awaiting review.`,
+          })
+
+          if (quoteAlertsEnabled) {
+            playQuoteAlertTone()
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+              const browserNotice = new Notification('New quotation awaiting review', {
+                body: `${newest.name || 'A client'} submitted a project quotation.`,
+                tag: newest.id,
+              })
+              browserNotice.onclick = () => {
+                window.focus()
+                setActiveTab('leads')
+                browserNotice.close()
+              }
+            }
+          }
+        }
+
+        knownNewQuoteIdsRef.current = new Set(
+          newQuotes.map((lead: { id: string }) => lead.id)
+        )
+        liveBadgesInitializedRef.current = true
       }
 
       if (bookingsRes.ok) {
@@ -141,7 +244,7 @@ export default function AdminDashboard() {
       window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onVisibility)
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, quoteAlertsEnabled])
 
   if (authLoading) {
     return (
@@ -265,6 +368,21 @@ export default function AdminDashboard() {
                       ? 'Save failed'
                       : 'All changes synced'}
               </div>
+              <button
+                type="button"
+                onClick={enableQuoteAlerts}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  quoteAlertsEnabled
+                    ? 'border-green-500/30 bg-green-500/10 text-green-300'
+                    : 'border-dark-700 bg-dark-800/50 text-dark-300 hover:border-primary-500/50 hover:text-white'
+                }`}
+                title="Enable sound and browser alerts for new quotations"
+              >
+                <Bell className="w-4 h-4" />
+                <span className="hidden lg:inline">
+                  {quoteAlertsEnabled ? 'Quote alerts on' : 'Enable quote alerts'}
+                </span>
+              </button>
               <span className="text-dark-400 text-sm hidden xl:block">
                 Welcome, {user?.email}
               </span>
@@ -1716,11 +1834,21 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
 interface ServiceLead {
   id: string
   name: string
-  email: string
+  email?: string
+  phone?: string
   service: string
   details: string
   submittedAt: string
-  status: 'new' | 'contacted' | 'closed'
+  status: 'new' | 'contacted' | 'approved' | 'closed'
+}
+
+function leadWhatsAppHref(phone?: string, name?: string) {
+  const digits = String(phone || '').replace(/\D/g, '')
+  if (digits.length < 7) return null
+
+  return `https://wa.me/${digits}?text=${encodeURIComponent(
+    `Hello ${name || 'there'}, this is Emmanuel Inambao. I am following up on your project inquiry.`
+  )}`
 }
 
 function ServiceLeadsPanel() {
@@ -1778,6 +1906,7 @@ function ServiceLeadsPanel() {
 
   const newLeads = leads.filter(l => l.status === 'new')
   const contactedLeads = leads.filter(l => l.status === 'contacted')
+  const approvedLeads = leads.filter(l => l.status === 'approved')
   const closedLeads = leads.filter(l => l.status === 'closed')
 
   if (loading) {
@@ -1833,25 +1962,63 @@ function ServiceLeadsPanel() {
                       <span className="text-xs bg-yellow-500 text-dark-900 px-2 py-0.5 rounded-full font-bold">NEW</span>
                     </div>
                     <div className="flex flex-wrap gap-4 text-sm text-dark-300 mb-3">
-                      <span className="flex items-center gap-1"><Mail className="w-4 h-4" /> {lead.email}</span>
+                      {lead.email && (
+                        <a
+                          href={`mailto:${lead.email}`}
+                          className="flex items-center gap-1 hover:text-primary-300 transition-colors"
+                        >
+                          <Mail className="w-4 h-4" /> {lead.email}
+                        </a>
+                      )}
+                      {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                        <a
+                          href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4" /> {lead.phone}
+                        </a>
+                      )}
                       <span className="flex items-center gap-1"><Settings className="w-4 h-4" /> {lead.service}</span>
                       <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {new Date(lead.submittedAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-dark-300">{lead.details}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <a
-                      href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
-                      className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
-                    >
-                      <Mail className="w-4 h-4" /> Reply
-                    </a>
-                    <button
-                      onClick={() => updateLeadStatus(lead.id, 'contacted')}
-                      className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
-                    >
-                      <Check className="w-4 h-4" /> Contacted
-                    </button>
+                  <div className="flex flex-wrap gap-2">
+                    {lead.email && (
+                      <a
+                        href={`mailto:${lead.email}?subject=Re: ${lead.service} Inquiry&body=Hi ${lead.name},%0D%0A%0D%0AThank you for your interest in my ${lead.service} services.%0D%0A%0D%0ABest regards,%0D%0AEmmanuel Inambao`}
+                        className="px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-500 transition-colors flex items-center gap-1"
+                      >
+                        <Mail className="w-4 h-4" /> Email
+                      </a>
+                    )}
+                    {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                      <a
+                        href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
+                      >
+                        <MessageCircle className="w-4 h-4" /> WhatsApp
+                      </a>
+                    )}
+                    {/quotation/i.test(lead.service) ? (
+                      <button
+                        onClick={() => updateLeadStatus(lead.id, 'approved')}
+                        className="px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-500 transition-colors flex items-center gap-1"
+                      >
+                        <Check className="w-4 h-4" /> Approve Quote
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => updateLeadStatus(lead.id, 'contacted')}
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-500 transition-colors flex items-center gap-1"
+                      >
+                        <Check className="w-4 h-4" /> Contacted
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1870,7 +2037,24 @@ function ServiceLeadsPanel() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <p className="text-white font-medium">{lead.name} — <span className="text-dark-400">{lead.service}</span></p>
-                    <p className="text-dark-400 text-sm">{lead.email} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-dark-400 text-sm">
+                      {lead.email && (
+                        <a href={`mailto:${lead.email}`} className="hover:text-primary-300 transition-colors">
+                          {lead.email}
+                        </a>
+                      )}
+                      {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                        <a
+                          href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" /> {lead.phone}
+                        </a>
+                      )}
+                      <span>· {new Date(lead.submittedAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -1893,6 +2077,61 @@ function ServiceLeadsPanel() {
         </div>
       )}
 
+      {/* Approved Quotations */}
+      {approvedLeads.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-emerald-400 mb-4">
+            Approved Quotations ({approvedLeads.length})
+          </h3>
+          <div className="space-y-3">
+            {approvedLeads.map(lead => (
+              <div key={lead.id} className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="text-white font-medium">
+                      {lead.name} — <span className="text-emerald-300">{lead.service}</span>
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-dark-400 text-sm">
+                      {lead.email && (
+                        <a href={`mailto:${lead.email}`} className="hover:text-primary-300 transition-colors">
+                          {lead.email}
+                        </a>
+                      )}
+                      {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                        <a
+                          href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" /> {lead.phone}
+                        </a>
+                      )}
+                      <span>· {new Date(lead.submittedAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updateLeadStatus(lead.id, 'closed')}
+                      className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg text-sm hover:bg-dark-600 transition-colors"
+                    >
+                      Archive
+                    </button>
+                    <button
+                      onClick={() => deleteLead(lead.id)}
+                      className="px-3 py-1.5 bg-red-600/20 text-red-400 rounded-lg text-sm hover:bg-red-600/30 transition-colors"
+                      aria-label={`Delete ${lead.name} quotation`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Closed Leads */}
       {closedLeads.length > 0 && (
         <div>
@@ -1901,7 +2140,19 @@ function ServiceLeadsPanel() {
             {closedLeads.map(lead => (
               <div key={lead.id} className="bg-dark-800/30 border border-dark-800 rounded-lg p-3 opacity-60">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <p className="text-dark-400 text-sm">{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</p>
+                  <div className="flex flex-wrap items-center gap-2 text-dark-400 text-sm">
+                    <span>{lead.name} — {lead.service} · {new Date(lead.submittedAt).toLocaleDateString()}</span>
+                    {lead.phone && leadWhatsAppHref(lead.phone, lead.name) && (
+                      <a
+                        href={leadWhatsAppHref(lead.phone, lead.name) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" /> {lead.phone}
+                      </a>
+                    )}
+                  </div>
                   <button
                     onClick={() => deleteLead(lead.id)}
                     className="text-dark-600 hover:text-red-400 transition-colors"
