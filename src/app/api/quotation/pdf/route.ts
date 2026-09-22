@@ -4,6 +4,7 @@ import { getClientIP, rateLimit } from '@/lib/rate-limit'
 import {
   buildProjectQuotation,
   formatZmw,
+  normalizeProjectQuoteSelection,
   type ProjectQuoteSelection,
 } from '@/lib/project-quotation'
 
@@ -373,7 +374,7 @@ export async function POST(request: NextRequest) {
     const body: PdfRequest = {
       quoteId,
       client: { name, email, company },
-      selection: raw.selection,
+      selection: normalizeProjectQuoteSelection(raw.selection),
       store: raw.store === true,
     }
 
