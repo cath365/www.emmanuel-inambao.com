@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { list } from '@vercel/blob'
 import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
+import { createGroqCompletion } from '@/lib/groq'
 
 export const runtime = 'nodejs'
 
@@ -191,30 +192,10 @@ PORTFOLIO DATA
 ${JSON.stringify(portfolioContext)}`
 }
 
-function extractResponseText(payload: any): string {
-  if (typeof payload?.output_text === 'string' && payload.output_text.trim()) {
-    return payload.output_text.trim()
-  }
-
-  const parts: string[] = []
-  for (const output of payload?.output || []) {
-    for (const content of output?.content || []) {
-      if (typeof content?.text === 'string') parts.push(content.text)
-    }
-  }
-
-  return parts.join('\n').trim()
-}
-
 export async function POST(request: NextRequest) {
   const id = clientId(request)
   if (isRateLimited(id)) {
     return NextResponse.json({ error: 'Too many requests. Please try again shortly.' }, { status: 429 })
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    return NextResponse.json({ error: 'AI assistant is not configured.' }, { status: 503 })
   }
 
   try {
@@ -230,39 +211,32 @@ export async function POST(request: NextRequest) {
     )
     const context = compactPortfolioContext(Object.fromEntries(entries))
 
-    const transcript = messages
-      .map(message => `${message.role === 'user' ? 'Visitor' : 'Assistant'}: ${message.content}`)
-      .join('\n\n')
-
-    const openAIResponse = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-5.6-terra',
-        instructions: systemPrompt(context),
-        input: transcript,
-        max_output_tokens: 700,
-      }),
-      signal: AbortSignal.timeout(20_000),
+    const groq = await createGroqCompletion({
+      model: process.env.GROQ_CHAT_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+      messages: [
+        { role: 'system', content: systemPrompt(context) },
+        ...messages,
+      ],
+      maxCompletionTokens: 700,
+      temperature: 0.2,
+      reasoningEffort: 'low',
+      timeoutMs: 20_000,
     })
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text()
-      console.error('Portfolio AI provider error:', openAIResponse.status, errorText.slice(0, 500))
+    if (!groq.ok) {
+      if (groq.reason === 'not_configured') {
+        return NextResponse.json({ error: 'AI assistant is not configured.' }, { status: 503 })
+      }
+
+      console.error('Groq portfolio AI error:', groq.status, groq.detail)
       return NextResponse.json({ error: 'AI provider unavailable.' }, { status: 502 })
     }
 
-    const payload = await openAIResponse.json()
-    const answer = extractResponseText(payload)
-
-    if (!answer) {
-      return NextResponse.json({ error: 'AI returned an empty response.' }, { status: 502 })
-    }
-
-    return NextResponse.json({ answer })
+    return NextResponse.json({
+      answer: groq.text,
+      provider: 'groq',
+      model: groq.model,
+    })
   } catch (error) {
     console.error('Portfolio AI route error:', error)
     return NextResponse.json({ error: 'Unable to answer right now.' }, { status: 500 })
