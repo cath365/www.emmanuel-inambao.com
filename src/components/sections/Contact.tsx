@@ -151,8 +151,8 @@ export default function Contact() {
         >
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
-            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-wider">
-              {t('contact.title')}
+            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-[0.18em]">
+              08 — Contact
             </span>
             <h2 id="contact-heading" className="section-heading mt-2">
               {t('contact.subtitle')}
