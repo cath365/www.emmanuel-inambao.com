@@ -157,8 +157,8 @@ export default function Skills() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-wider">
-            {t('skills.title')}
+          <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-[0.18em]">
+            03 — Technical Capability
           </span>
           <h2 id="skills-heading" className="section-heading mt-2">
             {t('skills.heading')}
