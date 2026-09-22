@@ -1,5 +1,6 @@
 'use client'
 
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { defaultProjects, mergeWithCurrentCatalog, type Project } from '@/lib/project-catalog'
 
@@ -16,11 +17,7 @@ interface ProjectsContextType {
 const ProjectsContext = createContext<ProjectsContextType | undefined>(undefined)
 
 function saveToServer(data: Project[]) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'projects', data }),
-  }).catch(error => console.error('Failed to save projects:', error))
+  void persistPortfolioData('projects', data).catch(error => console.error('Failed to save projects:', error))
 }
 
 export function ProjectsProvider({ children }: { children: ReactNode }) {

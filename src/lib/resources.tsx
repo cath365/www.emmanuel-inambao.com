@@ -1,5 +1,6 @@
 'use client'
 
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export interface Resource {
@@ -65,19 +66,11 @@ const defaultResources: Resource[] = [
 ]
 
 function saveResourcesToServer(data: Resource[]) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'resources', data }),
-  }).catch(e => console.error('Failed to save resources:', e))
+  void persistPortfolioData('resources', data).catch(error => console.error('Failed to save resources:', error))
 }
 
 function saveAudioToServer(url: string) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'audio', data: url }),
-  }).catch(e => console.error('Failed to save audio:', e))
+  void persistPortfolioData('audio', url).catch(error => console.error('Failed to save audio:', error))
 }
 
 export function ResourcesProvider({ children }: { children: ReactNode }) {

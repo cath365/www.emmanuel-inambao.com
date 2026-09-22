@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies']
 
 function blobPath(key: string) {
@@ -37,7 +40,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(null)
   }
   const data = await readSection(key)
-  return NextResponse.json(data)
+  return NextResponse.json(data, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    },
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -50,7 +57,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid key' }, { status: 400 })
     }
     await writeSection(key, data)
-    return NextResponse.json({ success: true })
+    return NextResponse.json(
+      { success: true, key, publishedAt: new Date().toISOString() },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        },
+      }
+    )
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 })
   }

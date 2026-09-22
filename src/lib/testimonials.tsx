@@ -1,5 +1,6 @@
 'use client'
 
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export interface Testimonial {
@@ -63,11 +64,7 @@ const defaultTestimonials: Testimonial[] = [
 const TestimonialContext = createContext<TestimonialContextType | undefined>(undefined)
 
 function saveToServer(data: Testimonial[]) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'testimonials', data }),
-  }).catch(e => console.error('Failed to save testimonials:', e))
+  void persistPortfolioData('testimonials', data).catch(error => console.error('Failed to save testimonials:', error))
 }
 
 export function TestimonialProvider({ children }: { children: ReactNode }) {

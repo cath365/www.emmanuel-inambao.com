@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [newLeadsCount, setNewLeadsCount] = useState(0)
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0)
   const [todayVisitsCount, setTodayVisitsCount] = useState(0)
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   const formatBadge = (value: number) => (value > 99 ? '99+' : String(value))
 
@@ -74,6 +75,36 @@ export default function AdminDashboard() {
       // Keep existing badge counts on transient network errors.
     }
   }
+
+  useEffect(() => {
+    let resetTimer: ReturnType<typeof setTimeout> | undefined
+
+    const handleSaveState = (event: Event) => {
+      const detail = (event as CustomEvent<{ key: string; state: 'saving' | 'saved' | 'error'; message?: string }>).detail
+      if (!detail) return
+
+      if (resetTimer) clearTimeout(resetTimer)
+      setSaveState(detail.state)
+
+      if (detail.state === 'saved') {
+        setNotification({ type: 'success', message: 'Changes published to the live portfolio.' })
+        resetTimer = setTimeout(() => setSaveState('idle'), 2500)
+      }
+
+      if (detail.state === 'error') {
+        setNotification({
+          type: 'error',
+          message: detail.message || `Could not publish ${detail.key}. Please try again.`,
+        })
+      }
+    }
+
+    window.addEventListener('portfolio-save-state', handleSaveState)
+    return () => {
+      if (resetTimer) clearTimeout(resetTimer)
+      window.removeEventListener('portfolio-save-state', handleSaveState)
+    }
+  }, [])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -195,15 +226,46 @@ export default function AdminDashboard() {
 
       {/* Header */}
       <header className="bg-dark-900 border-b border-dark-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2 text-white font-bold text-lg">
               <Cpu className="w-6 h-6 text-primary-500" />
               Admin Dashboard
             </Link>
             
-            <div className="flex items-center gap-4">
-              <span className="text-dark-400 text-sm hidden sm:block">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div
+                className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium sm:flex ${
+                  saveState === 'saving'
+                    ? 'border-blue-500/40 bg-blue-500/10 text-blue-300'
+                    : saveState === 'saved'
+                      ? 'border-green-500/40 bg-green-500/10 text-green-300'
+                      : saveState === 'error'
+                        ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                        : 'border-dark-700 bg-dark-800/50 text-dark-400'
+                }`}
+                title="Portfolio publishing status"
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    saveState === 'saving'
+                      ? 'animate-pulse bg-blue-400'
+                      : saveState === 'saved'
+                        ? 'bg-green-400'
+                        : saveState === 'error'
+                          ? 'bg-red-400'
+                          : 'bg-dark-500'
+                  }`}
+                />
+                {saveState === 'saving'
+                  ? 'Publishing...'
+                  : saveState === 'saved'
+                    ? 'Published'
+                    : saveState === 'error'
+                      ? 'Save failed'
+                      : 'All changes synced'}
+              </div>
+              <span className="text-dark-400 text-sm hidden xl:block">
                 Welcome, {user?.email}
               </span>
               <button
@@ -220,14 +282,14 @@ export default function AdminDashboard() {
 
       {/* Tabs */}
       <div className="bg-dark-900/50 border-b border-dark-700">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto pb-px">
+        <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1 overflow-x-auto pb-px lg:grid lg:grid-cols-5 lg:gap-2 lg:overflow-visible lg:py-3 xl:grid-cols-7 2xl:grid-cols-9">
             <button
               onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'projects'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <FolderOpen className="w-5 h-5" />
@@ -235,10 +297,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('caseStudies')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'caseStudies'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Sparkles className="w-5 h-5" />
@@ -246,10 +308,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'profile'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <User className="w-5 h-5" />
@@ -257,10 +319,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('experience')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'experience'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Briefcase className="w-5 h-5" />
@@ -268,10 +330,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('testimonials')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'testimonials'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Quote className="w-5 h-5" />
@@ -279,10 +341,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('certifications')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'certifications'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Award className="w-5 h-5" />
@@ -290,10 +352,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('services')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'services'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Settings className="w-5 h-5" />
@@ -301,10 +363,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('media')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'media'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Video className="w-5 h-5" />
@@ -312,10 +374,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('skills')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'skills'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Cpu className="w-5 h-5" />
@@ -323,10 +385,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('resources')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'resources'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <FileText className="w-5 h-5" />
@@ -334,10 +396,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('gallery')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'gallery'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <GalleryHorizontal className="w-5 h-5" />
@@ -345,10 +407,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('leads')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'leads'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Bell className="w-5 h-5" />
@@ -361,10 +423,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('bookings')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'bookings'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <Calendar className="w-5 h-5" />
@@ -377,10 +439,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('analytics')}
-              className={`flex items-center gap-2 px-4 py-4 font-medium transition-colors border-b-2 -mb-px whitespace-nowrap ${
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'analytics'
-                  ? 'text-primary-400 border-primary-500'
-                  : 'text-dark-400 border-transparent hover:text-white'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
               }`}
             >
               <BarChart2 className="w-5 h-5" />
@@ -396,7 +458,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto w-full max-w-[1600px] min-w-0 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <AnimatePresence mode="wait">
           {activeTab === 'projects' ? (
             <motion.div
@@ -1321,7 +1383,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-dark-800 border border-dark-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-dark-800 border border-dark-700 rounded-2xl w-full max-w-4xl max-h-[calc(100vh-2rem)] overflow-y-auto overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal header */}
@@ -1344,7 +1406,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             <label className="block text-sm font-medium text-dark-300 mb-2">
               Project Image
             </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="w-32 h-24 bg-dark-700 rounded-lg overflow-hidden relative flex-shrink-0">
                 {formData.image && formData.image !== '/images/projects/default.jpg' ? (
                   <Image
