@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const lead = leads.find(item => item.id === leadId)
     const pdfPath = lead?.quotation?.pdfPath
 
-    if (!lead || !pdfPath) {
+    if (!lead || !pdfPath || !pdfPath.startsWith('data/quotations/')) {
       return NextResponse.json({ error: 'Quotation PDF not found' }, { status: 404 })
     }
 
