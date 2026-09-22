@@ -43,15 +43,28 @@ export interface Project extends ProjectContent {
 }
 
 export function projectContent(project: Project): ProjectContent {
-  const {
-    id: _id,
-    publicationStatus: _publicationStatus,
-    publishedAt: _publishedAt,
-    updatedAt: _updatedAt,
-    draft: _draft,
-    ...content
-  } = project
-  return content
+  return {
+    title: project.title,
+    purpose: project.purpose,
+    image: project.image,
+    techStack: project.techStack,
+    problemSolved: project.problemSolved,
+    systemLogic: project.systemLogic,
+    outcome: project.outcome,
+    featured: project.featured,
+    role: project.role,
+    status: project.status,
+    architecture: project.architecture,
+    highlights: project.highlights,
+    githubUrl: project.githubUrl,
+    liveUrl: project.liveUrl,
+    appStoreUrl: project.appStoreUrl,
+    playStoreUrl: project.playStoreUrl,
+    websiteUrl: project.websiteUrl,
+    docsUrl: project.docsUrl,
+    videoUrl: project.videoUrl,
+    media: project.media,
+  }
 }
 
 export function editableProject(project: Project): Project {
