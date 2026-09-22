@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Save to Vercel Blob (non-critical — don't fail the inquiry if blob errors)
     const newLead: ServiceLead = {
       id: data.id || `lead-${Date.now()}`,
       name: data.name,
@@ -112,11 +111,13 @@ export async function POST(request: NextRequest) {
       status: 'new',
     }
 
+    let saved = false
     try {
       const existing = await readLeads()
       await writeLeads([newLead, ...existing])
+      saved = true
     } catch (blobError) {
-      console.error('Blob write failed (non-critical):', blobError)
+      console.error('Blob write failed:', blobError)
     }
 
     // Send email notification
@@ -149,17 +150,42 @@ export async function POST(request: NextRequest) {
     const FORMSPREE_ID = process.env.FORMSPREE_ID
     if (FORMSPREE_ID && !emailSent) {
       try {
-        await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ name: data.name, email: data.email, _subject: `🔔 Service Inquiry: ${data.service}`, message: inquiryDetails }),
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            email: data.email,
+            _subject: `🔔 Service Inquiry: ${data.service}`,
+            message: inquiryDetails,
+          }),
         })
+        emailSent = response.ok
       } catch (e) {
         console.error('Formspree failed:', e)
       }
     }
 
-    return NextResponse.json({ success: true, emailSent, message: 'Inquiry submitted successfully!' })
+    if (!saved && !emailSent) {
+      return NextResponse.json(
+        {
+          error:
+            'The inquiry could not be saved or delivered. Please use the direct email or WhatsApp option.',
+          saved,
+          emailSent,
+        },
+        { status: 503 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      saved,
+      emailSent,
+      message: emailSent
+        ? 'Inquiry saved and email notification sent.'
+        : 'Inquiry saved to the Admin Leads area. Email notification is not configured or could not be delivered.',
+    })
   } catch (error) {
     console.error('Service inquiry error:', error)
     return NextResponse.json({ error: 'Failed to process inquiry' }, { status: 500 })
