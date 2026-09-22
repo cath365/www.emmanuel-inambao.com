@@ -3,6 +3,7 @@ import { list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 import { defaultProjects, mergeWithCurrentCatalog, type Project } from '@/lib/project-catalog'
 import type { CaseStudy } from '@/lib/case-studies'
+import { createGroqCompletion } from '@/lib/groq'
 
 export const runtime = 'nodejs'
 
@@ -80,21 +81,6 @@ function localDraft(project: Project): CaseStudy {
   }
 }
 
-function extractResponseText(payload: any): string {
-  if (typeof payload?.output_text === 'string' && payload.output_text.trim()) {
-    return payload.output_text.trim()
-  }
-
-  const parts: string[] = []
-  for (const output of payload?.output || []) {
-    for (const content of output?.content || []) {
-      if (typeof content?.text === 'string') parts.push(content.text)
-    }
-  }
-
-  return parts.join('\n').trim()
-}
-
 function parseJsonObject(text: string) {
   const cleaned = text
     .trim()
@@ -140,43 +126,47 @@ function normalizeStudy(input: any, project: Project, fallback: CaseStudy): Case
   }
 }
 
-async function generateWithOpenAI(project: Project, fallback: CaseStudy) {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) return null
-
-  const response = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || 'gpt-5.6-luna',
-      instructions: `You write evidence-based engineering case studies for Emmanuel Inambao's portfolio.
+async function generateWithGroq(project: Project, fallback: CaseStudy) {
+  const groq = await createGroqCompletion({
+    model: process.env.GROQ_CASE_STUDY_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+    messages: [
+      {
+        role: 'system',
+        content: `You write evidence-based engineering case studies for Emmanuel Inambao's portfolio.
 
 Use ONLY the supplied project record. Do not invent clients, dates, metrics, certifications, results, deployment status, commercial impact or technical details. If something is not documented, say "Not documented" or keep the wording generic. Distinguish prototype, active development and production accurately.
 
-Return ONLY valid JSON with these keys:
+Return ONLY a valid JSON object with these keys:
 title, subtitle, overview, status, timeline, role, challenge, solution, results, technologies, architecture.
 
 challenge and solution are arrays of short strings.
 results is an array of up to 4 objects with value, label, description. Values must be descriptive when no verified metric exists; never fabricate numbers.
 technologies and architecture are arrays of strings.
 Write clear professional English suitable for an international engineering portfolio.`,
-      input: JSON.stringify(project),
-      max_output_tokens: 1800,
-    }),
-    signal: AbortSignal.timeout(25_000),
+      },
+      {
+        role: 'user',
+        content: JSON.stringify(project),
+      },
+    ],
+    maxCompletionTokens: 1800,
+    temperature: 0.2,
+    reasoningEffort: 'medium',
+    responseFormat: { type: 'json_object' },
+    timeoutMs: 25_000,
   })
 
-  if (!response.ok) return null
-  const payload = await response.json()
-  const text = extractResponseText(payload)
-  if (!text) return null
+  if (!groq.ok) {
+    if (groq.reason !== 'not_configured') {
+      console.error('Groq case-study generation error:', groq.status, groq.detail)
+    }
+    return null
+  }
 
   try {
-    return normalizeStudy(parseJsonObject(text), project, fallback)
-  } catch {
+    return normalizeStudy(parseJsonObject(groq.text), project, fallback)
+  } catch (error) {
+    console.error('Groq case-study JSON parse error:', error)
     return null
   }
 }
@@ -205,14 +195,14 @@ export async function POST(request: NextRequest) {
     let generated: CaseStudy | null = null
 
     try {
-      generated = await generateWithOpenAI(project, fallback)
+      generated = await generateWithGroq(project, fallback)
     } catch (error) {
       console.error('Case study AI generation failed:', error)
     }
 
     return NextResponse.json({
       caseStudy: generated || fallback,
-      source: generated ? 'ai' : 'local',
+      source: generated ? 'groq' : 'local',
     })
   } catch (error) {
     console.error('Case study generation route error:', error)
