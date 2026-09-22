@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { put } from '@vercel/blob'
 import {
   buildProjectQuotation,
   formatZmw,
@@ -15,6 +16,7 @@ interface PdfRequest {
     company?: string
   }
   selection: ProjectQuoteSelection
+  store?: boolean
 }
 
 type RGB = [number, number, number]
@@ -349,12 +351,24 @@ export async function POST(request: NextRequest) {
     }
 
     const pdf = buildProfessionalQuotation(body)
+    let storedPath = ''
+
+    if (body.store) {
+      const safeId = clean(body.quoteId).replace(/[^a-zA-Z0-9_-]/g, '_')
+      const stored = await put(`data/quotations/${safeId}.pdf`, pdf, {
+        access: 'private',
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      })
+      storedPath = stored.pathname
+    }
 
     return new Response(pdf, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${clean(body.quoteId)}.pdf"`,
         'Cache-Control': 'no-store',
+        ...(storedPath ? { 'X-Quotation-Pdf-Path': storedPath } : {}),
       },
     })
   } catch (error) {
