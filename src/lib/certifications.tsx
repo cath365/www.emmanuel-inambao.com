@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 
 export interface Certification {
   id: string
@@ -55,11 +56,7 @@ const defaultCertifications: Certification[] = [
 const CertificationContext = createContext<CertificationContextType | undefined>(undefined)
 
 function saveToServer(data: Certification[]) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'certifications', data }),
-  }).catch(e => console.error('Failed to save certifications:', e))
+  void persistPortfolioData('certifications', data).catch(error => console.error('Failed to save certifications:', error))
 }
 
 export function CertificationProvider({ children }: { children: ReactNode }) {
