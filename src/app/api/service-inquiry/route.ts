@@ -58,6 +58,32 @@ function normalizeStatus(value: unknown): LeadStatus {
   return LEAD_STATUSES.includes(value as LeadStatus) ? (value as LeadStatus) : 'new'
 }
 
+function normalizeQuoteSelection(raw: any): ProjectQuoteSelection {
+  const mobilePlatforms = ['android', 'ios', 'both', 'not-sure'] as const
+  const timelines = ['flexible', '4-8-weeks', '2-4-weeks', 'urgent'] as const
+
+  return {
+    website: Boolean(raw?.website),
+    ecommerce: Boolean(raw?.ecommerce),
+    adminDashboard: Boolean(raw?.adminDashboard),
+    paymentIntegration: Boolean(raw?.paymentIntegration),
+    mobileApplication: Boolean(raw?.mobileApplication),
+    mobilePlatform: mobilePlatforms.includes(raw?.mobilePlatform) ? raw.mobilePlatform : 'not-sure',
+    iotIntegration: Boolean(raw?.iotIntegration),
+    iotDetails: typeof raw?.iotDetails === 'string' ? raw.iotDetails.slice(0, 5000) : '',
+    customFeatures: Array.isArray(raw?.customFeatures)
+      ? raw.customFeatures
+          .filter((item: unknown): item is string => typeof item === 'string')
+          .map((item: string) => item.trim())
+          .filter(Boolean)
+          .slice(0, 30)
+      : [],
+    projectDescription:
+      typeof raw?.projectDescription === 'string' ? raw.projectDescription.slice(0, 8000) : '',
+    timeline: timelines.includes(raw?.timeline) ? raw.timeline : 'flexible',
+  }
+}
+
 function normalizeLead(raw: any): ServiceLead {
   return {
     id: String(raw?.id || `lead-${Date.now()}`),
@@ -187,7 +213,7 @@ export async function POST(request: NextRequest) {
     let quotation: LeadQuotation | undefined
 
     if (data?.quotation?.selection && data?.quotation?.quoteId) {
-      const selection = data.quotation.selection as ProjectQuoteSelection
+      const selection = normalizeQuoteSelection(data.quotation.selection)
       const calculated = buildProjectQuotation(selection)
 
       quotation = {
@@ -199,7 +225,11 @@ export async function POST(request: NextRequest) {
         balanceAmount: calculated.balanceAmount,
         hasCustomPricing: calculated.hasCustomPricing,
         selection,
-        pdfPath: typeof data.quotation.pdfPath === 'string' ? data.quotation.pdfPath : undefined,
+        pdfPath:
+          typeof data.quotation.pdfPath === 'string' &&
+          data.quotation.pdfPath.startsWith('data/quotations/')
+            ? data.quotation.pdfPath
+            : undefined,
         clientCompany:
           typeof data.quotation.clientCompany === 'string'
             ? data.quotation.clientCompany.slice(0, 200)
