@@ -12,7 +12,7 @@ interface ServiceLead {
   service: string
   details: string
   submittedAt: string
-  status: 'new' | 'contacted' | 'closed'
+  status: 'new' | 'contacted' | 'approved' | 'closed'
 }
 
 async function readLeads(): Promise<ServiceLead[]> {
@@ -62,6 +62,11 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const { id, status } = await request.json()
+    const allowedStatuses: ServiceLead['status'][] = ['new', 'contacted', 'approved', 'closed']
+    if (!allowedStatuses.includes(status)) {
+      return NextResponse.json({ error: 'Invalid lead status' }, { status: 400 })
+    }
+
     const leads = await readLeads()
     const updated = leads.map(l => l.id === id ? { ...l, status } : l)
     await writeLeads(updated)
@@ -126,9 +131,11 @@ export async function POST(request: NextRequest) {
       console.error('Blob write failed (non-critical):', blobError)
     }
 
-    // Send email notification
+    // Send email notification. Quotations get a distinct subject so they are
+    // immediately recognizable when Emmanuel is away from the admin dashboard.
+    const isQuotation = /quotation/i.test(data.service)
     const inquiryDetails = [
-      '🔔 NEW SERVICE INQUIRY',
+      isQuotation ? '📄 NEW QUOTATION AWAITING REVIEW' : '🔔 NEW SERVICE INQUIRY',
       '',
       `👤 Name: ${data.name}`,
       `📧 Email: ${email || 'Not provided'}`,
@@ -151,8 +158,10 @@ export async function POST(request: NextRequest) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             access_key: WEB3FORMS_KEY,
-            subject: `🔔 New Service Inquiry: ${data.service} - ${data.name}`,
-            from_name: 'Portfolio AI Chatbot',
+            subject: isQuotation
+              ? `📄 New quotation awaiting review - ${data.name}`
+              : `🔔 New Service Inquiry: ${data.service} - ${data.name}`,
+            from_name: isQuotation ? 'Portfolio Quotation Assistant' : 'Portfolio AI Chatbot',
             name: data.name,
             ...(email ? { email, replyto: email } : {}),
             message: inquiryDetails,
@@ -167,11 +176,19 @@ export async function POST(request: NextRequest) {
     const FORMSPREE_ID = process.env.FORMSPREE_ID
     if (FORMSPREE_ID && !emailSent) {
       try {
-        await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+        const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ name: data.name, ...(email ? { email } : {}), _subject: `🔔 Service Inquiry: ${data.service}`, message: inquiryDetails }),
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            ...(email ? { email } : {}),
+            _subject: isQuotation
+              ? `📄 New quotation awaiting review - ${data.name}`
+              : `🔔 Service Inquiry: ${data.service}`,
+            message: inquiryDetails,
+          }),
         })
+        if (response.ok) emailSent = true
       } catch (e) {
         console.error('Formspree failed:', e)
       }
