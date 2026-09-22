@@ -2,215 +2,700 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Calculator, CheckCircle2, MessageCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  Bot,
+  Calculator,
+  Check,
+  CheckCircle2,
+  CreditCard,
+  Download,
+  Globe2,
+  LayoutDashboard,
+  MessageCircle,
+  RefreshCcw,
+  Send,
+  ShoppingCart,
+  Smartphone,
+  Cpu,
+} from 'lucide-react'
 import { useProfile } from '@/lib/profile'
+import {
+  buildProjectQuotation,
+  formatZmw,
+  quotationSummary,
+  type ProjectQuoteSelection,
+  type ProjectTimeline,
+  type MobilePlatform,
+} from '@/lib/project-quotation'
 
-type ProjectType = 'iot-prototype' | 'industrial-automation' | 'embedded-product' | 'web-dashboard' | 'custom'
-type Complexity = 'basic' | 'standard' | 'advanced'
-type Timeline = 'normal' | 'fast' | 'urgent'
+type Step =
+  | 'deliverables'
+  | 'extras'
+  | 'mobile'
+  | 'iot'
+  | 'description'
+  | 'timeline'
+  | 'contact'
+  | 'review'
+  | 'done'
 
-interface QuoteForm {
+interface ClientDetails {
   name: string
   email: string
   company: string
-  projectType: ProjectType
-  complexity: Complexity
-  timeline: Timeline
-  hardwareUnits: number
-  needsDashboard: boolean
-  needsCloud: boolean
-  integrations: number
-  supportMonths: number
-  budget: string
-  details: string
 }
 
-const DEFAULT_FORM: QuoteForm = {
+const DEFAULT_SELECTION: ProjectQuoteSelection = {
+  website: false,
+  ecommerce: false,
+  adminDashboard: false,
+  paymentIntegration: false,
+  mobileApplication: false,
+  mobilePlatform: 'not-sure',
+  iotIntegration: false,
+  iotDetails: '',
+  projectDescription: '',
+  timeline: 'flexible',
+}
+
+const DEFAULT_CLIENT: ClientDetails = {
   name: '',
   email: '',
   company: '',
-  projectType: 'iot-prototype',
-  complexity: 'standard',
-  timeline: 'normal',
-  hardwareUnits: 1,
-  needsDashboard: true,
-  needsCloud: false,
-  integrations: 1,
-  supportMonths: 1,
-  budget: '',
-  details: '',
 }
 
-function estimateQuote(form: QuoteForm) {
-  const typeBase: Record<ProjectType, number> = {
-    'iot-prototype': 700,
-    'industrial-automation': 2500,
-    'embedded-product': 1800,
-    'web-dashboard': 900,
-    'custom': 1200,
-  }
-  const complexityFactor: Record<Complexity, number> = {
-    basic: 0.85,
-    standard: 1,
-    advanced: 1.45,
-  }
-  const timelineFactor: Record<Timeline, number> = {
-    normal: 1,
-    fast: 1.2,
-    urgent: 1.45,
-  }
+const timelineLabels: Record<ProjectTimeline, string> = {
+  flexible: 'Flexible / discuss with Emmanuel',
+  '4-8-weeks': '4–8 weeks',
+  '2-4-weeks': '2–4 weeks',
+  urgent: 'Urgent / under 2 weeks',
+}
 
-  let base = typeBase[form.projectType]
-  base += Math.max(0, form.hardwareUnits - 1) * 140
-  if (form.needsDashboard) base += 600
-  if (form.needsCloud) base += 500
-  base += form.integrations * 120
-  base += form.supportMonths * 80
+const mobileLabels: Record<MobilePlatform, string> = {
+  android: 'Android',
+  ios: 'iOS',
+  both: 'Android + iOS',
+  'not-sure': 'Not sure yet',
+}
 
-  const final = base * complexityFactor[form.complexity] * timelineFactor[form.timeline]
-  return {
-    min: Math.round(final * 0.85),
-    max: Math.round(final * 1.2),
-  }
+function ToggleCard({
+  selected,
+  onClick,
+  icon: Icon,
+  title,
+  detail,
+}: {
+  selected: boolean
+  onClick: () => void
+  icon: typeof Globe2
+  title: string
+  detail: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex min-h-32 w-full flex-col items-start rounded-sm border p-5 text-left transition-colors ${
+        selected
+          ? 'border-[#526E8A] bg-[#EEF2F4] dark:border-primary-500 dark:bg-primary-900/20'
+          : 'border-[#DDD7CC] bg-white/65 hover:border-[#AAB6C2] dark:border-dark-700 dark:bg-dark-800/40 dark:hover:border-dark-600'
+      }`}
+    >
+      <div className="flex w-full items-center justify-between">
+        <Icon className="h-6 w-6 text-[#526E8A] dark:text-primary-400" />
+        <span
+          className={`flex h-5 w-5 items-center justify-center rounded-full border ${
+            selected
+              ? 'border-[#526E8A] bg-[#526E8A] text-white dark:border-primary-500 dark:bg-primary-500'
+              : 'border-[#C9C3B8] dark:border-dark-600'
+          }`}
+        >
+          {selected && <Check className="h-3.5 w-3.5" />}
+        </span>
+      </div>
+      <span className="mt-4 font-semibold text-[#10243E] dark:text-white">{title}</span>
+      <span className="mt-1 text-sm leading-6 text-[#667384] dark:text-dark-400">{detail}</span>
+    </button>
+  )
 }
 
 export default function StartProjectPage() {
   const { profile } = useProfile()
-  const [form, setForm] = useState<QuoteForm>(DEFAULT_FORM)
+  const [selection, setSelection] = useState<ProjectQuoteSelection>(DEFAULT_SELECTION)
+  const [client, setClient] = useState<ClientDetails>(DEFAULT_CLIENT)
+  const [step, setStep] = useState<Step>('deliverables')
+  const [aiQuestion, setAiQuestion] = useState('Why does this quotation cost this amount?')
+  const [aiAnswer, setAiAnswer] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [quoteId, setQuoteId] = useState('')
 
-  const quote = useMemo(() => estimateQuote(form), [form])
+  const quotation = useMemo(() => buildProjectQuotation(selection), [selection])
+  const anyDeliverable = selection.website || selection.mobileApplication || selection.iotIntegration
 
-  const summary = [
-    `Project type: ${form.projectType}`,
-    `Complexity: ${form.complexity}`,
-    `Timeline: ${form.timeline}`,
-    `Hardware units: ${form.hardwareUnits}`,
-    `Dashboard: ${form.needsDashboard ? 'Yes' : 'No'}`,
-    `Cloud: ${form.needsCloud ? 'Yes' : 'No'}`,
-    `Integrations: ${form.integrations}`,
-    `Support: ${form.supportMonths} month(s)`,
-    `Estimated range: $${quote.min} - $${quote.max}`,
-    `Budget provided: ${form.budget || 'Not specified'}`,
-    `Details: ${form.details || 'Not provided'}`,
-  ].join('\n')
+  const toggle = (key: 'website' | 'mobileApplication' | 'iotIntegration') => {
+    setSelection(prev => ({ ...prev, [key]: !prev[key] }))
+  }
 
-  const waLink = `https://wa.me/${profile.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
-    `Hello Emmanuel, I would like a project quote.\n\n${summary}`
-  )}`
+  const goForward = () => {
+    if (step === 'deliverables') {
+      if (!anyDeliverable) return
+      if (selection.website || selection.mobileApplication) setStep('extras')
+      else if (selection.iotIntegration) setStep('iot')
+      else setStep('description')
+      return
+    }
+    if (step === 'extras') {
+      if (selection.mobileApplication) setStep('mobile')
+      else if (selection.iotIntegration) setStep('iot')
+      else setStep('description')
+      return
+    }
+    if (step === 'mobile') {
+      if (selection.iotIntegration) setStep('iot')
+      else setStep('description')
+      return
+    }
+    if (step === 'iot') {
+      setStep('description')
+      return
+    }
+    if (step === 'description') {
+      if (!selection.projectDescription.trim()) return
+      setStep('timeline')
+      return
+    }
+    if (step === 'timeline') {
+      setStep('contact')
+      return
+    }
+    if (step === 'contact') {
+      if (!client.name.trim() || !/^\S+@\S+\.\S+$/.test(client.email)) return
+      setStep('review')
+      void askAi('Explain this quotation to the client and explain why each selected item is charged.')
+    }
+  }
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setStatus('sending')
+  const goBack = () => {
+    if (step === 'extras') setStep('deliverables')
+    else if (step === 'mobile') setStep('extras')
+    else if (step === 'iot') {
+      if (selection.mobileApplication) setStep('mobile')
+      else if (selection.website) setStep('extras')
+      else setStep('deliverables')
+    } else if (step === 'description') {
+      if (selection.iotIntegration) setStep('iot')
+      else if (selection.mobileApplication) setStep('mobile')
+      else if (selection.website) setStep('extras')
+      else setStep('deliverables')
+    } else if (step === 'timeline') setStep('description')
+    else if (step === 'contact') setStep('timeline')
+    else if (step === 'review') setStep('contact')
+  }
+
+  const askAi = async (questionOverride?: string) => {
+    const question = (questionOverride || aiQuestion).trim()
+    if (!question) return
+    setAiLoading(true)
+    setAiAnswer('')
+
     try {
-      const res = await fetch('/api/service-inquiry', {
+      const response = await fetch('/api/ai/project-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, selection }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to answer')
+      setAiAnswer(data.response)
+    } catch {
+      setAiAnswer(
+        'I could not reach the AI service right now. The displayed prices are still calculated by the fixed portfolio pricing engine and remain valid for this preliminary quotation.'
+      )
+    } finally {
+      setAiLoading(false)
+    }
+  }
+
+  const buildLeadDetails = (id: string) => {
+    return [
+      'ACCEPTED AI PROJECT QUOTATION',
+      `Quotation ID: ${id}`,
+      `Client: ${client.name}`,
+      `Company: ${client.company || 'Not specified'}`,
+      `Email: ${client.email}`,
+      '',
+      quotationSummary(selection, quotation),
+      '',
+      'Client accepted this preliminary quotation and generated the downloadable PDF.',
+    ].join('\n')
+  }
+
+  const generateAndSend = async () => {
+    setStatus('sending')
+    setErrorMessage('')
+
+    const id =
+      quoteId ||
+      `EI-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(Date.now()).slice(-5)}`
+    setQuoteId(id)
+
+    try {
+      const leadResponse = await fetch('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: `quote-${Date.now()}`,
-          name: form.name,
-          email: form.email,
-          service: `Project Quote (${form.projectType})`,
-          details: summary,
+          id: `quote-${id}`,
+          name: client.name,
+          email: client.email,
+          service: 'Accepted AI Project Quotation',
+          details: buildLeadDetails(id),
           submittedAt: new Date().toISOString(),
           status: 'new',
         }),
       })
-      if (!res.ok) throw new Error('Failed')
+
+      if (!leadResponse.ok) {
+        throw new Error('The quotation could not be sent to Emmanuel.')
+      }
+
+      const pdfResponse = await fetch('/api/quotation/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quoteId: id,
+          client,
+          selection,
+        }),
+      })
+
+      if (!pdfResponse.ok) {
+        throw new Error('The quotation was sent, but the PDF could not be generated.')
+      }
+
+      const blob = await pdfResponse.blob()
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `${id}.pdf`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+
       setStatus('success')
-      setForm(DEFAULT_FORM)
-    } catch {
+      setStep('done')
+    } catch (error) {
       setStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to complete quotation.')
     }
   }
 
+  const reset = () => {
+    setSelection(DEFAULT_SELECTION)
+    setClient(DEFAULT_CLIENT)
+    setStep('deliverables')
+    setAiAnswer('')
+    setAiQuestion('Why does this quotation cost this amount?')
+    setQuoteId('')
+    setStatus('idle')
+    setErrorMessage('')
+  }
+
+  const waLink = `https://wa.me/${profile.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
+    `Hello Emmanuel, I would like to discuss a project quotation.\n\n${quotationSummary(selection, quotation)}`
+  )}`
+
   return (
-    <main className="min-h-screen bg-dark-950 pt-24 pb-16">
-      <div className="section-container max-w-5xl">
-        <Link href="/" className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          Back to Portfolio
+    <main className="min-h-screen bg-[#F7F5EF] pb-16 pt-24 text-[#293442] dark:bg-dark-950 dark:text-dark-100">
+      <div className="section-container max-w-6xl">
+        <Link
+          href="/"
+          className="mb-8 inline-flex items-center gap-2 text-sm font-medium text-[#526E8A] hover:text-[#10243E] dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to portfolio
         </Link>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <section className="lg:col-span-2 bg-dark-900/60 border border-dark-700 rounded-2xl p-6 sm:p-8">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Start Your Project</h1>
-            <p className="text-dark-400 mb-6">
-              Fill this quick questionnaire to get an instant estimate and send your requirements directly.
-            </p>
+        <div className="mb-8 max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#526E8A] dark:text-primary-400">
+            AI project quotation
+          </p>
+          <h1 className="mt-3 font-display text-4xl font-medium text-[#10243E] dark:text-white sm:text-5xl">
+            Tell the assistant what you want to build.
+          </h1>
+          <p className="mt-4 text-base leading-7 text-[#667384] dark:text-dark-400">
+            The assistant asks for the scope, explains every charge and prepares a downloadable quotation.
+            Prices are calculated from fixed rules — the AI cannot invent or change them.
+          </p>
+        </div>
 
-            <form onSubmit={submit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your name" className="px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
-                <input required type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Your email" className="px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
+        <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
+          <section className="rounded-sm border border-[#DDD7CC] bg-[#FCFBF7] p-5 dark:border-dark-700 dark:bg-dark-900/70 sm:p-8">
+            <div className="mb-7 flex items-start gap-4 border-b border-[#E1DBD1] pb-6 dark:border-dark-800">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#10243E] text-white dark:bg-primary-600">
+                <Bot className="h-5 w-5" />
               </div>
-              <input value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} placeholder="Company (optional)" className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
-
-              <div className="grid sm:grid-cols-3 gap-4">
-                <select value={form.projectType} onChange={e => setForm({ ...form, projectType: e.target.value as ProjectType })} className="px-3 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white">
-                  <option value="iot-prototype">IoT Prototype</option>
-                  <option value="industrial-automation">Industrial Automation</option>
-                  <option value="embedded-product">Embedded Product</option>
-                  <option value="web-dashboard">Web Dashboard</option>
-                  <option value="custom">Custom Solution</option>
-                </select>
-                <select value={form.complexity} onChange={e => setForm({ ...form, complexity: e.target.value as Complexity })} className="px-3 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white">
-                  <option value="basic">Basic</option>
-                  <option value="standard">Standard</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-                <select value={form.timeline} onChange={e => setForm({ ...form, timeline: e.target.value as Timeline })} className="px-3 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white">
-                  <option value="normal">Normal Timeline</option>
-                  <option value="fast">Fast Track</option>
-                  <option value="urgent">Urgent</option>
-                </select>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7A8491] dark:text-dark-500">
+                  Emmanuel&apos;s AI project assistant
+                </p>
+                <p className="mt-1 text-base leading-7 text-[#39495A] dark:text-dark-200">
+                  {step === 'deliverables' && 'What do you want Emmanuel to build? Select everything that applies.'}
+                  {step === 'extras' && 'Which additional software features does the project need?'}
+                  {step === 'mobile' && 'Which mobile platform should the application support?'}
+                  {step === 'iot' && 'Tell me about the connected hardware so Emmanuel can prepare the custom IoT portion.'}
+                  {step === 'description' && 'What should the finished system actually do for you or your organization?'}
+                  {step === 'timeline' && 'When would you like the project delivered? This does not automatically change the displayed price.'}
+                  {step === 'contact' && 'Who should the quotation be prepared for?'}
+                  {step === 'review' && 'Here is the preliminary quotation. Review the scope and ask me anything before accepting it.'}
+                  {step === 'done' && 'Your quotation is complete.'}
+                </p>
               </div>
+            </div>
 
-              <div className="grid sm:grid-cols-3 gap-4">
-                <input type="number" min={1} value={form.hardwareUnits} onChange={e => setForm({ ...form, hardwareUnits: Math.max(1, Number(e.target.value) || 1) })} placeholder="Hardware units" className="px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
-                <input type="number" min={0} value={form.integrations} onChange={e => setForm({ ...form, integrations: Math.max(0, Number(e.target.value) || 0) })} placeholder="Integrations" className="px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
-                <input type="number" min={0} value={form.supportMonths} onChange={e => setForm({ ...form, supportMonths: Math.max(0, Number(e.target.value) || 0) })} placeholder="Support months" className="px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
+            {step === 'deliverables' && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <ToggleCard
+                  selected={selection.website}
+                  onClick={() => toggle('website')}
+                  icon={Globe2}
+                  title="Website"
+                  detail={`Base price ${formatZmw(5000)}`}
+                />
+                <ToggleCard
+                  selected={selection.mobileApplication}
+                  onClick={() => toggle('mobileApplication')}
+                  icon={Smartphone}
+                  title="Mobile application"
+                  detail={`Base price ${formatZmw(12000)}`}
+                />
+                <ToggleCard
+                  selected={selection.iotIntegration}
+                  onClick={() => toggle('iotIntegration')}
+                  icon={Cpu}
+                  title="IoT integration"
+                  detail="Custom quotation after hardware discovery"
+                />
               </div>
+            )}
 
-              <div className="flex flex-wrap gap-5 text-sm text-dark-300">
-                <label className="inline-flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.needsDashboard} onChange={e => setForm({ ...form, needsDashboard: e.target.checked })} /> Need dashboard</label>
-                <label className="inline-flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.needsCloud} onChange={e => setForm({ ...form, needsCloud: e.target.checked })} /> Need cloud</label>
+            {step === 'extras' && (
+              <div className="space-y-3">
+                {selection.website && (
+                  <ToggleCard
+                    selected={selection.ecommerce}
+                    onClick={() => setSelection(prev => ({ ...prev, ecommerce: !prev.ecommerce }))}
+                    icon={ShoppingCart}
+                    title="E-commerce"
+                    detail="+ ZMW 3,000 — product catalogue, cart, checkout and order workflows"
+                  />
+                )}
+                <ToggleCard
+                  selected={selection.adminDashboard}
+                  onClick={() => setSelection(prev => ({ ...prev, adminDashboard: !prev.adminDashboard }))}
+                  icon={LayoutDashboard}
+                  title="Admin dashboard"
+                  detail="+ ZMW 2,500 — protected management screens and operational controls"
+                />
+                <ToggleCard
+                  selected={selection.paymentIntegration}
+                  onClick={() => setSelection(prev => ({ ...prev, paymentIntegration: !prev.paymentIntegration }))}
+                  icon={CreditCard}
+                  title="Payment integration"
+                  detail="+ ZMW 2,000 — gateway integration, verification and payment-flow testing"
+                />
+                <p className="pt-2 text-sm text-[#7A8491] dark:text-dark-500">
+                  These are optional additions. Leave a feature unselected if you do not need it.
+                </p>
               </div>
+            )}
 
-              <input value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} placeholder="Your budget range (optional)" className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
-              <textarea value={form.details} onChange={e => setForm({ ...form, details: e.target.value })} rows={5} placeholder="Project details, goals, constraints..." className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-lg text-white" />
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                <button type="submit" disabled={status === 'sending'} className="btn-primary disabled:opacity-50">{status === 'sending' ? 'Sending...' : 'Send Request'}</button>
-                <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-                  <MessageCircle className="w-4 h-4" /> WhatsApp Direct
-                </a>
+            {step === 'mobile' && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(['android', 'ios', 'both', 'not-sure'] as MobilePlatform[]).map(platform => (
+                  <button
+                    key={platform}
+                    type="button"
+                    onClick={() => setSelection(prev => ({ ...prev, mobilePlatform: platform }))}
+                    className={`rounded-sm border p-4 text-left transition-colors ${
+                      selection.mobilePlatform === platform
+                        ? 'border-[#526E8A] bg-[#EEF2F4] dark:border-primary-500 dark:bg-primary-900/20'
+                        : 'border-[#DDD7CC] bg-white/60 hover:border-[#AAB6C2] dark:border-dark-700 dark:bg-dark-800/40'
+                    }`}
+                  >
+                    <span className="font-medium text-[#10243E] dark:text-white">{mobileLabels[platform]}</span>
+                  </button>
+                ))}
+                <p className="sm:col-span-2 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                  The current base mobile price remains ZMW 12,000. Platform-specific publishing accounts,
+                  store fees or unusual native integrations are confirmed during final scope review.
+                </p>
               </div>
+            )}
 
-              {status === 'success' && (
-                <p className="text-green-400 text-sm inline-flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Request sent successfully. Check your admin Leads tab.</p>
-              )}
-              {status === 'error' && (
-                <p className="text-red-400 text-sm">Could not send right now. Please try WhatsApp Direct.</p>
-              )}
-            </form>
+            {step === 'iot' && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#39495A] dark:text-dark-300">
+                  Hardware / IoT requirements
+                </label>
+                <textarea
+                  rows={7}
+                  value={selection.iotDetails}
+                  onChange={e => setSelection(prev => ({ ...prev, iotDetails: e.target.value }))}
+                  placeholder="Example: ESP32 device with two sensors, SIM/Wi-Fi connectivity, battery power, 10 units for field use..."
+                  className="w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] focus:ring-1 focus:ring-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500"
+                />
+                <p className="mt-3 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                  IoT is custom-priced because sensors, connectivity, hardware quantity, power design, enclosure and
+                  deployment conditions can change the engineering cost.
+                </p>
+              </div>
+            )}
+
+            {step === 'description' && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#39495A] dark:text-dark-300">
+                  Project goal
+                </label>
+                <textarea
+                  rows={8}
+                  value={selection.projectDescription}
+                  onChange={e => setSelection(prev => ({ ...prev, projectDescription: e.target.value }))}
+                  placeholder="Describe the problem, who will use the system, and what you need it to do..."
+                  className="w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] focus:ring-1 focus:ring-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500"
+                />
+              </div>
+            )}
+
+            {step === 'timeline' && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(Object.keys(timelineLabels) as ProjectTimeline[]).map(timeline => (
+                  <button
+                    key={timeline}
+                    type="button"
+                    onClick={() => setSelection(prev => ({ ...prev, timeline }))}
+                    className={`rounded-sm border p-4 text-left transition-colors ${
+                      selection.timeline === timeline
+                        ? 'border-[#526E8A] bg-[#EEF2F4] dark:border-primary-500 dark:bg-primary-900/20'
+                        : 'border-[#DDD7CC] bg-white/60 hover:border-[#AAB6C2] dark:border-dark-700 dark:bg-dark-800/40'
+                    }`}
+                  >
+                    <span className="font-medium text-[#10243E] dark:text-white">{timelineLabels[timeline]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {step === 'contact' && (
+              <div className="grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <input
+                    value={client.name}
+                    onChange={e => setClient(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Full name *"
+                    className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                  />
+                  <input
+                    type="email"
+                    value={client.email}
+                    onChange={e => setClient(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="Email address *"
+                    className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                  />
+                </div>
+                <input
+                  value={client.company}
+                  onChange={e => setClient(prev => ({ ...prev, company: e.target.value }))}
+                  placeholder="Company / organization (optional)"
+                  className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                />
+                <p className="text-sm text-[#697483] dark:text-dark-400">
+                  The accepted quotation will be sent to Emmanuel&apos;s lead inbox together with these contact details.
+                </p>
+              </div>
+            )}
+
+            {step === 'review' && (
+              <div className="space-y-6">
+                <div className="divide-y divide-[#E3DDD3] border-y border-[#E3DDD3] dark:divide-dark-800 dark:border-dark-800">
+                  {quotation.lineItems.map(item => (
+                    <div key={item.id} className="py-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="font-semibold text-[#10243E] dark:text-white">{item.label}</p>
+                          <p className="mt-1 text-sm leading-6 text-[#697483] dark:text-dark-400">{item.reason}</p>
+                        </div>
+                        <p className="shrink-0 font-semibold text-[#10243E] dark:text-white">
+                          {item.amount === null ? 'Custom' : formatZmw(item.amount)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-sm border border-[#D8D2C8] bg-[#F1EEE7] p-5 dark:border-dark-700 dark:bg-dark-800/40">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#7A8491] dark:text-dark-500">
+                    Known subtotal
+                  </p>
+                  <p className="mt-2 font-display text-3xl font-medium text-[#10243E] dark:text-white">
+                    {formatZmw(quotation.knownTotal)}
+                    {quotation.hasCustomPricing && ' + custom IoT'}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                    This is a preliminary quotation based on the selected scope. Third-party fees, purchased hardware,
+                    hosting and requirements outside this scope are confirmed separately.
+                  </p>
+                </div>
+
+                <div className="rounded-sm border border-[#DDD7CC] bg-white/60 p-5 dark:border-dark-700 dark:bg-dark-900/50">
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-[#526E8A] dark:text-primary-400" />
+                    <h2 className="font-semibold text-[#10243E] dark:text-white">Ask the AI about this price</h2>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                    <input
+                      value={aiQuestion}
+                      onChange={e => setAiQuestion(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          void askAi()
+                        }
+                      }}
+                      className="min-w-0 flex-1 rounded-sm border border-[#D4CEC4] bg-white px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                      placeholder="Ask why an item costs this amount..."
+                    />
+                    <button type="button" onClick={() => void askAi()} disabled={aiLoading} className="btn-secondary">
+                      <Send className="h-4 w-4" />
+                      {aiLoading ? 'Thinking...' : 'Ask'}
+                    </button>
+                  </div>
+                  {aiAnswer && (
+                    <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[#566273] dark:text-dark-300">
+                      {aiAnswer}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void generateAndSend()}
+                  disabled={status === 'sending'}
+                  className="btn-primary w-full sm:w-auto"
+                >
+                  <Download className="h-4 w-4" />
+                  {status === 'sending' ? 'Preparing quotation...' : 'I agree — Generate quotation'}
+                </button>
+
+                {status === 'error' && <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>}
+              </div>
+            )}
+
+            {step === 'done' && (
+              <div className="py-6 text-center">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-[#526E8A] dark:text-primary-400" />
+                <h2 className="mt-4 font-display text-3xl font-medium text-[#10243E] dark:text-white">
+                  Quotation generated
+                </h2>
+                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#667384] dark:text-dark-400">
+                  Your PDF quotation has been downloaded. The same accepted scope and price breakdown have been sent
+                  to Emmanuel and saved in the portfolio&apos;s Admin Leads area.
+                </p>
+                <p className="mt-3 text-sm font-semibold text-[#10243E] dark:text-white">{quoteId}</p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <button type="button" onClick={reset} className="btn-secondary">
+                    <RefreshCcw className="h-4 w-4" /> Start another quote
+                  </button>
+                  <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                    <MessageCircle className="h-4 w-4" /> Discuss on WhatsApp
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {!['review', 'done'].includes(step) && (
+              <div className="mt-8 flex items-center justify-between gap-3 border-t border-[#E1DBD1] pt-6 dark:border-dark-800">
+                <button
+                  type="button"
+                  onClick={goBack}
+                  disabled={step === 'deliverables'}
+                  className="btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={goForward}
+                  disabled={
+                    (step === 'deliverables' && !anyDeliverable) ||
+                    (step === 'description' && !selection.projectDescription.trim()) ||
+                    (step === 'contact' && (!client.name.trim() || !/^\S+@\S+\.\S+$/.test(client.email)))
+                  }
+                  className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Continue
+                </button>
+              </div>
+            )}
+
+            {step === 'review' && (
+              <button type="button" onClick={goBack} className="mt-6 text-sm font-medium text-[#526E8A] dark:text-primary-400">
+                Change my answers
+              </button>
+            )}
           </section>
 
-          <aside className="bg-dark-900/60 border border-primary-500/30 rounded-2xl p-6 sm:p-8 h-fit">
-            <div className="inline-flex items-center gap-2 text-primary-400 mb-3">
-              <Calculator className="w-5 h-5" />
-              Live Estimate
+          <aside className="h-fit rounded-sm border border-[#D8D2C8] bg-[#EEEAE2] p-6 dark:border-dark-700 dark:bg-dark-900/70">
+            <div className="mb-4 flex items-center gap-2 text-[#526E8A] dark:text-primary-400">
+              <Calculator className="h-5 w-5" />
+              <span className="text-sm font-semibold uppercase tracking-[0.12em]">Live quotation</span>
             </div>
-            <p className="text-3xl font-bold text-white mb-1">${quote.min.toLocaleString()} - ${quote.max.toLocaleString()}</p>
-            <p className="text-dark-500 text-xs mb-6">Estimated range based on current answers</p>
 
-            <h3 className="text-white font-semibold mb-3">How We Work</h3>
-            <ol className="space-y-2 text-sm text-dark-300 list-decimal list-inside">
-              <li>Discovery call and scope definition</li>
-              <li>Architecture and implementation plan</li>
-              <li>Build, test, and deployment</li>
-              <li>Handover, training, and support</li>
-            </ol>
+            {quotation.lineItems.length === 0 ? (
+              <p className="text-sm leading-6 text-[#697483] dark:text-dark-400">
+                Select what you want to build and the official pricing breakdown will appear here.
+              </p>
+            ) : (
+              <>
+                <div className="space-y-3">
+                  {quotation.lineItems.map(item => (
+                    <div key={item.id} className="flex items-start justify-between gap-3 border-b border-[#D7D0C4] pb-3 dark:border-dark-800">
+                      <span className="text-sm text-[#566273] dark:text-dark-300">{item.label}</span>
+                      <span className="text-right text-sm font-semibold text-[#10243E] dark:text-white">
+                        {item.amount === null ? 'Custom' : formatZmw(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#7A8491] dark:text-dark-500">Known subtotal</p>
+                  <p className="mt-1 font-display text-3xl font-medium text-[#10243E] dark:text-white">
+                    {formatZmw(quotation.knownTotal)}
+                  </p>
+                  {quotation.hasCustomPricing && (
+                    <p className="mt-1 text-xs leading-5 text-[#7A8491] dark:text-dark-500">
+                      + IoT/custom engineering after technical discovery
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+
+            <div className="mt-7 border-t border-[#D7D0C4] pt-5 dark:border-dark-800">
+              <h3 className="text-sm font-semibold text-[#10243E] dark:text-white">Pricing rules</h3>
+              <ul className="mt-3 space-y-2 text-xs leading-5 text-[#697483] dark:text-dark-400">
+                <li>Website: ZMW 5,000 base</li>
+                <li>E-commerce: + ZMW 3,000</li>
+                <li>Admin dashboard: + ZMW 2,500</li>
+                <li>Payment integration: + ZMW 2,000</li>
+                <li>Mobile application: ZMW 12,000 base</li>
+                <li>IoT integration: custom quotation</li>
+              </ul>
+            </div>
           </aside>
         </div>
       </div>
