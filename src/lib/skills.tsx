@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
 
 export interface SkillItem {
   name: string
@@ -92,11 +93,7 @@ const SkillsContext = createContext<SkillsContextType | undefined>(undefined)
 const STORAGE_KEY = 'portfolio_skills'
 
 function saveToServer(data: SkillCategory[]) {
-  fetch('/api/portfolio-data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key: 'skills', data }),
-  }).catch(e => console.error('Failed to save skills:', e))
+  void persistPortfolioData('skills', data).catch(error => console.error('Failed to save skills:', error))
 }
 
 export function SkillsProvider({ children }: { children: ReactNode }) {
