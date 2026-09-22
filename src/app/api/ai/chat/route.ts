@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { list } from '@vercel/blob'
 import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
+import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
 
 export const runtime = 'nodejs'
 
@@ -9,7 +10,7 @@ type ChatMessage = {
   content: string
 }
 
-const PORTFOLIO_KEYS = ['profile', 'projects', 'services', 'skills', 'experiences', 'certifications'] as const
+const PORTFOLIO_KEYS = ['profile', 'projects', 'services', 'skills', 'experiences', 'certifications', 'caseStudies'] as const
 const MAX_MESSAGES = 12
 const MAX_MESSAGE_LENGTH = 1600
 const RATE_WINDOW_MS = 60_000
@@ -89,6 +90,12 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
   const skills = Array.isArray(sections.skills) ? sections.skills : []
   const experiences = Array.isArray(sections.experiences) ? sections.experiences : []
   const certifications = Array.isArray(sections.certifications) ? sections.certifications : []
+  const storedCaseStudies = Array.isArray(sections.caseStudies) ? sections.caseStudies : []
+  const caseStudyMap = new Map<string, any>()
+  for (const study of staticCaseStudies) caseStudyMap.set(study.slug, study)
+  for (const study of storedCaseStudies) {
+    if (study?.slug) caseStudyMap.set(study.slug, study)
+  }
 
   return {
     profile,
@@ -137,6 +144,19 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
       date: certification?.date,
       credentialId: certification?.credentialId,
     })),
+    caseStudies: Array.from(caseStudyMap.values()).map((study: any) => ({
+      slug: study?.slug,
+      title: study?.title,
+      subtitle: study?.subtitle,
+      overview: study?.overview,
+      status: study?.status,
+      role: study?.role,
+      challenge: study?.challenge,
+      solution: study?.solution,
+      results: study?.results,
+      technologies: study?.technologies,
+      architecture: study?.architecture,
+    })),
   }
 }
 
@@ -145,7 +165,7 @@ function systemPrompt(portfolioContext: unknown) {
 
 CORE BEHAVIOUR
 - Answer naturally, clearly and professionally.
-- Ground factual claims about Emmanuel ONLY in the PORTFOLIO DATA below.
+- Ground factual claims about Emmanuel ONLY in the PORTFOLIO DATA below. Project and case-study records may be updated from the admin dashboard, so treat the supplied data as the current source of truth.
 - Never invent qualifications, clients, employment, project results, prices, metrics, availability, certifications, technologies or personal details.
 - If a requested fact is not in the data, say it is not documented in the portfolio and offer the most useful next step.
 - Distinguish a deployed project from a prototype, concept or active R&D project using its recorded status.
