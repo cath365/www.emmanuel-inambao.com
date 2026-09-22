@@ -135,6 +135,7 @@ export default function StartProjectPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [quoteId, setQuoteId] = useState('')
   const [featureDraft, setFeatureDraft] = useState('')
+  const [deliveryStatus, setDeliveryStatus] = useState({ saved: false, emailSent: false })
 
   const quotation = useMemo(() => buildProjectQuotation(selection), [selection])
   const anyDeliverable = selection.website || selection.mobileApplication || selection.iotIntegration
@@ -281,9 +282,16 @@ export default function StartProjectPage() {
         }),
       })
 
+      const leadResult = await leadResponse.json().catch(() => ({}))
+
       if (!leadResponse.ok) {
-        throw new Error('The quotation could not be sent to Emmanuel.')
+        throw new Error(leadResult.error || 'The quotation could not be delivered to Emmanuel.')
       }
+
+      setDeliveryStatus({
+        saved: leadResult.saved === true,
+        emailSent: leadResult.emailSent === true,
+      })
 
       const pdfResponse = await fetch('/api/quotation/pdf', {
         method: 'POST',
@@ -325,6 +333,7 @@ export default function StartProjectPage() {
     setAiQuestion('Why does this quotation cost this amount?')
     setFeatureDraft('')
     setQuoteId('')
+    setDeliveryStatus({ saved: false, emailSent: false })
     setStatus('idle')
     setErrorMessage('')
   }
@@ -698,8 +707,12 @@ export default function StartProjectPage() {
                   Quotation generated
                 </h2>
                 <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#667384] dark:text-dark-400">
-                  Your PDF quotation has been downloaded. The same accepted scope and price breakdown have been sent
-                  to Emmanuel and saved in the portfolio&apos;s Admin Leads area.
+                  Your PDF quotation has been downloaded.
+                  {deliveryStatus.emailSent
+                    ? ' The accepted scope and price breakdown were also emailed to Emmanuel.'
+                    : deliveryStatus.saved
+                      ? ' The accepted scope and price breakdown were saved in Emmanuel\'s Admin Leads area. Email notification was not available, so the saved lead is the delivery fallback.'
+                      : ' The quotation was generated, but delivery status could not be confirmed.'}
                 </p>
                 <p className="mt-3 text-sm font-semibold text-[#10243E] dark:text-white">{quoteId}</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
