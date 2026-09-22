@@ -242,7 +242,7 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
     return { response: 'Ask me about a project, technology, service, or whether Emmanuel\'s experience fits your idea.' }
   }
 
-  if (includesAny(q, ['api key', 'openai_api_key', 'password', 'admin password', 'secret key', 'environment variable', 'credentials'])) {
+  if (includesAny(q, ['api key', 'openai_api_key', 'groq_api_key', 'password', 'admin password', 'secret key', 'environment variable', 'credentials'])) {
     return {
       response: 'I can explain Emmanuel\'s public portfolio and documented work, but I cannot provide passwords, API keys, private credentials or internal secrets.',
       options: ['See projects', 'View skills', 'Contact info'],
