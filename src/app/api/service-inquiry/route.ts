@@ -214,8 +214,13 @@ export async function POST(request: NextRequest) {
       const selection = normalizeProjectQuoteSelection(data.quotation.selection)
       const calculated = buildProjectQuotation(selection)
 
+      const quoteId = String(data.quotation.quoteId).trim().slice(0, 80)
+      const safeQuoteId = quoteId.replace(/[^a-zA-Z0-9_-]/g, '_')
+      const suppliedPdfPath =
+        typeof data.quotation.pdfPath === 'string' ? data.quotation.pdfPath : ''
+
       quotation = {
-        quoteId: String(data.quotation.quoteId).trim().slice(0, 80),
+        quoteId,
         currency: 'ZMW',
         lineItems: calculated.lineItems,
         knownTotal: calculated.knownTotal,
@@ -224,9 +229,9 @@ export async function POST(request: NextRequest) {
         hasCustomPricing: calculated.hasCustomPricing,
         selection,
         pdfPath:
-          typeof data.quotation.pdfPath === 'string' &&
-          data.quotation.pdfPath.startsWith('data/quotations/')
-            ? data.quotation.pdfPath
+          suppliedPdfPath.startsWith('data/quotations/') &&
+          suppliedPdfPath.includes(safeQuoteId)
+            ? suppliedPdfPath
             : undefined,
         clientCompany:
           typeof data.quotation.clientCompany === 'string'
