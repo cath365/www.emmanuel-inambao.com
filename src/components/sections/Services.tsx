@@ -38,7 +38,7 @@ export default function Services() {
 
   return (
     <section id="services" className="py-20 bg-[#FCFBF7] dark:bg-dark-950 border-y border-[#E1DBD1] dark:border-dark-800/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+      <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
