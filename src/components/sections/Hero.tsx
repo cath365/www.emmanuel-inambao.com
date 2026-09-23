@@ -30,28 +30,16 @@ export default function Hero() {
   return (
     <section id="hero" className="relative bg-[#F7F5EF] dark:bg-dark-950" aria-label="Introduction">
       {/* Cover Banner - LinkedIn style */}
-      <div className="relative w-full h-44 sm:h-52 md:h-64 lg:h-72 overflow-hidden">
+      <div className="relative h-32 w-full overflow-hidden bg-[#DCE4E9] sm:h-40 md:h-48 lg:h-56 dark:bg-dark-900">
         {profile.coverImage ? (
-          <>
-            {/* Fill the banner without sacrificing the original composition. */}
-            <Image
-              src={profile.coverImage}
-              alt=""
-              fill
-              aria-hidden="true"
-              className="scale-110 object-cover object-center opacity-30 blur-2xl"
-              sizes="100vw"
-            />
-            {/* Keep the complete uploaded banner visible across mobile, tablet and desktop. */}
-            <Image
-              src={profile.coverImage}
-              alt="Portfolio cover"
-              fill
-              className="object-contain object-center"
-              sizes="100vw"
-              priority
-            />
-          </>
+          <Image
+            src={profile.coverImage}
+            alt="Portfolio cover"
+            fill
+            className="object-cover object-center"
+            sizes="100vw"
+            priority
+          />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#DCE4E9] via-[#E9E6DF] to-[#F7F5EF] dark:from-slate-800 dark:via-dark-900 dark:to-dark-950">
             {/* Default cover pattern */}
@@ -65,12 +53,10 @@ export default function Hero() {
             <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#F7F5EF]/90 to-transparent dark:from-dark-950/80" />
           </div>
         )}
-        {/* Bottom gradient fade into profile section */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#F7F5EF] to-transparent dark:from-dark-950" />
       </div>
 
-      {/* Profile Card - overlapping the cover */}
-      <div className="relative section-container -mt-16 sm:-mt-20 z-10">
+      {/* Profile Card - overlapping the cover like a LinkedIn profile */}
+      <div className="relative section-container -mt-12 sm:-mt-16 z-10">
         <div className="bg-[#FCFBF7]/96 dark:bg-dark-900/95 backdrop-blur-md border border-[#D9D2C4] dark:border-dark-700/80 rounded-sm p-4 sm:p-6 md:p-8 shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:shadow-xl dark:shadow-black/10">
           {/* Top row: Profile photo + name + status */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
