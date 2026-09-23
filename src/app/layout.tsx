@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+// Production deployment refresh: portfolio + AI quotation release
 import { Inter, Noto_Sans_Arabic, Noto_Sans_SC } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
