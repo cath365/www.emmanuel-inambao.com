@@ -184,44 +184,47 @@ export default function HireClient() {
     <main className="min-h-screen bg-dark-950 pb-20 pt-24">
       <div className="section-container max-w-7xl">
         <section className="overflow-hidden rounded-3xl border border-dark-800 bg-dark-900/65">
-          <div className="grid gap-0 lg:grid-cols-[0.72fr_1.28fr]">
-            <div className="relative min-h-[340px] border-b border-dark-800 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950 lg:min-h-[560px] lg:border-b-0 lg:border-r">
-              {profile.image ? (
-                <>
-                  {/* Soft background fill keeps the hero visually full on every screen size. */}
-                  <Image
-                    src={profile.image}
-                    alt=""
-                    fill
-                    aria-hidden="true"
-                    className="scale-110 object-cover object-center opacity-30 blur-2xl"
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                  />
-                  {/* Foreground image is never cropped: the complete uploaded photo remains visible. */}
-                  <Image
-                    src={profile.image}
-                    alt={profile.name}
-                    fill
-                    priority
-                    className="object-contain object-center"
-                    sizes="(max-width: 1024px) 100vw, 40vw"
-                  />
-                </>
+          <div className="flex flex-col">
+            {/* LinkedIn-style cover banner shared with the main portfolio profile. */}
+            <div className="relative h-36 w-full overflow-hidden border-b border-dark-800 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950 sm:h-44 md:h-52 lg:h-60">
+              {profile.coverImage || profile.image ? (
+                <Image
+                  src={profile.coverImage || profile.image}
+                  alt={profile.coverImage ? "Portfolio cover" : profile.name}
+                  fill
+                  priority
+                  className="object-cover object-center"
+                  sizes="100vw"
+                />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-7xl font-bold text-dark-700">
                   E
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/90 via-dark-950/5 to-transparent pointer-events-none" />
-              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
-                <div className="inline-flex items-center gap-2 rounded-full border border-green-400/25 bg-green-500/10 px-3 py-1.5 text-xs font-semibold text-green-300 backdrop-blur">
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/60 via-transparent to-dark-950/10 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-green-400/25 bg-dark-950/55 px-3 py-1.5 text-xs font-semibold text-green-300 backdrop-blur-md">
                   <span className="h-2 w-2 rounded-full bg-green-400" />
                   Open to professional opportunities
                 </div>
               </div>
             </div>
 
-            <div className="p-6 sm:p-10 lg:p-12">
+            <div className="relative p-6 sm:p-10 lg:p-12">
+              {profile.image && (
+                <div className="-mt-16 mb-5 sm:-mt-20">
+                  <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-dark-900 bg-dark-800 shadow-xl sm:h-32 sm:w-32">
+                    <Image
+                      src={profile.image}
+                      alt={profile.name}
+                      fill
+                      priority
+                      className="object-cover object-center"
+                      sizes="128px"
+                    />
+                  </div>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">
                   Embedded Systems
