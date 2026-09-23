@@ -230,7 +230,7 @@ export const defaultProjects: Project[] = [
     problemSolved: 'Public civic information can be fragmented across different sources and difficult to navigate on mobile devices. The platform needed a clear structure for discovering candidates, constituencies, election information, civic guides and related public records.',
     systemLogic: 'The platform organizes public information into candidate, constituency, election, manifesto, civic-education and development-tracking experiences. Search and mobile-first navigation help visitors move between published records, while editorial workflows support structured content presentation and source/context fields.',
     outcome: 'A deployed responsive civic-information website that turns a large set of public records and civic content into a structured, searchable user experience.',
-    featured: false,
+    featured: true,
     role: 'Web Platform Developer',
     status: 'Production / Live',
     architecture: ['Public homepage & search', 'Candidate discovery', 'Constituency navigation', 'Election & manifesto pages', 'Civic education content', 'Editorial/admin content workflows'],
