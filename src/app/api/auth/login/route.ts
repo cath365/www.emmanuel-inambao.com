@@ -41,6 +41,14 @@ function recordAttempt(ip: string, success: boolean): void {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!AUTH_CONFIG.adminEmail || !AUTH_CONFIG.adminPassword || !AUTH_CONFIG.sessionSecret) {
+      console.error('Admin authentication is not fully configured.')
+      return NextResponse.json(
+        { error: 'Admin login is not configured on this deployment.' },
+        { status: 503 }
+      )
+    }
+
     const ip = getClientIP(request)
     
     // Check rate limiting
