@@ -186,7 +186,7 @@ export default function HireClient() {
         <section className="overflow-hidden rounded-3xl border border-dark-800 bg-dark-900/65">
           <div className="flex flex-col">
             {/* LinkedIn-style cover banner shared with the main portfolio profile. */}
-            <div className="relative h-36 w-full overflow-hidden border-b border-dark-800 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950 sm:h-44 md:h-52 lg:h-60">
+            <div className="relative aspect-[4/1] w-full overflow-hidden border-b border-dark-800 bg-gradient-to-br from-primary-950 via-dark-900 to-dark-950">
               {profile.coverImage || profile.image ? (
                 <Image
                   src={profile.coverImage || profile.image}
