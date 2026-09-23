@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowUpRight, ExternalLink } from 'lucide-react'
+import { ArrowUpRight, ExternalLink, Globe } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
 
 export default function ProjectsDirectory() {
@@ -31,9 +31,14 @@ export default function ProjectsDirectory() {
               <Link href={'/projects/' + project.id} className="text-sm font-semibold text-primary-400 hover:text-primary-300">
                 Engineering details →
               </Link>
-              {project.liveUrl && (
+              {project.websiteUrl && (
+                <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-semibold text-green-300 hover:text-green-200">
+                  Visit Website <Globe className="h-3.5 w-3.5" />
+                </a>
+              )}
+              {project.liveUrl && project.liveUrl !== project.websiteUrl && (
                 <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-dark-300 hover:text-white">
-                  Live <ExternalLink className="h-3.5 w-3.5" />
+                  Live system <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}
             </div>
