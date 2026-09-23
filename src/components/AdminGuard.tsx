@@ -20,5 +20,6 @@ export default function AdminGuard({ children }: { children: ReactNode }) {
   }, [isLoading, isAuthenticated, pathname, router])
 
   if (isLoading) return null
+  if (!isAuthenticated && pathname !== '/admin/login') return null
   return <>{children}</>
 }
