@@ -45,6 +45,7 @@ type Step =
 interface ClientDetails {
   name: string
   email: string
+  phone: string
   company: string
 }
 
@@ -65,7 +66,16 @@ const DEFAULT_SELECTION: ProjectQuoteSelection = {
 const DEFAULT_CLIENT: ClientDetails = {
   name: '',
   email: '',
+  phone: '',
   company: '',
+}
+
+function hasValidClientContact(client: ClientDetails) {
+  const email = client.email.trim()
+  const phoneDigits = client.phone.replace(/\D/g, '')
+  const validEmail = !email || /^\S+@\S+\.\S+$/.test(email)
+  const hasContact = Boolean(email) || phoneDigits.length >= 7
+  return Boolean(client.name.trim()) && validEmail && hasContact
 }
 
 const timelineLabels: Record<ProjectTimeline, string> = {
@@ -195,7 +205,7 @@ export default function StartProjectPage() {
       return
     }
     if (step === 'contact') {
-      if (!client.name.trim() || !/^\S+@\S+\.\S+$/.test(client.email)) return
+      if (!hasValidClientContact(client)) return
       setStep('review')
       void askAi(
         'Explain this quotation to the client, explain why each selected item is charged, show the 35% upfront calculation, and encourage a sensible next step without changing any fixed price.'
@@ -250,7 +260,8 @@ export default function StartProjectPage() {
       `Quotation ID: ${id}`,
       `Client: ${client.name}`,
       `Company: ${client.company || 'Not specified'}`,
-      `Email: ${client.email}`,
+      `Email: ${client.email || 'Not provided'}`,
+      `WhatsApp: ${client.phone || 'Not provided'}`,
       '',
       quotationSummary(selection, quotation),
       '',
@@ -275,6 +286,7 @@ export default function StartProjectPage() {
           id: `quote-${id}`,
           name: client.name,
           email: client.email,
+          phone: client.phone,
           service: 'Accepted AI Project Quotation',
           details: buildLeadDetails(id),
           submittedAt: new Date().toISOString(),
@@ -578,24 +590,38 @@ export default function StartProjectPage() {
                     value={client.name}
                     onChange={e => setClient(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Full name *"
+                    autoComplete="name"
                     className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
                   />
+                  <input
+                    value={client.company}
+                    onChange={e => setClient(prev => ({ ...prev, company: e.target.value }))}
+                    placeholder="Company / organization (optional)"
+                    autoComplete="organization"
+                    className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
                   <input
                     type="email"
                     value={client.email}
                     onChange={e => setClient(prev => ({ ...prev, email: e.target.value }))}
-                    placeholder="Email address *"
+                    placeholder="Email address"
+                    autoComplete="email"
+                    className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                  />
+                  <input
+                    type="tel"
+                    value={client.phone}
+                    onChange={e => setClient(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="WhatsApp number e.g. +260..."
+                    autoComplete="tel"
+                    inputMode="tel"
                     className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
                   />
                 </div>
-                <input
-                  value={client.company}
-                  onChange={e => setClient(prev => ({ ...prev, company: e.target.value }))}
-                  placeholder="Company / organization (optional)"
-                  className="rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
-                />
-                <p className="text-sm text-[#697483] dark:text-dark-400">
-                  The accepted quotation will be sent to Emmanuel&apos;s lead inbox together with these contact details.
+                <p className="text-sm leading-6 text-[#697483] dark:text-dark-400">
+                  Add at least one contact method: email or WhatsApp. The accepted quotation, scope and contact details are saved for Emmanuel so he can follow up directly.
                 </p>
               </div>
             )}
@@ -742,7 +768,7 @@ export default function StartProjectPage() {
                   disabled={
                     (step === 'deliverables' && !anyDeliverable) ||
                     (step === 'description' && !selection.projectDescription.trim()) ||
-                    (step === 'contact' && (!client.name.trim() || !/^\S+@\S+\.\S+$/.test(client.email)))
+                    (step === 'contact' && !hasValidClientContact(client))
                   }
                   className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
                 >
