@@ -236,6 +236,7 @@ export const defaultProjects: Project[] = [
     architecture: ['Public homepage & search', 'Candidate discovery', 'Constituency navigation', 'Election & manifesto pages', 'Civic education content', 'Editorial/admin content workflows'],
     highlights: ['Mobile-first civic information layout', 'Candidate and constituency discovery', 'Election and manifesto content sections', 'Searchable published records', 'Civic education and development-tracker sections', 'Responsive design across public pages'],
     liveUrl: 'https://constituency226.org/',
+    websiteUrl: 'https://constituency226.org/',
     media: [
       {
         src: '/images/projects/constituency226-hero.webp',
