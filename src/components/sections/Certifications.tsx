@@ -14,7 +14,7 @@ export default function Certifications() {
 
   return (
     <section id="certifications" className="py-20 bg-[#FCFBF7] dark:bg-dark-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+      <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
