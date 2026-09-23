@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Github, CheckCircle2, Network, Wrench, Globe } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
 import EngineeringProjectDeepDive from '@/components/projects/EngineeringProjectDeepDive'
 import { engineeringProjectDetails } from '@/lib/project-engineering-details'
@@ -42,7 +42,12 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           </div>
 
           <div className="flex flex-wrap gap-3 lg:justify-end">
-            {project.liveUrl && (
+            {project.websiteUrl && (
+              <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                <Globe className="h-4 w-4" /> Visit Website
+              </a>
+            )}
+            {project.liveUrl && project.liveUrl !== project.websiteUrl && (
               <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
                 Live system <ExternalLink className="h-4 w-4" />
               </a>
