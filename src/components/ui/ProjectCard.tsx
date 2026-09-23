@@ -112,9 +112,9 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
             <ChevronRight className="h-4 w-4" />
           </Link>
 
-          {project.liveUrl && (
+          {project.liveUrl && project.liveUrl !== project.websiteUrl && (
             <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-[#526E8A] hover:text-[#10243E] dark:text-primary-300 dark:hover:text-primary-200">
-              <ExternalLink className="h-4 w-4" /> Live
+              <ExternalLink className="h-4 w-4" /> Live system
             </a>
           )}
           {project.githubUrl && (
@@ -123,8 +123,8 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
             </a>
           )}
           {project.websiteUrl && (
-            <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-green-300 hover:text-green-200">
-              <Globe className="h-4 w-4" /> Website
+            <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-green-300 hover:text-green-200">
+              <Globe className="h-4 w-4" /> Visit Website
             </a>
           )}
           {project.appStoreUrl && <a href={project.appStoreUrl} target="_blank" rel="noopener noreferrer" aria-label="App Store"><Smartphone className="h-4 w-4" /></a>}
