@@ -211,20 +211,6 @@ export default function HireClient() {
             </div>
 
             <div className="relative p-6 sm:p-10 lg:p-12">
-              {profile.image && (
-                <div className="-mt-16 mb-5 sm:-mt-20">
-                  <div className="relative h-24 w-24 overflow-hidden rounded-full border-4 border-dark-900 bg-dark-800 shadow-xl sm:h-32 sm:w-32">
-                    <Image
-                      src={profile.image}
-                      alt={profile.name}
-                      fill
-                      priority
-                      className="object-cover object-center"
-                      sizes="128px"
-                    />
-                  </div>
-                </div>
-              )}
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">
                   Embedded Systems
