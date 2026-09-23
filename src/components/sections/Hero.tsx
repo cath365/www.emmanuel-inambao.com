@@ -42,7 +42,7 @@ export default function Hero() {
               className="scale-110 object-cover object-center opacity-30 blur-2xl"
               sizes="100vw"
             />
-            {/* Keep the complete uploaded banner visible instead of cropping it. */}
+            {/* Keep the complete uploaded banner visible across mobile, tablet and desktop. */}
             <Image
               src={profile.coverImage}
               alt="Portfolio cover"
