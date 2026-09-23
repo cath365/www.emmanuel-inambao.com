@@ -30,13 +30,14 @@ export default function Hero() {
   return (
     <section id="hero" className="relative bg-[#F7F5EF] dark:bg-dark-950" aria-label="Introduction">
       {/* Cover Banner - LinkedIn style */}
-      <div className="relative aspect-[4/1] w-full overflow-hidden bg-[#DCE4E9] dark:bg-dark-900">
+      <div className="relative aspect-[3/1] w-full overflow-hidden bg-[#DCE4E9] sm:aspect-[7/2] lg:aspect-[4/1] dark:bg-dark-900">
         {profile.coverImage ? (
           <Image
             src={profile.coverImage}
             alt="Portfolio cover"
             fill
-            className="object-cover object-center"
+            className="object-cover"
+            style={{ objectPosition: 'center 42%' }}
             sizes="100vw"
             priority
           />
