@@ -13,8 +13,15 @@ function blobPath(key: string) {
 
 async function readSection(key: string) {
   try {
-    const { blobs } = await list({ prefix: blobPath(key) })
+    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    if (!token) return null
+
+    const { blobs } = await list({
+      prefix: blobPath(key),
+      token,
+    })
     if (blobs.length === 0) return null
+
     const url = new URL(blobs[0].url)
     url.searchParams.set('v', String(Date.now()))
     const res = await fetch(url, {
@@ -22,21 +29,29 @@ async function readSection(key: string) {
     })
     if (!res.ok) return null
     return await res.json()
-  } catch {
+  } catch (error) {
+    console.error('Portfolio data read failed:', error)
     return null
   }
 }
 
 async function writeSection(key: string, data: unknown) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  if (!token) {
+    throw new Error(
+      'Portfolio publishing is not configured. Add BLOB_READ_WRITE_TOKEN to the Production environment in Vercel, then redeploy.'
+    )
+  }
+
   const payload = JSON.stringify(data)
   const blob = await put(blobPath(key), payload, {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
+    token,
   })
 
-  // Verify the exact blob we just wrote before reporting success.
   const verifyUrl = new URL(blob.url)
   verifyUrl.searchParams.set('v', String(Date.now()))
   const verification = await fetch(verifyUrl, { cache: 'no-store' })
