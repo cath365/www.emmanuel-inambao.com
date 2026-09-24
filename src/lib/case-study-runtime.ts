@@ -7,22 +7,17 @@ const DYNAMIC_CASE_STUDIES_PATH = 'data/portfolio/caseStudies.json'
 
 async function readDynamicCaseStudies(): Promise<CaseStudy[]> {
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
-    if (!token) {
-      console.error('Case-study storage is unavailable: BLOB_READ_WRITE_TOKEN is missing.')
-      return []
-    }
-
     const { blobs } = await list({
       prefix: DYNAMIC_CASE_STUDIES_PATH,
-      token,
     })
 
     if (blobs.length === 0) return []
 
-    // This project uses a public Blob store, so public portfolio JSON can
-    // be read directly without an Authorization header.
-    const response = await fetch(blobs[0].url, {
+    const url = new URL(blobs[0].url)
+    url.searchParams.set('v', String(Date.now()))
+
+    // Public portfolio JSON is read directly from the connected public Blob store.
+    const response = await fetch(url, {
       cache: 'no-store',
     })
 
