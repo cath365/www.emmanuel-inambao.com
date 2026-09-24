@@ -1,33 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
-import { defaultProjects, mergeWithCurrentCatalog, type Project } from '@/lib/project-catalog'
+import { type Project } from '@/lib/project-catalog'
 import type { CaseStudy } from '@/lib/case-studies'
 import { createGroqCompletion } from '@/lib/groq'
 
 export const runtime = 'nodejs'
-
-const PROJECTS_PATH = 'data/portfolio/projects.json'
-
-async function readProjects(): Promise<Project[]> {
-  try {
-    const { blobs } = await list({ prefix: PROJECTS_PATH })
-    if (blobs.length === 0) return defaultProjects
-
-    const response = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-      cache: 'no-store',
-    })
-
-    if (!response.ok) return defaultProjects
-    const payload = await response.json()
-    return Array.isArray(payload) && payload.length > 0
-      ? mergeWithCurrentCatalog(payload)
-      : defaultProjects
-  } catch {
-    return defaultProjects
-  }
-}
 
 function sentences(value?: string) {
   if (!value) return []
@@ -179,17 +156,27 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const projectId = typeof body?.projectId === 'string' ? body.projectId.trim() : ''
+    const incomingProject = body?.project
 
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required.' }, { status: 400 })
     }
 
-    const projects = await readProjects()
-    const project = projects.find(item => item.id === projectId)
-
-    if (!project) {
-      return NextResponse.json({ error: 'Project not found.' }, { status: 404 })
+    if (
+      !incomingProject ||
+      typeof incomingProject !== 'object' ||
+      typeof incomingProject.id !== 'string' ||
+      incomingProject.id !== projectId ||
+      typeof incomingProject.title !== 'string' ||
+      !Array.isArray(incomingProject.techStack)
+    ) {
+      return NextResponse.json(
+        { error: 'The selected project data was not supplied correctly.' },
+        { status: 400 }
+      )
     }
+
+    const project = incomingProject as Project
 
     const fallback = localDraft(project)
     let generated: CaseStudy | null = null
