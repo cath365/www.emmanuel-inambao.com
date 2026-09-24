@@ -259,8 +259,21 @@ export const legacyProjectIds = new Set([
 export function mergeWithCurrentCatalog(data: unknown): Project[] {
   if (!Array.isArray(data)) return defaultProjects
 
-  const incoming = data.filter((item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item))
-  const customProjects = incoming.filter(project => !legacyProjectIds.has(project.id) && !defaultProjects.some(current => current.id === project.id))
+  const incoming = data.filter(
+    (item): item is Project => Boolean(item && typeof item === 'object' && 'id' in item)
+  )
 
-  return [...defaultProjects, ...customProjects]
+  const incomingById = new Map(incoming.map(project => [project.id, project]))
+
+  const mergedCatalog = defaultProjects.map(current => {
+    const saved = incomingById.get(current.id)
+    return saved ? { ...current, ...saved } : current
+  })
+
+  const catalogIds = new Set(defaultProjects.map(project => project.id))
+  const customProjects = incoming.filter(
+    project => !catalogIds.has(project.id) && !legacyProjectIds.has(project.id)
+  )
+
+  return [...mergedCatalog, ...customProjects]
 }
