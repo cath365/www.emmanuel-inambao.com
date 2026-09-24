@@ -2,15 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
 import { put, list } from '@vercel/blob'
 
+function getPrivateBlobToken() {
+  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
+  if (!token) {
+    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
+  }
+  return token
+}
+
 const BLOB_PATH = 'data/newsletter-subscribers.json'
 
 async function readSubscribers(): Promise<string[]> {
   try {
-    const { blobs } = await list({ prefix: BLOB_PATH })
+    const { blobs } = await list({ prefix: BLOB_PATH, token: getPrivateBlobToken() })
     if (blobs.length === 0) return []
 
     const response = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
       cache: 'no-store',
     })
 
@@ -26,6 +34,7 @@ async function readSubscribers(): Promise<string[]> {
 async function writeSubscribers(subscribers: string[]) {
   await put(BLOB_PATH, JSON.stringify(subscribers), {
     access: 'private',
+    token: getPrivateBlobToken(),
     addRandomSuffix: false,
     allowOverwrite: true,
   })
