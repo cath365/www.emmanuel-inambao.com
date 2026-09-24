@@ -51,7 +51,8 @@ All secrets are server-side only. Never prefix with `NEXT_PUBLIC_` unless you wa
 | `ADMIN_EMAIL` | prod | Admin login email |
 | `ADMIN_PASSWORD` | prod | Admin login password |
 | `SESSION_SECRET` | prod | HMAC key for signing session cookies. Generate with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
-| `BLOB_READ_WRITE_TOKEN` | prod | Vercel Blob (bookings, leads, analytics, portfolio data) |
+| `BLOB_READ_WRITE_TOKEN` | prod | Public Vercel Blob (profile, projects, case studies, public portfolio data) |
+| `PRIVATE_BLOB_READ_WRITE_TOKEN` | prod | Private Vercel Blob (contact messages, newsletter, bookings, leads, analytics) |
 | `NEXT_PUBLIC_SITE_URL` | prod | Absolute URL for sitemap, OG, canonical tags |
 | `WEB3FORMS_ACCESS_KEY` | one of | Primary contact-form backend — https://web3forms.com |
 | `FORMSPREE_ID` | one of | Fallback contact-form backend — https://formspree.io |
@@ -98,7 +99,7 @@ The UI gracefully falls back (gradient cover, monogram avatar, hidden CV button)
 1. Push to GitHub
 2. Import into Vercel, connect the repo
 3. Settings → Environment Variables → add all vars from the table above for **Production** + **Preview**
-4. Settings → Storage → create a Blob store; Vercel auto-injects `BLOB_READ_WRITE_TOKEN`
+4. Settings → Storage → connect a public Blob store for portfolio data and a private Blob store for visitor/client data
 5. Deploy — first build takes ~2 min
 
 **Deploy checklist:**
