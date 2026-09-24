@@ -27,10 +27,16 @@ async function readSection(key: string) {
 }
 
 async function writeSection(key: string, data: unknown) {
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+  if (!token) {
+    throw new Error('BLOB_READ_WRITE_TOKEN is not configured for this deployment environment.')
+  }
+
   await put(blobPath(key), JSON.stringify(data), {
     access: 'private',
     addRandomSuffix: false,
     allowOverwrite: true,
+    token,
   })
 }
 
@@ -66,6 +72,8 @@ export async function POST(request: NextRequest) {
       }
     )
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 })
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Portfolio data save failed:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
