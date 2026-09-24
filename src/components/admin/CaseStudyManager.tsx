@@ -131,11 +131,14 @@ export default function CaseStudyManager() {
       const response = await fetch('/api/portfolio-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        cache: 'no-store',
         body: JSON.stringify({ key: 'caseStudies', data: next }),
       })
 
-      if (!response.ok) {
-        setMessage('The case study could not be saved.')
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || payload?.success !== true) {
+        setMessage(payload?.error || 'The case study could not be saved.')
         return
       }
 
@@ -157,11 +160,14 @@ export default function CaseStudyManager() {
       const response = await fetch('/api/portfolio-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        cache: 'no-store',
         body: JSON.stringify({ key: 'caseStudies', data: next }),
       })
 
-      if (!response.ok) {
-        setMessage('Could not remove the case study.')
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || payload?.success !== true) {
+        setMessage(payload?.error || 'Could not remove the case study.')
         return
       }
 
