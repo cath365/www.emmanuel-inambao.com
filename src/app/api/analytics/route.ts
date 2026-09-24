@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
+function getPrivateBlobToken() {
+  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
+  if (!token) {
+    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
+  }
+  return token
+}
+
 export interface Visit {
   id: string
   timestamp: string
@@ -24,10 +32,10 @@ function blobPath(day: string) {
 
 async function readDay(day: string): Promise<Visit[]> {
   try {
-    const { blobs } = await list({ prefix: blobPath(day) })
+    const { blobs } = await list({ prefix: blobPath(day), token: getPrivateBlobToken() })
     if (blobs.length === 0) return []
     const res = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
       cache: 'no-store',
     })
     if (!res.ok) return []
@@ -40,6 +48,7 @@ async function readDay(day: string): Promise<Visit[]> {
 async function writeDay(day: string, visits: Visit[]) {
   await put(blobPath(day), JSON.stringify(visits), {
     access: 'private',
+    token: getPrivateBlobToken(),
     addRandomSuffix: false,
     allowOverwrite: true,
   })
