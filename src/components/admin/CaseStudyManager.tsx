@@ -85,7 +85,12 @@ export default function CaseStudyManager() {
       const response = await fetch('/api/ai/case-study', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: selectedProjectId }),
+        credentials: 'include',
+        cache: 'no-store',
+        body: JSON.stringify({
+          projectId: selectedProjectId,
+          project: selectedProject,
+        }),
       })
       const payload = await response.json()
 
