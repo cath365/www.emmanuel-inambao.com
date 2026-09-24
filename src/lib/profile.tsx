@@ -83,6 +83,30 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false))
   }, [])
 
+  useEffect(() => {
+    const refreshProfile = () => {
+      fetch('/api/portfolio-data?key=profile', { cache: 'no-store' })
+        .then(response => response.json())
+        .then(data => {
+          if (data && !data.error) {
+            setProfile({ ...defaultProfile, ...data })
+          }
+        })
+        .catch(() => {})
+    }
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== 'portfolio_last_published_change' || !event.newValue) return
+      try {
+        const change = JSON.parse(event.newValue) as { key?: string }
+        if (change.key === 'profile') refreshProfile()
+      } catch {}
+    }
+
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   // Cache to localStorage for fast subsequent loads
   useEffect(() => {
     if (!isLoading) {
