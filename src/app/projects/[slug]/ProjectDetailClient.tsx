@@ -67,6 +67,7 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
               alt={project.media?.[0]?.alt || project.title}
               fill
               priority
+              unoptimized
               className={project.media?.[0]?.fit === 'contain' ? 'object-contain' : 'object-cover'}
               sizes="(max-width: 1200px) 100vw, 1200px"
             />
