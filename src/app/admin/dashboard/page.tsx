@@ -1018,7 +1018,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
-        setFormData({ ...formData, image: data.url })
+        const updated = { ...formData, image: data.url }
+        setFormData(updated)
+        onSave(updated)
       } else {
         alert(data.error || 'Upload failed')
       }
@@ -1037,7 +1039,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     setUploadingCover(true)
     const form = new FormData()
     form.append('file', file)
-    form.append('type', 'profile')
+    form.append('type', 'cover')
 
     try {
       const res = await fetch('/api/upload', {
@@ -1047,7 +1049,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
-        setFormData({ ...formData, coverImage: data.url })
+        const updated = { ...formData, coverImage: data.url }
+        setFormData(updated)
+        onSave(updated)
       } else {
         alert(data.error || 'Cover upload failed')
       }
@@ -1076,7 +1080,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
-        setFormData({ ...formData, cv: data.url })
+        const updated = { ...formData, cv: data.url }
+        setFormData(updated)
+        onSave(updated)
       } else {
         alert(data.error || 'CV upload failed')
       }
