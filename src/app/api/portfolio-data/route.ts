@@ -16,7 +16,6 @@ async function readSection(key: string) {
     const { blobs } = await list({ prefix: blobPath(key) })
     if (blobs.length === 0) return null
     const res = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
       cache: 'no-store',
     })
     if (!res.ok) return null
@@ -33,7 +32,7 @@ async function writeSection(key: string, data: unknown) {
   }
 
   await put(blobPath(key), JSON.stringify(data), {
-    access: 'private',
+    access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
     token,
