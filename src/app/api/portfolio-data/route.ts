@@ -15,7 +15,9 @@ async function readSection(key: string) {
   try {
     const { blobs } = await list({ prefix: blobPath(key) })
     if (blobs.length === 0) return null
-    const res = await fetch(blobs[0].url, {
+    const url = new URL(blobs[0].url)
+    url.searchParams.set('v', String(Date.now()))
+    const res = await fetch(url, {
       cache: 'no-store',
     })
     if (!res.ok) return null
@@ -26,17 +28,27 @@ async function readSection(key: string) {
 }
 
 async function writeSection(key: string, data: unknown) {
-  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
-  if (!token) {
-    throw new Error('BLOB_READ_WRITE_TOKEN is not configured for this deployment environment.')
-  }
-
-  await put(blobPath(key), JSON.stringify(data), {
+  const payload = JSON.stringify(data)
+  const blob = await put(blobPath(key), payload, {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
-    token,
+    contentType: 'application/json',
   })
+
+  // Verify the exact blob we just wrote before reporting success.
+  const verifyUrl = new URL(blob.url)
+  verifyUrl.searchParams.set('v', String(Date.now()))
+  const verification = await fetch(verifyUrl, { cache: 'no-store' })
+
+  if (!verification.ok) {
+    throw new Error(`Blob write verification failed with status ${verification.status}.`)
+  }
+
+  const persisted = await verification.text()
+  if (persisted !== payload) {
+    throw new Error('Blob write verification returned different data.')
+  }
 }
 
 export async function GET(request: NextRequest) {
