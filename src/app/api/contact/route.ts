@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put, list } from '@vercel/blob'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
+function getPrivateBlobToken() {
+  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
+  if (!token) {
+    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
+  }
+  return token
+}
+
 export const runtime = 'nodejs'
 
 const LEADS_BLOB_PATH = 'data/leads.json'
@@ -18,11 +26,11 @@ interface StoredLead {
 
 async function readLeads(): Promise<StoredLead[]> {
   try {
-    const { blobs } = await list({ prefix: LEADS_BLOB_PATH })
+    const { blobs } = await list({ prefix: LEADS_BLOB_PATH, token: getPrivateBlobToken() })
     if (blobs.length === 0) return []
 
     const response = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
       cache: 'no-store',
     })
 
@@ -38,6 +46,7 @@ async function saveLead(lead: StoredLead) {
   const existing = await readLeads()
   await put(LEADS_BLOB_PATH, JSON.stringify([lead, ...existing]), {
     access: 'private',
+    token: getPrivateBlobToken(),
     addRandomSuffix: false,
     allowOverwrite: true,
   })
