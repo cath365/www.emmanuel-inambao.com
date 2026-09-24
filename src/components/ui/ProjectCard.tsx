@@ -34,6 +34,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                 src={project.image}
                 alt={project.title}
                 fill
+                unoptimized
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
