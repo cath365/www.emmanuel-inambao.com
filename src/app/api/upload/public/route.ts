@@ -1,6 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
 
+function configureCloudinary(): boolean {
+  const cloudinaryUrl = process.env.CLOUDINARY_URL?.trim()
+
+  if (cloudinaryUrl) {
+    try {
+      const parsed = new URL(cloudinaryUrl)
+      const cloudName = parsed.hostname
+      const apiKey = decodeURIComponent(parsed.username)
+      const apiSecret = decodeURIComponent(parsed.password)
+
+      if (!cloudName || !apiKey || !apiSecret) return false
+
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+      })
+      return true
+    } catch (error) {
+      console.error('Invalid CLOUDINARY_URL configuration:', error)
+      return false
+    }
+  }
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim()
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim()
+  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim()
+
+  if (!cloudName || !apiKey || !apiSecret) return false
+
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  })
+  return true
+}
+
 // Rate limiting for public uploads (stricter)
 const uploadAttempts = new Map<string, { count: number; resetTime: number }>()
 const MAX_UPLOADS_PER_HOUR = 5
@@ -39,19 +79,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Cloudinary is configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    // Accept either the standard CLOUDINARY_URL or separate Cloudinary credentials.
+    if (!configureCloudinary()) {
       return NextResponse.json(
         { error: 'Upload service not configured' },
-        { status: 500 }
+        { status: 503 }
       )
     }
-
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME?.trim(),
-      api_key: process.env.CLOUDINARY_API_KEY?.trim(),
-      api_secret: process.env.CLOUDINARY_API_SECRET?.trim(),
-    })
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
