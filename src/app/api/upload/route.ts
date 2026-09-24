@@ -1,5 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+
+function configureCloudinary(): boolean {
+  const cloudinaryUrl = process.env.CLOUDINARY_URL?.trim()
+
+  if (cloudinaryUrl) {
+    try {
+      const parsed = new URL(cloudinaryUrl)
+      const cloudName = parsed.hostname
+      const apiKey = decodeURIComponent(parsed.username)
+      const apiSecret = decodeURIComponent(parsed.password)
+
+      if (!cloudName || !apiKey || !apiSecret) return false
+
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+      })
+      return true
+    } catch (error) {
+      console.error('Invalid CLOUDINARY_URL configuration:', error)
+      return false
+    }
+  }
+
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim()
+  const apiKey = process.env.CLOUDINARY_API_KEY?.trim()
+  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim()
+
+  if (!cloudName || !apiKey || !apiSecret) return false
+
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  })
+  return true
+}
 import { isAuthenticated } from '@/lib/auth-helpers'
 
 // Simple rate limiting for uploads
@@ -47,22 +87,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if Cloudinary is configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.error('Cloudinary not configured. Missing environment variables.')
+    // Accept either the standard CLOUDINARY_URL or separate Cloudinary credentials.
+    if (!configureCloudinary()) {
+      console.error('Cloudinary not configured for this deployment.')
       return NextResponse.json(
-        { error: 'Cloudinary not configured. Please set environment variables in .env.local' },
-        { status: 500 }
+        { error: 'Cloudinary upload service is not configured for this deployment.' },
+        { status: 503 }
       )
     }
-
-    // Configure Cloudinary (inside the handler to ensure env vars are loaded)
-    // Trim values to remove any whitespace/newlines from env vars
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME?.trim(),
-      api_key: process.env.CLOUDINARY_API_KEY?.trim(),
-      api_secret: process.env.CLOUDINARY_API_SECRET?.trim(),
-    })
 
     let formData: FormData
     try {
