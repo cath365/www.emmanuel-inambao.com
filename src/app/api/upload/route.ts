@@ -245,6 +245,9 @@ export async function POST(request: NextRequest) {
     if (type === 'profile') {
       folder = 'portfolio/profile'
       publicId = 'profile-picture'
+    } else if (type === 'cover') {
+      folder = 'portfolio/profile'
+      publicId = 'cover-banner'
     } else if (type === 'cv') {
       folder = 'portfolio/cv'
       publicId = `cv-${Date.now()}`
