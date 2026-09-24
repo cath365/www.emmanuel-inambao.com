@@ -1,15 +1,10 @@
 import type { Metadata } from 'next'
 // Production deployment refresh: portfolio + AI quotation release
-import { Inter, Noto_Sans_Arabic, Noto_Sans_SC } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 import Providers from '@/components/Providers'
 import VisitorTracker from '@/components/ui/VisitorTracker'
 import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
-
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const notoArabic = Noto_Sans_Arabic({ subsets: ['arabic'], variable: '--font-arabic', weight: ['400', '500', '600', '700'] })
-const notoSC = Noto_Sans_SC({ subsets: ['latin'], variable: '--font-chinese', weight: ['400', '500', '600', '700'] })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuel-inambao-eight.vercel.app'
 
@@ -86,7 +81,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={'scroll-smooth light overflow-x-hidden ' + inter.variable + ' ' + notoArabic.variable + ' ' + notoSC.variable} suppressHydrationWarning>
+    <html lang="en" className="scroll-smooth light overflow-x-hidden" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#F7F5EF" />
@@ -94,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonSchema()) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateWebsiteSchema()) }} />
       </head>
-      <body className={inter.className + ' bg-[#F7F5EF] text-[#293442] dark:bg-dark-950 dark:text-dark-100'}>
+      <body className="bg-[#F7F5EF] font-sans text-[#293442] dark:bg-dark-950 dark:text-dark-100">
         <Providers>
           {children}
           <VisitorTracker />
