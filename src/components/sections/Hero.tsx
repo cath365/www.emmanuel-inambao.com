@@ -30,7 +30,7 @@ export default function Hero() {
   return (
     <section id="hero" className="relative bg-[#F7F5EF] dark:bg-dark-950" aria-label="Introduction">
       {/* Cover Banner - LinkedIn style */}
-      <div className="relative h-28 w-full overflow-hidden bg-[#DCE4E9] sm:h-40 md:h-44 lg:h-52 xl:h-56 dark:bg-dark-900">
+      <div className="relative h-36 w-full overflow-hidden bg-[#DCE4E9] sm:h-40 md:h-44 lg:h-52 xl:h-56 dark:bg-dark-900">
         {profile.coverImage ? (
           <Image
             src={profile.coverImage}
@@ -57,8 +57,8 @@ export default function Hero() {
       </div>
 
       {/* Profile Card - overlapping the cover like a LinkedIn profile */}
-      <div className="relative section-container -mt-8 sm:-mt-12 lg:-mt-14 z-10">
-        <div className="bg-[#FCFBF7]/96 dark:bg-dark-900/95 backdrop-blur-md border border-[#D9D2C4] dark:border-dark-700/80 rounded-sm p-4 sm:p-6 md:p-8 shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:shadow-xl dark:shadow-black/10">
+      <div className="relative section-container mt-0 sm:-mt-12 lg:-mt-14 z-10">
+        <div className="relative bg-[#FCFBF7]/96 dark:bg-dark-900/95 backdrop-blur-md border border-[#D9D2C4] dark:border-dark-700/80 rounded-sm px-5 pb-5 pt-16 sm:p-6 md:p-8 shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:shadow-xl dark:shadow-black/10">
           {/* Top row: Profile photo + name + status */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
             {/* Profile Photo */}
@@ -66,7 +66,7 @@ export default function Hero() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="flex-shrink-0 -mt-12 sm:-mt-16 self-center sm:self-start"
+              className="absolute left-5 -top-12 flex-shrink-0 sm:static sm:-mt-16 sm:self-start"
             >
               <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden border-4 border-[#FCFBF7] dark:border-dark-900 shadow-lg bg-[#E9E6DF] dark:bg-dark-800">
                 {profile.image ? (
@@ -88,9 +88,9 @@ export default function Hero() {
             </motion.div>
 
             {/* Name + Title + Status */}
-            <div className="flex-1 text-center sm:text-left pt-0 sm:pt-2">
+            <div className="flex-1 text-left pt-0 sm:pt-2">
               <motion.div initial="hidden" animate="visible" variants={itemVariants}>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-medium text-[#10243E] dark:text-white tracking-tight font-display">
+                <h1 className="text-[2rem] leading-tight sm:text-3xl md:text-4xl lg:text-5xl font-medium text-[#10243E] dark:text-white tracking-tight font-display">
                   {firstName}{' '}
                   <span className="text-[#526E8A] dark:text-primary-300">{lastName}</span>
                 </h1>
@@ -118,7 +118,7 @@ export default function Hero() {
                 initial="hidden"
                 animate="visible"
                 variants={itemVariants}
-                className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 mt-3 text-sm text-[#667384] dark:text-dark-400"
+                className="flex flex-wrap items-center justify-start gap-3 sm:gap-4 mt-3 text-sm text-[#667384] dark:text-dark-400"
               >
                 <span className="flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
