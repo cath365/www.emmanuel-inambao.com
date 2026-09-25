@@ -6,8 +6,9 @@ export default function ServiceWorkerRegistrar() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
-        .register('/sw.js')
+        .register('/sw.js', { updateViaCache: 'none' })
         .then((registration) => {
+          void registration.update()
           console.log('SW registered:', registration.scope)
         })
         .catch((error) => {
