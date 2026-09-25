@@ -25,31 +25,17 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=projects')
+    fetch('/api/portfolio-data?key=projects', { cache: 'no-store' })
       .then(response => response.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setProjects(mergeWithCurrentCatalog(data))
-          return
-        }
-
-        const stored = localStorage.getItem('portfolio_projects')
-        if (stored) {
-          try {
-            setProjects(mergeWithCurrentCatalog(JSON.parse(stored)))
-          } catch {
-            setProjects(defaultProjects)
-          }
+        } else {
+          setProjects(defaultProjects)
         }
       })
       .catch(() => {
-        const stored = localStorage.getItem('portfolio_projects')
-        if (!stored) return
-        try {
-          setProjects(mergeWithCurrentCatalog(JSON.parse(stored)))
-        } catch {
-          setProjects(defaultProjects)
-        }
+        setProjects(defaultProjects)
       })
       .finally(() => setIsLoaded(true))
   }, [])
