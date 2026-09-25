@@ -1,74 +1,60 @@
-const CACHE_NAME = 'inambao-portfolio-v1'
+const CACHE_NAME = 'inambao-portfolio-v2'
 const OFFLINE_URL = '/offline.html'
 
 const PRECACHE_URLS = [
-  '/',
-  '/offline.html',
+  OFFLINE_URL,
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
 ]
 
-// Install event - precache essential assets
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS)
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
   )
   self.skipWaiting()
 })
 
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then(cacheNames =>
+      Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
       )
-    })
+    )
   )
   self.clients.claim()
 })
 
-// Fetch event - network first, fallback to cache
-self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
+self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return
 
-  // Skip API requests and admin routes
   const url = new URL(event.request.url)
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin')) return
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Clone the response and cache it
-        if (response.status === 200) {
-          const responseClone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone)
-          })
-        }
-        return response
-      })
-      .catch(async () => {
-        // Try to return cached version
-        const cached = await caches.match(event.request)
-        if (cached) return cached
+  // Never cache dynamic portfolio data, Next.js image optimization,
+  // application bundles, or admin/API requests. Let the browser/Next.js
+  // always request the current production version.
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/_next/')
+  ) {
+    return
+  }
 
-        // For navigation requests, show offline page
-        if (event.request.mode === 'navigate') {
-          const offlinePage = await caches.match(OFFLINE_URL)
-          if (offlinePage) return offlinePage
-        }
-
-        return new Response('Offline', {
+  // For page navigation, always prefer the network and only use the
+  // dedicated offline page when the visitor is actually offline.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const offlinePage = await caches.match(OFFLINE_URL)
+        return offlinePage || new Response('Offline', {
           status: 503,
           statusText: 'Service Unavailable',
         })
       })
-  )
+    )
+  }
 })
