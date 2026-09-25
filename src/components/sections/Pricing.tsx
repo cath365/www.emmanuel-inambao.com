@@ -32,36 +32,38 @@ const DEFAULT_FORM: QuoteForm = {
 }
 
 function estimateQuote(form: QuoteForm) {
+  // Zambia-friendly starting points for early project discussions.
+  // Final pricing is still confirmed after technical scoping.
   const typeBase: Record<ProjectType, number> = {
-    'iot-prototype': 700,
-    'industrial-automation': 2500,
-    'embedded-product': 1800,
-    'web-dashboard': 900,
-    'custom': 1200,
+    'iot-prototype': 300,
+    'industrial-automation': 1100,
+    'embedded-product': 750,
+    'web-dashboard': 400,
+    'custom': 550,
   }
 
   const complexityFactor: Record<Complexity, number> = {
     basic: 0.85,
     standard: 1,
-    advanced: 1.45,
+    advanced: 1.35,
   }
 
   const timelineFactor: Record<Timeline, number> = {
     normal: 1,
-    fast: 1.2,
-    urgent: 1.45,
+    fast: 1.15,
+    urgent: 1.3,
   }
 
   let base = typeBase[form.projectType]
-  base += Math.max(0, form.hardwareUnits - 1) * 140
-  if (form.needsDashboard) base += 600
-  if (form.needsCloud) base += 500
-  base += form.integrations * 120
-  base += form.supportMonths * 80
+  base += Math.max(0, form.hardwareUnits - 1) * 80
+  if (form.needsDashboard) base += 250
+  if (form.needsCloud) base += 225
+  base += form.integrations * 75
+  base += form.supportMonths * 40
 
   const final = base * complexityFactor[form.complexity] * timelineFactor[form.timeline]
-  const min = Math.round(final * 0.85)
-  const max = Math.round(final * 1.2)
+  const min = Math.round(final * 0.9)
+  const max = Math.round(final * 1.15)
   return { min, max }
 }
 
