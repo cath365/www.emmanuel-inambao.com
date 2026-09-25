@@ -64,33 +64,17 @@ export function CertificationProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=certifications')
+    fetch('/api/portfolio-data?key=certifications', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setCertifications(data)
         } else {
-          const saved = localStorage.getItem('portfolio-certifications')
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved)
-              setCertifications(parsed.length > 0 ? parsed : defaultCertifications)
-            } catch { setCertifications(defaultCertifications) }
-          } else {
-            setCertifications(defaultCertifications)
-          }
+          setCertifications(defaultCertifications)
         }
       })
       .catch(() => {
-        const saved = localStorage.getItem('portfolio-certifications')
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved)
-            setCertifications(parsed.length > 0 ? parsed : defaultCertifications)
-          } catch { setCertifications(defaultCertifications) }
-        } else {
-          setCertifications(defaultCertifications)
-        }
+        setCertifications(defaultCertifications)
       })
       .finally(() => setIsLoaded(true))
   }, [])
