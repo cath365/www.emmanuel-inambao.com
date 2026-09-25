@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 // Production deployment refresh: portfolio + AI quotation release
 import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
@@ -7,6 +7,13 @@ import VisitorTracker from '@/components/ui/VisitorTracker'
 import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuel-inambao-eight.vercel.app'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#020617',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -84,7 +91,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth dark overflow-x-hidden" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#020617" />
         <link rel="alternate" type="application/rss+xml" title="Emmanuel Inambao Blog" href="/api/rss" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generatePersonSchema()) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateWebsiteSchema()) }} />
