@@ -40,6 +40,39 @@ async function readPortfolioSection(key: string) {
   }
 }
 
+function normalized(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9+#./ -]+/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function isPricingIntent(value: string) {
+  const q = normalized(value)
+  return /\b(price|pricing|cost|charge|charges|charged|budget|estimate|estimated|quotation|quote|fee|fees|payment|pay|upfront|deposit|amount|how much|rate|rates)\b/.test(q)
+}
+
+function pricingResponse(messages: ChatMessage[]) {
+  const history = normalized(messages.slice(-6).map(message => message.content).join(' '))
+  const hardwareContext = /\b(iot|esp32|arduino|sensor|hardware|robot|robotics|embedded|walking stick|smart stick|sim800|bluetooth|gps|ultrasonic)\b/.test(history)
+
+  return [
+    'For a new project, Emmanuel’s current pricing rules are:',
+    '',
+    '• Website — ZMW 5,000 base',
+    '• E-commerce — + ZMW 3,000',
+    '• Admin dashboard — + ZMW 2,500',
+    '• Payment integration — + ZMW 2,000',
+    '• Mobile application — ZMW 12,000 base',
+    '• Each extra software feature — + ZMW 350',
+    '• IoT / connected-device engineering — custom quotation',
+    '',
+    'The upfront payment is 35% of the known total, with 65% remaining.',
+    hardwareContext
+      ? 'Because the project being discussed involves hardware / IoT, its device-engineering portion needs technical discovery before an exact price can be confirmed.'
+      : '',
+    '',
+    'Use the AI Project Quotation flow to select the exact scope and calculate the known total.',
+  ].filter(Boolean).join('\n')
+}
+
 function sanitizeMessages(input: unknown): ChatMessage[] {
   if (!Array.isArray(input)) return []
 
@@ -173,6 +206,7 @@ CORE BEHAVIOUR
 - When discussing a prospective client's idea, explain how Emmanuel's documented skills/projects are relevant and outline a plausible technical approach. Clearly label that approach as a proposal, not something already built.
 - Ask at most 1-2 focused scoping questions when they would materially help.
 - For NEW PROJECT QUOTATIONS, use these current pricing rules instead of any legacy service price strings in PORTFOLIO DATA: Website ZMW 5,000 base; E-commerce + ZMW 3,000; Admin dashboard + ZMW 2,500; Payment integration + ZMW 2,000; Mobile application ZMW 12,000 base; every additional custom feature + ZMW 350; IoT integration custom quotation after technical discovery. The upfront payment is 35% of the known total and the remaining balance is 65%.
+- COMMERCIAL INTENT OVERRIDES PROJECT CONTEXT: if the visitor asks how much, what it costs, what Emmanuel charges, budget, estimate, quotation, fee, payment or upfront amount, answer the pricing question directly. Do not repeat a project description unless it is needed to explain why an IoT/hardware portion requires custom pricing.
 - Never invent or alter a project quotation price. If a visitor raises a budget concern, explain value and suggest removing or phasing optional scope rather than changing fixed prices. Do not promise discounts. If a visitor wants a quote, tell them to use the AI Project Quotation flow at /start-project, which asks scope questions, explains charges, calculates the 35% upfront amount and generates a downloadable quotation.
 - Do not promise a delivery date, availability, discount or other commercial commitment unless explicitly documented.
 - Prefer concise answers: usually 2-5 short paragraphs or a compact list.\n- Reply in the visitor's language when it is clear from their message.
@@ -206,6 +240,15 @@ export async function POST(request: NextRequest) {
 
     if (messages.length === 0 || messages[messages.length - 1]?.role !== 'user') {
       return NextResponse.json({ error: 'A user message is required.' }, { status: 400 })
+    }
+
+    const latestUserMessage = messages[messages.length - 1].content
+    if (isPricingIntent(latestUserMessage)) {
+      return NextResponse.json({
+        answer: pricingResponse(messages),
+        provider: 'rules',
+        model: 'fixed-pricing-engine',
+      })
     }
 
     const entries = await Promise.all(
