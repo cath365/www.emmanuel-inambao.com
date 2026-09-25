@@ -158,8 +158,11 @@ export async function POST(request: NextRequest) {
       email ? `Reply to ${email} to follow up.` : `Follow up on WhatsApp: ${phone}`,
     ].join('\n')
 
-    const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
+    const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY?.trim()
+    const FORMSPREE_ID = process.env.FORMSPREE_ID?.trim()
+    const emailProviderConfigured = Boolean(WEB3FORMS_KEY || FORMSPREE_ID)
     let emailSent = false
+    let emailProvider: 'web3forms' | 'formspree' | null = null
 
     if (WEB3FORMS_KEY) {
       try {
@@ -177,13 +180,16 @@ export async function POST(request: NextRequest) {
             message: inquiryDetails,
           }),
         })
-        if (response.ok) emailSent = true
+        if (response.ok) {
+          const result = await response.json().catch(() => null)
+          emailSent = result?.success === true || response.ok
+          if (emailSent) emailProvider = 'web3forms'
+        }
       } catch (e) {
         console.error('Web3Forms failed:', e)
       }
     }
 
-    const FORMSPREE_ID = process.env.FORMSPREE_ID
     if (FORMSPREE_ID && !emailSent) {
       try {
         const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
@@ -199,6 +205,7 @@ export async function POST(request: NextRequest) {
           }),
         })
         emailSent = response.ok
+        if (emailSent) emailProvider = 'formspree'
       } catch (e) {
         console.error('Formspree failed:', e)
       }
@@ -220,9 +227,13 @@ export async function POST(request: NextRequest) {
       success: true,
       saved,
       emailSent,
+      emailProvider,
+      emailProviderConfigured,
       message: emailSent
         ? 'Inquiry saved and email notification sent.'
-        : 'Inquiry saved to the Admin Leads area. Email notification is not configured or could not be delivered.',
+        : emailProviderConfigured
+          ? 'Inquiry saved, but the configured email provider did not confirm delivery.'
+          : 'Inquiry saved to Admin Leads. Email notifications are not configured in Production.',
     })
   } catch (error) {
     console.error('Service inquiry error:', error)
