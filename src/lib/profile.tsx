@@ -62,7 +62,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=profile')
+    fetch('/api/portfolio-data?key=profile', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (data && !data.error) {
