@@ -24,8 +24,9 @@ import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 import SkillsEditor from '@/components/admin/SkillsEditor'
 import CaseStudyManager from '@/components/admin/CaseStudyManager'
+import MarketPricingManager from '@/components/admin/MarketPricingManager'
 
-type TabType = 'projects' | 'caseStudies' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -425,6 +426,17 @@ export default function AdminDashboard() {
               AI Case Studies
             </button>
             <button
+              onClick={() => setActiveTab('marketPricing')}
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
+                activeTab === 'marketPricing'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
+              }`}
+            >
+              <BarChart2 className="w-5 h-5" />
+              Zambia Pricing
+            </button>
+            <button
               onClick={() => setActiveTab('profile')}
               className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'profile'
@@ -822,6 +834,15 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, x: -20 }}
             >
               <CaseStudyManager />
+            </motion.div>
+          ) : activeTab === 'marketPricing' ? (
+            <motion.div
+              key="marketPricing"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <MarketPricingManager />
             </motion.div>
           ) : activeTab === 'profile' ? (
             <motion.div
