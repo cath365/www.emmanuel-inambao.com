@@ -68,17 +68,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         if (data && !data.error) {
           setProfile({ ...defaultProfile, ...data })
         } else {
-          const stored = localStorage.getItem(STORAGE_KEY)
-          if (stored) {
-            try { setProfile({ ...defaultProfile, ...JSON.parse(stored) }) } catch {}
-          }
+          setProfile(defaultProfile)
         }
       })
       .catch(() => {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          try { setProfile({ ...defaultProfile, ...JSON.parse(stored) }) } catch {}
-        }
+        setProfile(defaultProfile)
       })
       .finally(() => setIsLoading(false))
   }, [])
