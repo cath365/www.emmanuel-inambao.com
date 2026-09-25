@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { list } from '@vercel/blob'
 import { createGroqCompletion } from '@/lib/groq'
+import { marketRangeSummary, resolveMarketPricing } from '@/lib/market-pricing'
 import {
   buildProjectQuotation,
   fallbackQuoteExplanation,
@@ -18,6 +20,28 @@ function sanitizeQuestion(value: unknown) {
   return String(value || '').trim().slice(0, 1200)
 }
 
+async function readMarketPricing() {
+  try {
+    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    if (!token) return resolveMarketPricing(null)
+
+    const { blobs } = await list({
+      prefix: 'data/portfolio/marketPricing.json',
+      token,
+    })
+    if (blobs.length === 0) return resolveMarketPricing(null)
+
+    const url = new URL(blobs[0].url)
+    url.searchParams.set('v', String(Date.now()))
+    const response = await fetch(url, { cache: 'no-store' })
+    if (!response.ok) return resolveMarketPricing(null)
+
+    return resolveMarketPricing(await response.json())
+  } catch {
+    return resolveMarketPricing(null)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as QuoteAssistantRequest
@@ -28,7 +52,24 @@ export async function POST(request: NextRequest) {
     }
 
     const quotation = buildProjectQuotation(body.selection)
-    const fallback = fallbackQuoteExplanation(body.selection, quotation)
+    const marketPricing = await readMarketPricing()
+    const marketRanges = marketRangeSummary(marketPricing)
+      .filter(item => ['basic-website', 'business-website', 'ecommerce'].includes(item.category))
+    const marketText = marketPricing.enabled && marketRanges.length > 0
+      ? [
+          `Approved Zambia public-market benchmark (updated ${marketPricing.updatedAt}):`,
+          ...marketRanges.map(item =>
+            `- ${item.label}: about ZMW ${item.min.toLocaleString('en-ZM')} to ZMW ${item.max.toLocaleString('en-ZM')} across ${item.sourceCount} approved reference${item.sourceCount === 1 ? '' : 's'}`
+          ),
+          'Use these as context only. They do not replace Emmanuel\'s deterministic prices.',
+        ].join('\n')
+      : 'No Zambia market benchmark is currently enabled.'
+
+    const fallbackBase = fallbackQuoteExplanation(body.selection, quotation)
+    const asksAboutMarket = /\b(expensive|cheap|affordable|market|zambia|competitor|agency|developer|compare|comparison)\b/i.test(question)
+    const fallback = asksAboutMarket
+      ? `${fallbackBase}\n\n${marketText}`
+      : fallbackBase
 
     const groq = await createGroqCompletion({
       model: process.env.GROQ_QUOTE_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
@@ -54,6 +95,7 @@ export async function POST(request: NextRequest) {
             'The upfront payment is exactly 35% of the known total. Always show the arithmetic when discussing the upfront amount.',
             'The remaining balance is exactly 65% of the known total.',
             'If the client says the price is too high, acknowledge the budget concern, explain the value of the selected scope, show the 35% upfront amount, and suggest reducing or phasing optional features rather than changing fixed prices.',
+            'When the client asks whether the quotation is expensive, cheap, competitive, affordable, or how Zambia agencies/developers charge, use the supplied approved Zambia market benchmark as context. State that it is a public reference benchmark and never use it to silently alter the deterministic quote.',
             'You may suggest an MVP or phased delivery when it genuinely helps the client fit a budget.',
             'If asked for a discount, explain that Emmanuel must personally approve any commercial adjustment after scope review; do not promise or calculate a discount.',
             'Do not use fake scarcity, misleading urgency, guilt, or pressure tactics.',
@@ -69,6 +111,8 @@ export async function POST(request: NextRequest) {
             '',
             'Current deterministic quotation:',
             quotationSummary(body.selection, quotation),
+            '',
+            marketText,
           ].join('\n'),
         },
       ],
