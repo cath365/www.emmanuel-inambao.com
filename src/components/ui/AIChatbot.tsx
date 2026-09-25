@@ -7,7 +7,7 @@ import { useProfile } from '@/lib/profile'
 import { useServices } from '@/lib/services'
 import { useProjects } from '@/lib/projects'
 import { useSkills } from '@/lib/skills'
-import { answerPortfolioQuestion } from '@/lib/local-portfolio-assistant'
+import { answerPortfolioQuestion, isPricingIntent } from '@/lib/local-portfolio-assistant'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -395,6 +395,11 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
   }
 
   const getPortfolioAnswer = async (text: string) => {
+    // Pricing is deterministic and must not drift into a previous project explanation.
+    if (isPricingIntent(text)) {
+      return getSmartLocalAnswer(text)
+    }
+
     const conversation = [
       ...messages
         .filter(message => message.content.trim().length > 0)
