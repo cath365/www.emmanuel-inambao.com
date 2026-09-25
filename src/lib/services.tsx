@@ -80,33 +80,17 @@ export function ServiceProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=services')
+    fetch('/api/portfolio-data?key=services', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setServices(data)
         } else {
-          const saved = localStorage.getItem('portfolio-services')
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved)
-              setServices(parsed.length > 0 ? parsed : defaultServices)
-            } catch { setServices(defaultServices) }
-          } else {
-            setServices(defaultServices)
-          }
+          setServices(defaultServices)
         }
       })
       .catch(() => {
-        const saved = localStorage.getItem('portfolio-services')
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved)
-            setServices(parsed.length > 0 ? parsed : defaultServices)
-          } catch { setServices(defaultServices) }
-        } else {
-          setServices(defaultServices)
-        }
+        setServices(defaultServices)
       })
       .finally(() => setIsLoaded(true))
   }, [])
