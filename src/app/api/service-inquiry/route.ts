@@ -163,27 +163,39 @@ export async function POST(request: NextRequest) {
     const emailProviderConfigured = Boolean(WEB3FORMS_KEY || FORMSPREE_ID)
     let emailSent = false
     let emailProvider: 'web3forms' | 'formspree' | null = null
+    let emailError: string | null = null
 
     if (WEB3FORMS_KEY) {
       try {
         const response = await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
           body: JSON.stringify({
             access_key: WEB3FORMS_KEY,
             subject: isQuotation
-              ? `📄 New quotation awaiting review - ${data.name}`
-              : `🔔 New Service Inquiry: ${data.service} - ${data.name}`,
+              ? `New quotation awaiting review - ${data.name}`
+              : `New Service Inquiry: ${data.service} - ${data.name}`,
             from_name: isQuotation ? 'Portfolio Quotation Assistant' : 'Portfolio AI Chatbot',
             name: data.name,
             ...(email ? { email, replyto: email } : {}),
             message: inquiryDetails,
           }),
         })
-        if (response.ok) {
-          const result = await response.json().catch(() => null)
-          emailSent = result?.success === true || response.ok
-          if (emailSent) emailProvider = 'web3forms'
+
+        const result = await response.json().catch(() => null)
+        emailSent = response.ok && result?.success === true
+
+        if (emailSent) {
+          emailProvider = 'web3forms'
+        } else {
+          emailError =
+            typeof result?.message === 'string'
+              ? result.message
+              : `Web3Forms returned status ${response.status}.`
+          console.error('Web3Forms quotation notification failed:', emailError)
         }
       } catch (e) {
         console.error('Web3Forms failed:', e)
@@ -205,7 +217,11 @@ export async function POST(request: NextRequest) {
           }),
         })
         emailSent = response.ok
-        if (emailSent) emailProvider = 'formspree'
+        if (emailSent) {
+          emailProvider = 'formspree'
+        } else if (!emailError) {
+          emailError = `Formspree returned status ${response.status}.`
+        }
       } catch (e) {
         console.error('Formspree failed:', e)
       }
@@ -214,10 +230,14 @@ export async function POST(request: NextRequest) {
     if (!saved && !emailSent) {
       return NextResponse.json(
         {
-          error:
-            'The inquiry could not be saved or delivered. Please use the direct email or WhatsApp option.',
+          error: !emailProviderConfigured
+            ? 'The inquiry could not be delivered because email notifications are not configured in Production.'
+            : emailError
+              ? `The inquiry could not be delivered by the configured email provider: ${emailError}`
+              : 'The inquiry could not be saved or delivered. Please use the direct email or WhatsApp option.',
           saved,
           emailSent,
+          emailProviderConfigured,
         },
         { status: 503 }
       )
