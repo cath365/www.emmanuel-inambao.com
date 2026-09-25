@@ -30,7 +30,7 @@ export default function Hero() {
   return (
     <section id="hero" className="relative bg-[#F7F5EF] dark:bg-dark-950" aria-label="Introduction">
       {/* Cover Banner - LinkedIn style */}
-      <div className="relative aspect-[3/1] w-full overflow-hidden bg-[#DCE4E9] sm:aspect-[7/2] lg:aspect-[4/1] dark:bg-dark-900">
+      <div className="relative h-28 w-full overflow-hidden bg-[#DCE4E9] sm:h-40 md:h-44 lg:h-52 xl:h-56 dark:bg-dark-900">
         {profile.coverImage ? (
           <Image
             src={profile.coverImage}
@@ -57,7 +57,7 @@ export default function Hero() {
       </div>
 
       {/* Profile Card - overlapping the cover like a LinkedIn profile */}
-      <div className="relative section-container -mt-12 sm:-mt-16 z-10">
+      <div className="relative section-container -mt-8 sm:-mt-12 lg:-mt-14 z-10">
         <div className="bg-[#FCFBF7]/96 dark:bg-dark-900/95 backdrop-blur-md border border-[#D9D2C4] dark:border-dark-700/80 rounded-sm p-4 sm:p-6 md:p-8 shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:shadow-xl dark:shadow-black/10">
           {/* Top row: Profile photo + name + status */}
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
@@ -66,16 +66,16 @@ export default function Hero() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="flex-shrink-0 -mt-16 sm:-mt-20 self-center sm:self-start"
+              className="flex-shrink-0 -mt-12 sm:-mt-16 lg:-mt-18 self-center sm:self-start"
             >
-              <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-[#FCFBF7] dark:border-dark-900 shadow-lg bg-[#E9E6DF] dark:bg-dark-800">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden border-4 border-[#FCFBF7] dark:border-dark-900 shadow-lg bg-[#E9E6DF] dark:bg-dark-800">
                 {profile.image ? (
                   <Image
                     src={profile.image}
                     alt={profile.name}
                     width={160}
                     height={160}
-                    sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
+                    sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, (max-width: 1024px) 128px, 144px"
                     className="w-full h-full object-cover"
                     priority
                   />
