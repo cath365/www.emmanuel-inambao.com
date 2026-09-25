@@ -101,31 +101,17 @@ export function SkillsProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=skills')
+    fetch('/api/portfolio-data?key=skills', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setSkillCategoriesState(data)
         } else {
-          const stored = localStorage.getItem(STORAGE_KEY)
-          if (stored) {
-            try {
-              setSkillCategoriesState(JSON.parse(stored))
-            } catch {
-              // Ignore corrupted local storage.
-            }
-          }
+          setSkillCategoriesState(defaultSkillCategories)
         }
       })
       .catch(() => {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          try {
-            setSkillCategoriesState(JSON.parse(stored))
-          } catch {
-            // Ignore corrupted local storage.
-          }
-        }
+        setSkillCategoriesState(defaultSkillCategories)
       })
       .finally(() => setIsLoading(false))
   }, [])
