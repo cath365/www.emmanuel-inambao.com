@@ -145,7 +145,11 @@ export default function StartProjectPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [quoteId, setQuoteId] = useState('')
   const [featureDraft, setFeatureDraft] = useState('')
-  const [deliveryStatus, setDeliveryStatus] = useState({ saved: false, emailSent: false })
+  const [deliveryStatus, setDeliveryStatus] = useState({
+    saved: false,
+    emailSent: false,
+    emailProviderConfigured: false,
+  })
 
   const quotation = useMemo(() => buildProjectQuotation(selection), [selection])
   const anyDeliverable = selection.website || selection.mobileApplication || selection.iotIntegration
@@ -303,6 +307,7 @@ export default function StartProjectPage() {
       setDeliveryStatus({
         saved: leadResult.saved === true,
         emailSent: leadResult.emailSent === true,
+        emailProviderConfigured: leadResult.emailProviderConfigured === true,
       })
 
       const pdfResponse = await fetch('/api/quotation/pdf', {
@@ -345,7 +350,7 @@ export default function StartProjectPage() {
     setAiQuestion('Why does this quotation cost this amount?')
     setFeatureDraft('')
     setQuoteId('')
-    setDeliveryStatus({ saved: false, emailSent: false })
+    setDeliveryStatus({ saved: false, emailSent: false, emailProviderConfigured: false })
     setStatus('idle')
     setErrorMessage('')
   }
@@ -736,9 +741,11 @@ export default function StartProjectPage() {
                   Your PDF quotation has been downloaded.
                   {deliveryStatus.emailSent
                     ? ' The accepted scope and price breakdown were also emailed to Emmanuel.'
-                    : deliveryStatus.saved
-                      ? ' The accepted scope and price breakdown were saved in Emmanuel\'s Admin Leads area. Email notification was not available, so the saved lead is the delivery fallback.'
-                      : ' The quotation was generated, but delivery status could not be confirmed.'}
+                    : deliveryStatus.saved && !deliveryStatus.emailProviderConfigured
+                      ? ' The quotation was saved in Emmanuel\'s Admin Leads area, but email notifications are not configured yet.'
+                      : deliveryStatus.saved
+                        ? ' The quotation was saved in Emmanuel\'s Admin Leads area, but the email provider did not confirm delivery.'
+                        : ' The quotation was generated, but delivery status could not be confirmed.'}
                 </p>
                 <p className="mt-3 text-sm font-semibold text-[#10243E] dark:text-white">{quoteId}</p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
