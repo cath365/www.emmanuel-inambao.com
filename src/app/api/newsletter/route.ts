@@ -120,9 +120,17 @@ export async function POST(request: NextRequest) {
     try {
       await writeSubscribers([...subscribers, email])
       console.log('New subscriber saved:', email)
+
+      // Always notify Emmanuel about a new subscription.
+      // Storage success and email delivery are tracked independently.
+      const emailSent = await notifyFallback(email)
+
       return NextResponse.json({
         success: true,
-        message: 'Successfully subscribed.',
+        emailSent,
+        message: emailSent
+          ? 'Successfully subscribed. Notification email sent.'
+          : 'Successfully subscribed. Email notification is not configured or could not be delivered.',
       })
     } catch (storageError) {
       console.error('Newsletter storage failed:', storageError)
@@ -132,7 +140,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           queued: true,
-          message: 'Subscription request received.',
+          emailSent: true,
+          message: 'Subscription request received and notification email sent.',
         })
       }
 
