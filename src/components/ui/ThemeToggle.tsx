@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
 type Theme = 'dark' | 'light'
+const THEME_STORAGE_KEY = 'portfolio-theme-v2'
 
 interface ThemeContextType {
   theme: Theme
@@ -28,13 +29,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    const stored = localStorage.getItem('theme') as Theme | null
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    
-    if (stored) {
+
+    // Use one predictable default across browsers. A visitor can still
+    // explicitly switch themes, but browser/system color preferences no
+    // longer change the portfolio automatically.
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
+    if (stored === 'dark' || stored === 'light') {
       setThemeState(stored)
-    } else if (!systemPrefersDark) {
-      setThemeState('light')
+    } else {
+      setThemeState('dark')
     }
   }, [])
 
@@ -49,7 +52,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.add('dark')
       root.classList.remove('light')
     }
-    localStorage.setItem('theme', theme)
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme, mounted])
 
   const toggleTheme = () => {
