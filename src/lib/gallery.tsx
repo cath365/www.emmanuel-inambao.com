@@ -97,23 +97,17 @@ export function GalleryProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=gallery')
+    fetch('/api/portfolio-data?key=gallery', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setItems(data)
         } else {
-          const stored = localStorage.getItem(STORAGE_KEY)
-          if (stored) {
-            try { setItems(JSON.parse(stored)) } catch {}
-          }
+          setItems(defaultItems)
         }
       })
       .catch(() => {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          try { setItems(JSON.parse(stored)) } catch {}
-        }
+        setItems(defaultItems)
       })
       .finally(() => setIsLoaded(true))
   }, [])
