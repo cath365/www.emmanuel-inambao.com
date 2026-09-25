@@ -72,35 +72,17 @@ export function TestimonialProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=testimonials')
+    fetch('/api/portfolio-data?key=testimonials', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setTestimonials(data.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
         } else {
-          const saved = localStorage.getItem('portfolio-testimonials')
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved)
-              const mapped = parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' }))
-              setTestimonials(mapped.length > 0 ? mapped : defaultTestimonials)
-            } catch { setTestimonials(defaultTestimonials) }
-          } else {
-            setTestimonials(defaultTestimonials)
-          }
+          setTestimonials(defaultTestimonials)
         }
       })
       .catch(() => {
-        const saved = localStorage.getItem('portfolio-testimonials')
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved)
-            const mapped = parsed.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' }))
-            setTestimonials(mapped.length > 0 ? mapped : defaultTestimonials)
-          } catch { setTestimonials(defaultTestimonials) }
-        } else {
-          setTestimonials(defaultTestimonials)
-        }
+        setTestimonials(defaultTestimonials)
       })
       .finally(() => setIsLoaded(true))
   }, [])
