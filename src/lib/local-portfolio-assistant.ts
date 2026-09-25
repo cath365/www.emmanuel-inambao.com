@@ -2,6 +2,7 @@ import type { Project } from '@/lib/project-catalog'
 import type { Profile } from '@/lib/profile'
 import type { Service } from '@/lib/services'
 import type { SkillCategory } from '@/lib/skills'
+import { defaultMarketPricing, marketRangeSummary } from '@/lib/market-pricing'
 
 export interface LocalAssistantContext {
   profile: Profile
@@ -58,7 +59,7 @@ function includesAny(value: string, phrases: string[]) {
 export function isPricingIntent(value: string) {
   const q = normalize(value)
   return (
-    /\b(price|pricing|cost|charge|charges|charged|budget|estimate|estimated|quotation|quote|fee|fees|payment|pay|upfront|deposit|amount|how much|rate|rates)\b/.test(q) ||
+    /\b(price|pricing|cost|charge|charges|charged|budget|estimate|estimated|quotation|quote|fee|fees|payment|pay|upfront|deposit|amount|how much|rate|rates|expensive|cheap|affordable|market|competitor|agency|developer)\b/.test(q) ||
     includesAny(q, [
       'how much can he charge me',
       'how much will he charge',
@@ -92,8 +93,13 @@ function pricingAnswer(context: LocalAssistantContext): LocalAssistantAnswer {
       : `\n\nIf you mean ${activeProject.title}, the exact amount still depends on the new client's required scope rather than the historical project itself.`
     : ''
 
+  const ranges = marketRangeSummary(defaultMarketPricing)
+    .filter(item => ['basic-website', 'business-website', 'ecommerce'].includes(item.category))
+    .map(item => `• ${item.label} — about ZMW ${item.min.toLocaleString('en-ZM')} to ZMW ${item.max.toLocaleString('en-ZM')}`)
+    .join('\n')
+
   return {
-    response: `For a new project, Emmanuel's current pricing rules are:\n\n• Website — ZMW 5,000 base\n• E-commerce — + ZMW 3,000\n• Admin dashboard — + ZMW 2,500\n• Payment integration — + ZMW 2,000\n• Mobile application — ZMW 12,000 base\n• Each extra software feature — + ZMW 350\n• IoT / connected-device engineering — custom quotation\n\nThe upfront payment is 35% of the known total, with 65% remaining.${projectNote}\n\nFor an exact figure, use the AI Project Quotation flow so the scope can be selected and calculated properly.`,
+    response: `For a new project, Emmanuel's current pricing rules are:\n\n• Website — ZMW 5,000 base\n• E-commerce — + ZMW 3,000\n• Admin dashboard — + ZMW 2,500\n• Payment integration — + ZMW 2,000\n• Mobile application — ZMW 12,000 base\n• Each extra software feature — + ZMW 350\n• IoT / connected-device engineering — custom quotation\n\nThe upfront payment is 35% of the known total, with 65% remaining.${projectNote}\n\nZambia public-market reference ranges (fallback benchmark):\n${ranges}\n\nThese market figures are reference points only and do not automatically change Emmanuel's fixed quotation. For an exact figure, use the AI Project Quotation flow.`,
     options: ['Get AI quotation', '📩 Send inquiry', 'Book a meeting'],
     activeProjectId: activeProject?.id ?? context.activeProjectId ?? null,
   }
