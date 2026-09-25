@@ -55,6 +55,50 @@ function includesAny(value: string, phrases: string[]) {
   return phrases.some(phrase => normalized.includes(normalize(phrase)))
 }
 
+export function isPricingIntent(value: string) {
+  const q = normalize(value)
+  return (
+    /\b(price|pricing|cost|charge|charges|charged|budget|estimate|estimated|quotation|quote|fee|fees|payment|pay|upfront|deposit|amount|how much|rate|rates)\b/.test(q) ||
+    includesAny(q, [
+      'how much can he charge me',
+      'how much will he charge',
+      'how much does it cost',
+      'what will it cost',
+      'what is the price',
+      'what is the budget',
+      'give me a quote',
+      'give me an estimate',
+    ])
+  )
+}
+
+function pricingAnswer(context: LocalAssistantContext): LocalAssistantAnswer {
+  const activeProject = context.activeProjectId
+    ? context.projects.find(project => project.id === context.activeProjectId)
+    : undefined
+
+  const activeLooksHardware =
+    activeProject &&
+    normalize([
+      activeProject.title,
+      activeProject.purpose,
+      activeProject.systemLogic,
+      ...(activeProject.techStack || []),
+    ].join(' ')).match(/\b(iot|esp32|arduino|sensor|hardware|robot|robotics|embedded|sim800|bluetooth|gps|ultrasonic)\b/)
+
+  const projectNote = activeProject
+    ? activeLooksHardware
+      ? `\n\nFor ${activeProject.title}, the hardware / IoT portion is custom-priced after the sensors, connectivity, enclosure, power, quantity and field requirements are confirmed.`
+      : `\n\nIf you mean ${activeProject.title}, the exact amount still depends on the new client's required scope rather than the historical project itself.`
+    : ''
+
+  return {
+    response: `For a new project, Emmanuel's current pricing rules are:\n\n• Website — ZMW 5,000 base\n• E-commerce — + ZMW 3,000\n• Admin dashboard — + ZMW 2,500\n• Payment integration — + ZMW 2,000\n• Mobile application — ZMW 12,000 base\n• Each extra software feature — + ZMW 350\n• IoT / connected-device engineering — custom quotation\n\nThe upfront payment is 35% of the known total, with 65% remaining.${projectNote}\n\nFor an exact figure, use the AI Project Quotation flow so the scope can be selected and calculated properly.`,
+    options: ['Get AI quotation', '📩 Send inquiry', 'Book a meeting'],
+    activeProjectId: activeProject?.id ?? context.activeProjectId ?? null,
+  }
+}
+
 function projectSearchText(project: Project) {
   return normalize([
     project.id,
@@ -285,6 +329,11 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
     }
   }
 
+  // Commercial questions take priority over project follow-up context.
+  if (isPricingIntent(q)) {
+    return pricingAnswer(context)
+  }
+
   const activeProject = context.activeProjectId
     ? context.projects.find(project => project.id === context.activeProjectId)
     : undefined
@@ -349,13 +398,6 @@ export function answerPortfolioQuestion(query: string, context: LocalAssistantCo
     return {
       response: `Emmanuel's documented technical areas include:\n\n${context.skillCategories.map(category => `• ${category.title} — ${category.skills.slice(0, 5).map(skill => skill.name).join(', ')}`).join('\n')}\n\nAsk about a technology such as ESP32, Next.js, IoT or offline-first systems and I can connect it to actual projects.`,
       options: ['ESP32 projects', 'See projects', 'Book a meeting'],
-    }
-  }
-
-  if (includesAny(q, ['service', 'services', 'offer', 'hire', 'price', 'cost', 'quote'])) {
-    return {
-      response: `For new project quotations, Emmanuel's current pricing rules are:\n\n• Website — ZMW 5,000 base\n• E-commerce — + ZMW 3,000\n• Admin dashboard — + ZMW 2,500\n• Payment integration — + ZMW 2,000\n• Mobile application — ZMW 12,000 base\n• Each additional custom feature — + ZMW 350\n• IoT integration — custom quotation after technical discovery\n\nThe upfront project payment is 35% of the known quotation total, with the remaining 65% shown separately. The AI quotation assistant explains each charge, can discuss scope and budget trade-offs, and generates a downloadable quotation when the client accepts the estimate.`,
-      options: ['Get AI quotation', '📩 Send inquiry', 'Book a meeting'],
     }
   }
 
