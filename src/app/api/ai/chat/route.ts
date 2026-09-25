@@ -3,6 +3,7 @@ import { list } from '@vercel/blob'
 import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
 import { createGroqCompletion } from '@/lib/groq'
+import { marketRangeSummary, resolveMarketPricing, type MarketPricingConfig } from '@/lib/market-pricing'
 
 export const runtime = 'nodejs'
 
@@ -11,7 +12,7 @@ type ChatMessage = {
   content: string
 }
 
-const PORTFOLIO_KEYS = ['profile', 'projects', 'services', 'skills', 'experiences', 'certifications', 'caseStudies'] as const
+const PORTFOLIO_KEYS = ['profile', 'projects', 'services', 'skills', 'experiences', 'certifications', 'caseStudies', 'marketPricing'] as const
 const MAX_MESSAGES = 12
 const MAX_MESSAGE_LENGTH = 1600
 const RATE_WINDOW_MS = 60_000
@@ -25,13 +26,15 @@ function blobPath(key: string) {
 
 async function readPortfolioSection(key: string) {
   try {
-    const { blobs } = await list({ prefix: blobPath(key) })
+    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    if (!token) return null
+
+    const { blobs } = await list({ prefix: blobPath(key), token })
     if (blobs.length === 0) return null
 
-    const response = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
-      cache: 'no-store',
-    })
+    const url = new URL(blobs[0].url)
+    url.searchParams.set('v', String(Date.now()))
+    const response = await fetch(url, { cache: 'no-store' })
 
     if (!response.ok) return null
     return await response.json()
@@ -46,12 +49,24 @@ function normalized(value: string) {
 
 function isPricingIntent(value: string) {
   const q = normalized(value)
-  return /\b(price|pricing|cost|charge|charges|charged|budget|estimate|estimated|quotation|quote|fee|fees|payment|pay|upfront|deposit|amount|how much|rate|rates)\b/.test(q)
+  return /\b(price|pricing|cost|charge|charges|charged|budget|estimate|estimated|quotation|quote|fee|fees|payment|pay|upfront|deposit|amount|how much|rate|rates|expensive|cheap|affordable|market|competitor|agency|developer)\b/.test(q)
 }
 
-function pricingResponse(messages: ChatMessage[]) {
+function pricingResponse(messages: ChatMessage[], marketPricing: MarketPricingConfig) {
   const history = normalized(messages.slice(-6).map(message => message.content).join(' '))
   const hardwareContext = /\b(iot|esp32|arduino|sensor|hardware|robot|robotics|embedded|walking stick|smart stick|sim800|bluetooth|gps|ultrasonic)\b/.test(history)
+  const marketIntent = /\b(zambia|market|expensive|cheap|affordable|competitor|agency|developer|compare|comparison)\b/.test(history)
+  const marketRanges = marketRangeSummary(marketPricing)
+  const marketLines = marketPricing.enabled && marketRanges.length > 0
+    ? [
+        '',
+        `Zambia market benchmark (approved public sources, updated ${marketPricing.updatedAt}):`,
+        ...marketRanges
+          .filter(item => ['basic-website', 'business-website', 'ecommerce'].includes(item.category))
+          .map(item => `• ${item.label} — about ZMW ${item.min.toLocaleString('en-ZM')} to ZMW ${item.max.toLocaleString('en-ZM')} across ${item.sourceCount} approved reference${item.sourceCount === 1 ? '' : 's'}`),
+        'These are public reference points, not prices the AI uses to change Emmanuel’s fixed quotation.',
+      ]
+    : []
 
   return [
     'For a new project, Emmanuel’s current pricing rules are:',
@@ -68,6 +83,7 @@ function pricingResponse(messages: ChatMessage[]) {
     hardwareContext
       ? 'Because the project being discussed involves hardware / IoT, its device-engineering portion needs technical discovery before an exact price can be confirmed.'
       : '',
+    ...(marketIntent ? marketLines : []),
     '',
     'Use the AI Project Quotation flow to select the exact scope and calculate the known total.',
   ].filter(Boolean).join('\n')
@@ -191,6 +207,7 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
       technologies: study?.technologies,
       architecture: study?.architecture,
     })),
+    marketPricing: resolveMarketPricing(sections.marketPricing),
   }
 }
 
@@ -207,6 +224,7 @@ CORE BEHAVIOUR
 - Ask at most 1-2 focused scoping questions when they would materially help.
 - For NEW PROJECT QUOTATIONS, use these current pricing rules instead of any legacy service price strings in PORTFOLIO DATA: Website ZMW 5,000 base; E-commerce + ZMW 3,000; Admin dashboard + ZMW 2,500; Payment integration + ZMW 2,000; Mobile application ZMW 12,000 base; every additional custom feature + ZMW 350; IoT integration custom quotation after technical discovery. The upfront payment is 35% of the known total and the remaining balance is 65%.
 - COMMERCIAL INTENT OVERRIDES PROJECT CONTEXT: if the visitor asks how much, what it costs, what Emmanuel charges, budget, estimate, quotation, fee, payment or upfront amount, answer the pricing question directly. Do not repeat a project description unless it is needed to explain why an IoT/hardware portion requires custom pricing.
+- ZAMBIA MARKET BENCHMARK: PORTFOLIO DATA may include admin-approved public Zambia pricing references. Use them only when the visitor asks whether a price is expensive, cheap, competitive, affordable, or how local agencies/developers charge. State that they are public reference points with their update date. Never let benchmark prices silently replace Emmanuel's fixed quotation rules.
 - Never invent or alter a project quotation price. If a visitor raises a budget concern, explain value and suggest removing or phasing optional scope rather than changing fixed prices. Do not promise discounts. If a visitor wants a quote, tell them to use the AI Project Quotation flow at /start-project, which asks scope questions, explains charges, calculates the 35% upfront amount and generates a downloadable quotation.
 - Do not promise a delivery date, availability, discount or other commercial commitment unless explicitly documented.
 - Prefer concise answers: usually 2-5 short paragraphs or a compact list.\n- Reply in the visitor's language when it is clear from their message.
@@ -242,19 +260,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'A user message is required.' }, { status: 400 })
     }
 
-    const latestUserMessage = messages[messages.length - 1].content
-    if (isPricingIntent(latestUserMessage)) {
-      return NextResponse.json({
-        answer: pricingResponse(messages),
-        provider: 'rules',
-        model: 'fixed-pricing-engine',
-      })
-    }
-
     const entries = await Promise.all(
       PORTFOLIO_KEYS.map(async key => [key, await readPortfolioSection(key)] as const)
     )
     const context = compactPortfolioContext(Object.fromEntries(entries))
+
+    const latestUserMessage = messages[messages.length - 1].content
+    if (isPricingIntent(latestUserMessage)) {
+      return NextResponse.json({
+        answer: pricingResponse(messages, context.marketPricing),
+        provider: 'rules',
+        model: 'fixed-pricing-engine',
+      })
+    }
 
     const groq = await createGroqCompletion({
       model: process.env.GROQ_CHAT_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
