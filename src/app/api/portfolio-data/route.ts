@@ -5,7 +5,7 @@ import { isAuthenticated } from '@/lib/auth-helpers'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies']
+const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing']
 
 function blobPath(key: string) {
   return `data/portfolio/${key}.json`
