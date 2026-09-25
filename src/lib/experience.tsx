@@ -70,33 +70,17 @@ export function ExperienceProvider({ children }: { children: ReactNode }) {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    fetch('/api/portfolio-data?key=experiences')
+    fetch('/api/portfolio-data?key=experiences', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setExperiences(data)
         } else {
-          const saved = localStorage.getItem('portfolio-experiences')
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved)
-              setExperiences(parsed.length > 0 ? parsed : defaultExperiences)
-            } catch { setExperiences(defaultExperiences) }
-          } else {
-            setExperiences(defaultExperiences)
-          }
+          setExperiences(defaultExperiences)
         }
       })
       .catch(() => {
-        const saved = localStorage.getItem('portfolio-experiences')
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved)
-            setExperiences(parsed.length > 0 ? parsed : defaultExperiences)
-          } catch { setExperiences(defaultExperiences) }
-        } else {
-          setExperiences(defaultExperiences)
-        }
+        setExperiences(defaultExperiences)
       })
       .finally(() => setIsLoaded(true))
   }, [])
