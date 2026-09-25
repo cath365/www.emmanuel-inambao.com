@@ -80,23 +80,19 @@ export function ResourcesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/portfolio-data?key=resources').then(r => r.json()).catch(() => null),
-      fetch('/api/portfolio-data?key=audio').then(r => r.json()).catch(() => null),
+      fetch('/api/portfolio-data?key=resources', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+      fetch('/api/portfolio-data?key=audio', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
     ]).then(([resourcesData, audioData]) => {
       if (Array.isArray(resourcesData) && resourcesData.length > 0) {
         setResources(resourcesData)
       } else {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          try { setResources(JSON.parse(stored)) } catch {}
-        }
+        setResources(defaultResources)
       }
 
       if (typeof audioData === 'string' && audioData) {
         setAudioIntroUrlState(audioData)
       } else {
-        const storedAudio = localStorage.getItem(AUDIO_STORAGE_KEY)
-        if (storedAudio) setAudioIntroUrlState(storedAudio)
+        setAudioIntroUrlState('')
       }
     }).finally(() => setIsLoaded(true))
   }, [])
