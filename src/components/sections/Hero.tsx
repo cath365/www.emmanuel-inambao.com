@@ -75,7 +75,7 @@ export default function Hero() {
                     alt={profile.name}
                     width={160}
                     height={160}
-                    unoptimized
+                    sizes="(max-width: 640px) 112px, (max-width: 768px) 144px, 160px"
                     className="w-full h-full object-cover"
                     priority
                   />
