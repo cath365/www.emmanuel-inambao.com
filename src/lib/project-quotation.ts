@@ -20,6 +20,7 @@ export interface QuoteLineItem {
   label: string
   amount: number | null
   reason: string
+  impact: string
 }
 
 export interface ProjectQuotation {
@@ -30,6 +31,25 @@ export interface ProjectQuotation {
   upfrontAmount: number
   balanceAmount: number
   hasCustomPricing: boolean
+}
+
+export type ImprovementAction =
+  | 'ecommerce'
+  | 'adminDashboard'
+  | 'paymentIntegration'
+  | 'mobileApplication'
+  | 'customFeature'
+
+export interface ProjectImprovement {
+  id: string
+  title: string
+  description: string
+  impact: string
+  action: ImprovementAction
+  featureName?: string
+  priceImpact: number
+  upfrontImpact: number
+  newKnownTotal: number
 }
 
 export const PROJECT_PRICING = {
@@ -66,6 +86,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: PROJECT_PRICING.website,
       reason:
         'Covers the base responsive website build, core pages, frontend implementation, standard forms and deployment setup.',
+      impact:
+        'Creates a professional digital presence that clients can access on phones and computers, helping the organization present services, build trust and generate enquiries.',
     })
   }
 
@@ -76,6 +98,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: PROJECT_PRICING.ecommerce,
       reason:
         'Adds product catalogue, cart and checkout flows, order logic and the additional data handling needed for online sales.',
+      impact:
+        'Turns the website into a sales channel so customers can discover products, place orders and complete more of the buying journey without manual back-and-forth.',
     })
   }
 
@@ -86,6 +110,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: PROJECT_PRICING.adminDashboard,
       reason:
         'Adds a protected management area for content, customers, orders, reports or other operational data.',
+      impact:
+        'Reduces dependence on a developer for everyday updates and gives the team one place to manage operations, records and reporting.',
     })
   }
 
@@ -96,6 +122,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: PROJECT_PRICING.paymentIntegration,
       reason:
         'Covers payment-provider integration, transaction verification, callback/webhook handling and payment-flow testing.',
+      impact:
+        'Lets customers complete transactions digitally and reduces manual payment confirmation, making the service easier to buy and easier to reconcile.',
     })
   }
 
@@ -106,6 +134,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: PROJECT_PRICING.mobileApplication,
       reason:
         'Covers the base mobile application build, interface implementation, API integration, device testing and deployment preparation.',
+      impact:
+        'Provides a dedicated mobile experience for repeat users, field teams or customers who need fast access from affordable Android/iOS devices.',
     })
   }
 
@@ -116,6 +146,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: PROJECT_PRICING.additionalFeature,
       reason:
         'Additional requested feature outside the selected core package. Each extra software feature is charged at the fixed ZMW 350 feature rate.',
+      impact:
+        'Adds a focused capability requested for this project. The value depends on how this feature improves the client workflow, user experience or automation.',
     })
   })
 
@@ -126,6 +158,8 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
       amount: null,
       reason:
         'Custom pricing is required because hardware type, sensors, connectivity, power, enclosure, unit quantity and field conditions can change the engineering effort significantly.',
+      impact:
+        'Connects physical equipment or sensors to the digital system so measurements, alerts and actions can move between the real world and the application.',
     })
   }
 
@@ -143,9 +177,142 @@ export function buildProjectQuotation(selection: ProjectQuoteSelection): Project
   }
 }
 
+function makeImprovement(
+  quotation: ProjectQuotation,
+  input: Omit<ProjectImprovement, 'upfrontImpact' | 'newKnownTotal'>
+): ProjectImprovement {
+  return {
+    ...input,
+    upfrontImpact: input.priceImpact * PROJECT_PRICING.upfrontRate,
+    newKnownTotal: quotation.knownTotal + input.priceImpact,
+  }
+}
+
+function hasFeature(selection: ProjectQuoteSelection, name: string) {
+  return normalizeCustomFeatures(selection.customFeatures)
+    .some(feature => feature.toLowerCase() === name.toLowerCase())
+}
+
+export function projectImprovementIdeas(
+  selection: ProjectQuoteSelection,
+  quotation = buildProjectQuotation(selection)
+): ProjectImprovement[] {
+  const text = `${selection.projectDescription} ${selection.iotDetails}`.toLowerCase()
+  const ideas: ProjectImprovement[] = []
+
+  if (
+    selection.website &&
+    !selection.ecommerce &&
+    /sell|shop|store|product|catalog|order|retail|marketplace|booking|commerce/.test(text)
+  ) {
+    ideas.push(makeImprovement(quotation, {
+      id: 'suggest-ecommerce',
+      title: 'Add online selling / ordering',
+      description: 'Add catalogue, cart/ordering and checkout workflows instead of relying on manual enquiries for every sale.',
+      impact: 'Can shorten the path from interest to purchase and lets customers place orders outside normal working hours.',
+      action: 'ecommerce',
+      priceImpact: PROJECT_PRICING.ecommerce,
+    }))
+  }
+
+  if (
+    !selection.adminDashboard &&
+    (selection.ecommerce ||
+      selection.paymentIntegration ||
+      /admin|manage|staff|content|order|customer|report|inventory|booking|school|organization|organisation/.test(text))
+  ) {
+    ideas.push(makeImprovement(quotation, {
+      id: 'suggest-admin',
+      title: 'Add an admin dashboard',
+      description: 'Give the client team a protected workspace to manage records, users, content, orders or reports.',
+      impact: 'Reduces manual work and makes the system easier to operate after launch without asking a developer for every update.',
+      action: 'adminDashboard',
+      priceImpact: PROJECT_PRICING.adminDashboard,
+    }))
+  }
+
+  if (
+    !selection.paymentIntegration &&
+    (selection.ecommerce || /payment|pay|mobile money|momo|airtel money|mtn|checkout|subscription|fee|invoice/.test(text))
+  ) {
+    ideas.push(makeImprovement(quotation, {
+      id: 'suggest-payment',
+      title: 'Add digital payment integration',
+      description: 'Connect an approved payment provider and verify transactions automatically inside the system.',
+      impact: 'Removes payment friction, reduces manual confirmation and can improve conversion for services that customers need to pay for.',
+      action: 'paymentIntegration',
+      priceImpact: PROJECT_PRICING.paymentIntegration,
+    }))
+  }
+
+  if (
+    !selection.mobileApplication &&
+    /mobile app|android|ios|field|driver|agent|farmer|student|patient|offline|on the go|tracking/.test(text)
+  ) {
+    ideas.push(makeImprovement(quotation, {
+      id: 'suggest-mobile',
+      title: 'Add a dedicated mobile application',
+      description: 'Provide a mobile-first experience for repeat users or teams who work away from a desktop.',
+      impact: 'Improves convenience and engagement for users who primarily access services through Android/iOS phones.',
+      action: 'mobileApplication',
+      priceImpact: PROJECT_PRICING.mobileApplication,
+    }))
+  }
+
+  const customCandidates = [
+    {
+      id: 'suggest-notifications',
+      name: 'WhatsApp / SMS notifications',
+      match: /alert|notify|notification|customer|booking|order|appointment|status|delivery/,
+      description: 'Send important status updates or reminders to users instead of requiring them to keep checking the system.',
+      impact: 'Improves follow-up and reduces missed updates, especially for users who are already comfortable with messaging channels.',
+    },
+    {
+      id: 'suggest-analytics',
+      name: 'Analytics and reporting',
+      match: /report|analytics|data|performance|sales|usage|monitor|dashboard|decision/,
+      description: 'Add simple reporting so the client can see activity, trends and operational results.',
+      impact: 'Makes the system more useful for management decisions because the client can see what is happening instead of only storing data.',
+    },
+    {
+      id: 'suggest-roles',
+      name: 'Role-based user access',
+      match: /staff|teacher|student|employee|admin|manager|organization|organisation|school|team|department/,
+      description: 'Give different users the right level of access based on their role.',
+      impact: 'Improves security and makes workflows clearer when several people or departments use the same platform.',
+    },
+    {
+      id: 'suggest-offline',
+      name: 'Offline-friendly workflow',
+      match: /offline|field|rural|farm|farmer|unstable|internet|connectivity|remote/,
+      description: 'Design critical tasks to tolerate weak connectivity and synchronize when the connection returns.',
+      impact: 'Makes the product more reliable in real operating conditions where mobile data can be weak or inconsistent.',
+    },
+  ]
+
+  for (const candidate of customCandidates) {
+    if (ideas.length >= 4) break
+    if (!candidate.match.test(text) || hasFeature(selection, candidate.name)) continue
+
+    ideas.push(makeImprovement(quotation, {
+      id: candidate.id,
+      title: candidate.name,
+      description: candidate.description,
+      impact: candidate.impact,
+      action: 'customFeature',
+      featureName: candidate.name,
+      priceImpact: PROJECT_PRICING.additionalFeature,
+    }))
+  }
+
+  return ideas.slice(0, 4)
+}
+
 export function quotationSummary(selection: ProjectQuoteSelection, quotation: ProjectQuotation) {
   const priced = quotation.lineItems
-    .map(item => `- ${item.label}: ${item.amount === null ? 'Custom quotation' : formatZmw(item.amount)}\n  Reason: ${item.reason}`)
+    .map(item =>
+      `- ${item.label}: ${item.amount === null ? 'Custom quotation' : formatZmw(item.amount)}\n  Reason: ${item.reason}\n  Client impact: ${item.impact}`
+    )
     .join('\n')
 
   return [
@@ -175,12 +342,21 @@ export function fallbackQuoteExplanation(selection: ProjectQuoteSelection, quota
 
   const lines = quotation.lineItems.map(item => {
     const price = item.amount === null ? 'custom quotation' : formatZmw(item.amount)
-    return `${item.label} is ${price} because ${item.reason.charAt(0).toLowerCase()}${item.reason.slice(1)}`
+    return `${item.label} is ${price} because ${item.reason.charAt(0).toLowerCase()}${item.reason.slice(1)} Its practical impact is: ${item.impact}`
   })
+
+  const ideas = projectImprovementIdeas(selection, quotation)
+  const ideaText = ideas.length
+    ? `\n\nPossible improvements:\n${ideas
+        .map(idea =>
+          `- ${idea.title}: +${formatZmw(idea.priceImpact)}; new known total ${formatZmw(idea.newKnownTotal)}; upfront increases by ${formatZmw(idea.upfrontImpact)}. ${idea.impact}`
+        )
+        .join('\n')}`
+    : ''
 
   const customNote = quotation.hasCustomPricing
     ? ' The IoT portion stays custom until the hardware, sensors, connectivity and quantity are clear.'
     : ''
 
-  return `${lines.join(' ')} The current known total is ${formatZmw(quotation.knownTotal)}. The upfront payment is 35%, which is ${formatZmw(quotation.upfrontAmount)}, leaving ${formatZmw(quotation.balanceAmount)} as the remaining 65% balance.${customNote}`
+  return `${lines.join(' ')} The current known total is ${formatZmw(quotation.knownTotal)}. The upfront payment is 35%, which is ${formatZmw(quotation.upfrontAmount)}, leaving ${formatZmw(quotation.balanceAmount)} as the remaining 65% balance.${customNote}${ideaText}`
 }
