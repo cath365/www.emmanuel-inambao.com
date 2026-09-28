@@ -12,6 +12,10 @@ export interface ProjectQuoteSelection {
   iotDetails: string
   customFeatures: string[]
   projectDescription: string
+  clientGoal?: string
+  targetUsers?: string
+  currentProcess?: string
+  successOutcome?: string
   timeline: ProjectTimeline
 }
 
@@ -53,6 +57,24 @@ export interface ProjectImprovement {
   priceImpact: number
   upfrontImpact: number
   newKnownTotal: number
+}
+
+export type ImpactLevel = 'High' | 'Medium' | 'Low'
+
+export interface ImprovementImpactProfile {
+  operations: ImpactLevel
+  customerExperience: ImpactLevel
+  automation: ImpactLevel
+}
+
+export interface ScopeOption {
+  id: 'core' | 'recommended' | 'growth'
+  title: string
+  description: string
+  total: number
+  upfront: number
+  addedInvestment: number
+  additions: string[]
 }
 
 export const PROJECT_PRICING = {
@@ -200,7 +222,14 @@ export function projectImprovementIdeas(
   selection: ProjectQuoteSelection,
   quotation = buildProjectQuotation(selection)
 ): ProjectImprovement[] {
-  const text = `${selection.projectDescription} ${selection.iotDetails}`.toLowerCase()
+  const text = [
+    selection.projectDescription,
+    selection.clientGoal,
+    selection.targetUsers,
+    selection.currentProcess,
+    selection.successOutcome,
+    selection.iotDetails,
+  ].filter(Boolean).join(' ').toLowerCase()
   const ideas: ProjectImprovement[] = []
 
   if (
@@ -338,6 +367,86 @@ export function projectImprovementIdeas(
   return ideas.slice(0, 4)
 }
 
+export function improvementImpactProfile(idea: ProjectImprovement): ImprovementImpactProfile {
+  switch (idea.action) {
+    case 'adminDashboard':
+      return { operations: 'High', customerExperience: 'Medium', automation: 'High' }
+    case 'paymentIntegration':
+      return { operations: 'High', customerExperience: 'High', automation: 'High' }
+    case 'ecommerce':
+      return { operations: 'Medium', customerExperience: 'High', automation: 'Medium' }
+    case 'mobileApplication':
+      return { operations: 'Medium', customerExperience: 'High', automation: 'Medium' }
+    case 'customFeature':
+    default: {
+      const name = (idea.featureName || idea.title).toLowerCase()
+      if (/analytics|report/.test(name)) {
+        return { operations: 'High', customerExperience: 'Low', automation: 'Medium' }
+      }
+      if (/role|access|permission/.test(name)) {
+        return { operations: 'High', customerExperience: 'Low', automation: 'Medium' }
+      }
+      if (/offline/.test(name)) {
+        return { operations: 'High', customerExperience: 'High', automation: 'Medium' }
+      }
+      if (/sms|whatsapp|notification/.test(name)) {
+        return { operations: 'Medium', customerExperience: 'High', automation: 'High' }
+      }
+      return { operations: 'Medium', customerExperience: 'Medium', automation: 'Medium' }
+    }
+  }
+}
+
+export function buildScopeOptions(
+  selection: ProjectQuoteSelection,
+  quotation = buildProjectQuotation(selection)
+): ScopeOption[] {
+  const ideas = projectImprovementIdeas(selection, quotation)
+  const highImpact = ideas.filter(idea => idea.stage === 'High-impact improvement')
+  const later = ideas.filter(idea => idea.stage === 'Later phase')
+
+  const highImpactTotal = highImpact.reduce((sum, idea) => sum + idea.priceImpact, 0)
+  const laterTotal = later.reduce((sum, idea) => sum + idea.priceImpact, 0)
+
+  const core: ScopeOption = {
+    id: 'core',
+    title: 'Core launch',
+    description: 'The selected scope needed to launch the project without automatically adding optional improvements.',
+    total: quotation.knownTotal,
+    upfront: quotation.upfrontAmount,
+    addedInvestment: 0,
+    additions: [],
+  }
+
+  const recommendedTotal = quotation.knownTotal + highImpactTotal
+  const recommended: ScopeOption = {
+    id: 'recommended',
+    title: 'Recommended',
+    description: highImpact.length
+      ? 'Adds the improvements most directly connected to reducing friction, manual work or operational gaps identified from the project description.'
+      : 'The current scope already covers the strongest deterministic improvements identified from the information provided.',
+    total: recommendedTotal,
+    upfront: recommendedTotal * PROJECT_PRICING.upfrontRate,
+    addedInvestment: highImpactTotal,
+    additions: highImpact.map(idea => idea.title),
+  }
+
+  const growthTotal = recommendedTotal + laterTotal
+  const growth: ScopeOption = {
+    id: 'growth',
+    title: 'Growth phase',
+    description: later.length
+      ? 'Adds useful expansion features that can be introduced after the core system is validated with real users.'
+      : 'No additional later-phase feature is currently triggered by the project information provided.',
+    total: growthTotal,
+    upfront: growthTotal * PROJECT_PRICING.upfrontRate,
+    addedInvestment: highImpactTotal + laterTotal,
+    additions: [...highImpact, ...later].map(idea => idea.title),
+  }
+
+  return [core, recommended, growth]
+}
+
 export function quotationSummary(selection: ProjectQuoteSelection, quotation: ProjectQuotation) {
   const priced = quotation.lineItems
     .map(item =>
@@ -359,6 +468,10 @@ export function quotationSummary(selection: ProjectQuoteSelection, quotation: Pr
     `Mobile platform: ${selection.mobileApplication ? selection.mobilePlatform : 'Not applicable'}`,
     `Timeline: ${selection.timeline}`,
     `Project description: ${selection.projectDescription || 'Not provided'}`,
+    `Client goal: ${selection.clientGoal || 'Not provided'}`,
+    `Target users: ${selection.targetUsers || 'Not provided'}`,
+    `Current process: ${selection.currentProcess || 'Not provided'}`,
+    `Success outcome: ${selection.successOutcome || 'Not provided'}`,
     selection.iotIntegration ? `IoT details: ${selection.iotDetails || 'Not provided'}` : '',
   ]
     .filter(Boolean)
