@@ -146,6 +146,8 @@ export default function StartProjectPage() {
   const [step, setStep] = useState<Step>('deliverables')
   const [aiQuestion, setAiQuestion] = useState('How can this project be improved, and what will each improvement change?')
   const [aiAnswer, setAiAnswer] = useState('')
+  const [aiProvider, setAiProvider] = useState<'groq' | 'pricing-engine' | 'unavailable' | ''>('')
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
@@ -269,6 +271,7 @@ export default function StartProjectPage() {
     if (!question) return
     setAiLoading(true)
     setAiAnswer('')
+    setAiProvider('')
 
     try {
       const response = await fetch('/api/ai/project-quote', {
@@ -279,7 +282,11 @@ export default function StartProjectPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Unable to answer')
       setAiAnswer(data.response)
+      setAiProvider(data.provider === 'groq' ? 'groq' : 'pricing-engine')
+      setAiConfigured(typeof data.groqConfigured === 'boolean' ? data.groqConfigured : null)
     } catch {
+      setAiProvider('unavailable')
+      setAiConfigured(false)
       setAiAnswer(
         'I could not reach the AI service right now. The displayed prices are still calculated by the fixed portfolio pricing engine and remain valid for this preliminary quotation.'
       )
@@ -377,6 +384,8 @@ export default function StartProjectPage() {
     setClient(DEFAULT_CLIENT)
     setStep('deliverables')
     setAiAnswer('')
+    setAiProvider('')
+    setAiConfigured(null)
     setAiQuestion('How can this project be improved, and what will each improvement change?')
     setFeatureDraft('')
     setQuoteId('')
@@ -862,9 +871,31 @@ export default function StartProjectPage() {
                     </button>
                   </div>
                   {aiAnswer && (
-                    <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[#566273] dark:text-dark-300">
-                      {aiAnswer}
-                    </p>
+                    <div className="mt-4">
+                      <div className="mb-3 flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                          aiProvider === 'groq'
+                            ? 'border-green-500/25 bg-green-500/10 text-green-700 dark:text-green-300'
+                            : aiProvider === 'pricing-engine'
+                              ? 'border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                              : 'border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-300'
+                        }`}>
+                          {aiProvider === 'groq'
+                            ? 'AI strategist active'
+                            : aiProvider === 'pricing-engine'
+                              ? 'Built-in value engine'
+                              : 'AI service unavailable'}
+                        </span>
+                        {aiConfigured === false && (
+                          <span className="text-xs text-[#7A8491] dark:text-dark-500">
+                            GROQ_API_KEY is not available to this deployment, so the deterministic value engine is answering instead.
+                          </span>
+                        )}
+                      </div>
+                      <p className="whitespace-pre-line text-sm leading-7 text-[#566273] dark:text-dark-300">
+                        {aiAnswer}
+                      </p>
+                    </div>
                   )}
                 </div>
 
