@@ -8,12 +8,12 @@ import TestimonialForm from '@/components/ui/TestimonialForm'
 import Image from 'next/image'
 
 export default function Testimonials() {
-  const { approvedTestimonials, testimonials } = useTestimonials()
+  const { approvedTestimonials } = useTestimonials()
   const [activeVideo, setActiveVideo] = useState<string | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  // Use approved testimonials for display, fall back to all testimonials for backward compat
-  const allVisible = approvedTestimonials.length > 0 ? approvedTestimonials : testimonials.filter(t => !('status' in t) || t.status !== 'rejected')
+  // Pending/rejected submissions must never appear in the public carousel.
+  const allVisible = approvedTestimonials
   const featuredTestimonials = allVisible.filter(t => t.featured)
   const displayTestimonials = featuredTestimonials.length > 0 ? featuredTestimonials : allVisible
 
@@ -83,15 +83,15 @@ export default function Testimonials() {
               <div className="flex flex-col md:flex-row gap-4 sm:gap-8 items-center">
                 {/* Video or Image */}
                 <div className="w-full md:w-1/3 flex-shrink-0">
-                  {displayTestimonials[currentIndex].video ? (
+                  {displayTestimonials[currentIndex % displayTestimonials.length].video ? (
                     <div 
                       className="relative aspect-video rounded-xl overflow-hidden bg-dark-700 cursor-pointer group"
-                      onClick={() => setActiveVideo(displayTestimonials[currentIndex].video!)}
+                      onClick={() => setActiveVideo(displayTestimonials[currentIndex % displayTestimonials.length].video!)}
                     >
-                      {displayTestimonials[currentIndex].image ? (
+                      {displayTestimonials[currentIndex % displayTestimonials.length].image ? (
                         <Image
-                          src={displayTestimonials[currentIndex].image!}
-                          alt={displayTestimonials[currentIndex].name}
+                          src={displayTestimonials[currentIndex % displayTestimonials.length].image!}
+                          alt={displayTestimonials[currentIndex % displayTestimonials.length].name}
                           fill
                           className="object-cover"
                         />
@@ -104,11 +104,11 @@ export default function Testimonials() {
                         </div>
                       </div>
                     </div>
-                  ) : displayTestimonials[currentIndex].image ? (
+                  ) : displayTestimonials[currentIndex % displayTestimonials.length].image ? (
                     <div className="aspect-square rounded-xl overflow-hidden bg-dark-700">
                       <Image
-                        src={displayTestimonials[currentIndex].image}
-                        alt={displayTestimonials[currentIndex].name}
+                        src={displayTestimonials[currentIndex % displayTestimonials.length].image!}
+                        alt={displayTestimonials[currentIndex % displayTestimonials.length].name}
                         width={300}
                         height={300}
                         className="w-full h-full object-cover"
@@ -125,7 +125,7 @@ export default function Testimonials() {
                 <div className="flex-1">
                   <Quote className="w-10 h-10 text-primary-500/30 mb-4" />
                   <p className="text-lg md:text-xl text-dark-200 leading-relaxed mb-6">
-                    {displayTestimonials[currentIndex].content}
+                    {displayTestimonials[currentIndex % displayTestimonials.length].content}
                   </p>
                   
                   {/* Rating */}
@@ -134,7 +134,7 @@ export default function Testimonials() {
                       <Star
                         key={i}
                         className={`w-5 h-5 ${
-                          i < displayTestimonials[currentIndex].rating
+                          i < displayTestimonials[currentIndex % displayTestimonials.length].rating
                             ? 'text-yellow-500 fill-yellow-500'
                             : 'text-dark-600'
                         }`}
@@ -144,13 +144,13 @@ export default function Testimonials() {
 
                   <div>
                     <p className="text-white font-semibold text-lg">
-                      {displayTestimonials[currentIndex].name}
+                      {displayTestimonials[currentIndex % displayTestimonials.length].name}
                     </p>
                     <p className="text-primary-400">
-                      {displayTestimonials[currentIndex].position}
+                      {displayTestimonials[currentIndex % displayTestimonials.length].position}
                     </p>
                     <p className="text-dark-400 text-sm">
-                      {displayTestimonials[currentIndex].company}
+                      {displayTestimonials[currentIndex % displayTestimonials.length].company}
                     </p>
                   </div>
                 </div>
@@ -195,9 +195,9 @@ export default function Testimonials() {
         </div>
 
         {/* All Testimonials Grid */}
-        {testimonials.length > 3 && (
+        {allVisible.length > 3 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
-            {testimonials.slice(0, 6).map((testimonial, index) => (
+            {allVisible.slice(0, 6).map((testimonial, index) => (
               <motion.div
                 key={testimonial.id}
                 initial={{ opacity: 0, y: 20 }}

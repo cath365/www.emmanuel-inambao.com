@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
@@ -283,7 +285,7 @@ export default function StartProjectPage() {
     setQuoteId(id)
 
     try {
-      const leadResponse = await fetch('/api/service-inquiry', {
+      const leadResponse = await submitPortfolioForm('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -300,7 +302,7 @@ export default function StartProjectPage() {
 
       const leadResult = await leadResponse.json().catch(() => ({}))
 
-      if (!leadResponse.ok) {
+      if (!leadResponse.ok || !leadResult.success) {
         throw new Error(leadResult.error || 'The quotation could not be delivered to Emmanuel.')
       }
 

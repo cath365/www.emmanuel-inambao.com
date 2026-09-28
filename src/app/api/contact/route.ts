@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
-function getPrivateBlobToken() {
-  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
-  if (!token) {
-    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
-  }
-  return token
-}
+import { updatePrivateJson } from '@/lib/blob-json'
+import { submissionResponse } from '@/lib/notifications'
 
 export const runtime = 'nodejs'
 
@@ -24,32 +18,8 @@ interface StoredLead {
   status: 'new' | 'contacted' | 'closed'
 }
 
-async function readLeads(): Promise<StoredLead[]> {
-  try {
-    const { blobs } = await list({ prefix: LEADS_BLOB_PATH, token: getPrivateBlobToken() })
-    if (blobs.length === 0) return []
-
-    const response = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
-      cache: 'no-store',
-    })
-
-    if (!response.ok) return []
-    return await response.json()
-  } catch (error) {
-    console.error('Contact lead read failed:', error)
-    return []
-  }
-}
-
 async function saveLead(lead: StoredLead) {
-  const existing = await readLeads()
-  await put(LEADS_BLOB_PATH, JSON.stringify([lead, ...existing]), {
-    access: 'private',
-    token: getPrivateBlobToken(),
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  })
+  await updatePrivateJson<StoredLead[]>(LEADS_BLOB_PATH, [], existing => [lead, ...existing])
 }
 
 export async function POST(request: NextRequest) {
@@ -77,7 +47,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Message received.' })
     }
 
-    if (!name || !email || !message) {
+    if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' || typeof message !== 'string' || !message.trim() || name.length > 200 || email.length > 254 || message.length > 20000) {
       return NextResponse.json(
         { error: 'Name, email, and message are required.' },
         { status: 400 }
@@ -91,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const submittedAt = new Date().toISOString()
     const lead: StoredLead = {
-      id: `contact-${Date.now()}`,
+      id: `contact-${crypto.randomUUID()}`,
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       service: subject ? `Contact Form: ${String(subject)}` : 'Contact Form',
@@ -108,85 +78,11 @@ export async function POST(request: NextRequest) {
       console.error('Contact message storage failed:', storageError)
     }
 
-    const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
-    const FORMSPREE_ID = process.env.FORMSPREE_ID
-    let emailSent = false
-
-    if (WEB3FORMS_KEY) {
-      try {
-        const response = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            name,
-            email,
-            subject: subject || 'New Portfolio Contact',
-            message,
-            from_name: 'Portfolio Contact Form',
-            replyto: email,
-          }),
-        })
-
-        if (response.ok) {
-          const result = await response.json().catch(() => null)
-          emailSent = result?.success === true
-        }
-      } catch (error) {
-        console.error('Web3Forms failed:', error)
-      }
-    }
-
-    if (FORMSPREE_ID && !emailSent) {
-      try {
-        const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            subject: subject || 'New Portfolio Contact',
-            message,
-            _subject: `Portfolio Contact: ${subject || 'New Message'}`,
-          }),
-        })
-
-        emailSent = response.ok
-      } catch (error) {
-        console.error('Formspree failed:', error)
-      }
-    }
-
-    console.log('Contact form submission:', {
-      name,
-      email,
-      subject,
-      submittedAt,
-      saved,
-      emailSent,
-    })
-
-    if (!saved && !emailSent) {
-      return NextResponse.json(
-        { error: 'Your message could not be saved or delivered. Please use the direct email or WhatsApp option.' },
-        { status: 503 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      saved,
-      emailSent,
-      message: emailSent
-        ? 'Message received and notification sent.'
-        : 'Message received and saved successfully.',
-    })
+    return submissionResponse(saved, {
+      name: lead.name, email: lead.email,
+      subject: lead.service,
+      message: `Name: ${lead.name}\nEmail: ${lead.email}\n\n${lead.details}`,
+    }, 'Thank you. Your message has been received.')
   } catch (error) {
     console.error('Contact form error:', error)
     return NextResponse.json(

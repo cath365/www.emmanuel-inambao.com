@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '@/lib/i18n'
@@ -128,7 +130,7 @@ export default function BookingScheduler({ floatingVisible = true }: { floatingV
     
     try {
       // Send booking to API
-      const response = await fetch('/api/booking', {
+      const response = await submitPortfolioForm('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -136,7 +138,7 @@ export default function BookingScheduler({ floatingVisible = true }: { floatingV
       
       const result = await response.json()
 
-      if (!response.ok) {
+      if (!response.ok || !result.success) {
         throw new Error(result.error || 'Booking failed')
       }
 
@@ -145,6 +147,7 @@ export default function BookingScheduler({ floatingVisible = true }: { floatingV
     } catch (error) {
       console.error('Booking error:', error)
       alert('Failed to book. Please try again.')
+      return
     } finally {
       setIsSubmitting(false)
     }
@@ -265,12 +268,12 @@ export default function BookingScheduler({ floatingVisible = true }: { floatingV
                       </svg>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-2">
-                      {language === 'ar' ? 'تم تأكيد الحجز!' : 'Booking Confirmed!'}
+                      {language === 'ar' ? 'تم استلام طلب الحجز' : 'Booking Request Received'}
                     </h3>
                     <p className="text-gray-400">
                       {language === 'ar' 
-                        ? 'ستتلقى رسالة تأكيد بالبريد الإلكتروني قريباً'
-                        : "You'll receive a confirmation email shortly"}
+                        ? 'سيتواصل إيمانويل معك لتأكيد الموعد'
+                        : "Emmanuel will follow up to confirm availability."}
                     </p>
                   </motion.div>
                 ) : step === 1 ? (

@@ -49,9 +49,10 @@ export default function CaseStudyManager() {
     try {
       const response = await fetch('/api/portfolio-data?key=caseStudies', { cache: 'no-store' })
       const payload = await response.json()
+      if (!response.ok) throw new Error(payload?.error || 'Unable to load published case studies.')
       setSavedStudies(Array.isArray(payload) ? payload : [])
-    } catch {
-      setSavedStudies([])
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Unable to load published case studies.')
     }
   }
 
@@ -104,7 +105,7 @@ export default function CaseStudyManager() {
       setMessage(
         payload.source === 'groq'
           ? 'Groq AI draft generated from the saved project data. Review it before publishing.'
-          : 'Draft generated from the saved project data. The AI provider was unavailable, so the evidence-based local generator was used.'
+          : (payload.warning || 'The AI provider was unavailable. A local draft was generated from your project data.')
       )
     } catch {
       setMessage('Could not generate the case study.')
@@ -132,7 +133,10 @@ export default function CaseStudyManager() {
     setBusy(true)
     setMessage('Publishing case study…')
     try {
-      const next = [...savedStudies.filter(item => item.slug !== study.slug), study]
+      const currentResponse = await fetch('/api/portfolio-data?key=caseStudies', { cache: 'no-store' })
+      const current = await currentResponse.json()
+      if (!currentResponse.ok) throw new Error(current?.error || 'Unable to read published studies. Your draft is still here.')
+      const next = [...(Array.isArray(current) ? current : []).filter((item: CaseStudy) => item.slug !== study.slug), study]
       const response = await fetch('/api/portfolio-data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -150,8 +154,8 @@ export default function CaseStudyManager() {
       setSavedStudies(next)
       setDraft(study)
       setMessage('Case study published. It is now available on the public case-study pages.')
-    } catch {
-      setMessage('The case study could not be saved.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'The case study could not be saved. Your draft is still here.')
     } finally {
       setBusy(false)
     }
@@ -214,7 +218,7 @@ export default function CaseStudyManager() {
           />
           <span className="text-dark-300">
             {groqStatus === 'connected'
-              ? 'Groq AI connected'
+              ? 'Groq API key configured (availability checked when generating)'
               : groqStatus === 'missing'
                 ? 'Groq API key not detected — local evidence-based fallback is active'
                 : 'Checking Groq AI configuration…'}

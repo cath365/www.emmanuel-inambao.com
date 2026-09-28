@@ -1,151 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import { cloudinaryConfig } from '@/lib/cloudinary-config'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
-function configureCloudinary(): boolean {
-  const cloudinaryUrl = process.env.CLOUDINARY_URL?.trim()
+export const runtime = 'nodejs'
 
-  if (cloudinaryUrl) {
-    try {
-      const parsed = new URL(cloudinaryUrl)
-      const cloudName = parsed.hostname
-      const apiKey = decodeURIComponent(parsed.username)
-      const apiSecret = decodeURIComponent(parsed.password)
-
-      if (!cloudName || !apiKey || !apiSecret) return false
-
-      cloudinary.config({
-        cloud_name: cloudName,
-        api_key: apiKey,
-        api_secret: apiSecret,
-        secure: true,
-      })
-      return true
-    } catch (error) {
-      console.error('Invalid CLOUDINARY_URL configuration:', error)
-      return false
-    }
-  }
-
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim()
-  const apiKey = process.env.CLOUDINARY_API_KEY?.trim()
-  const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim()
-
-  if (!cloudName || !apiKey || !apiSecret) return false
-
-  cloudinary.config({
-    cloud_name: cloudName,
-    api_key: apiKey,
-    api_secret: apiSecret,
-    secure: true,
-  })
-  return true
-}
-
-// Rate limiting for public uploads (stricter)
-const uploadAttempts = new Map<string, { count: number; resetTime: number }>()
-const MAX_UPLOADS_PER_HOUR = 5
-
-function getClientIP(request: NextRequest): string {
-  return request.headers.get('x-forwarded-for')?.split(',')[0] || 
-         request.headers.get('x-real-ip') || 
-         'unknown'
-}
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const record = uploadAttempts.get(ip)
-  
-  if (!record || now > record.resetTime) {
-    uploadAttempts.set(ip, { count: 1, resetTime: now + 3600000 }) // 1 hour
-    return true
-  }
-  
-  if (record.count >= MAX_UPLOADS_PER_HOUR) {
-    return false
-  }
-  
-  record.count++
-  return true
-}
-
+// Only signs a scoped upload. File bytes go from the browser to Cloudinary.
 export async function POST(request: NextRequest) {
-  try {
-    // Check rate limiting (stricter for public)
-    const ip = getClientIP(request)
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'Upload limit reached. Please try again later.' },
-        { status: 429 }
-      )
-    }
-
-    // Accept either the standard CLOUDINARY_URL or separate Cloudinary credentials.
-    if (!configureCloudinary()) {
-      return NextResponse.json(
-        { error: 'Upload service not configured' },
-        { status: 503 }
-      )
-    }
-
-    const formData = await request.formData()
-    const file = formData.get('file') as File | null
-    const type = formData.get('type') as string
-
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-    }
-
-    // Only allow testimonial uploads from public endpoint
-    if (type !== 'testimonials' && type !== 'testimonial-video') {
-      return NextResponse.json({ error: 'Invalid upload type' }, { status: 400 })
-    }
-
-    // Validate file type - only videos and images for testimonials
-    const allowedTypes = [
-      'video/webm', 'video/mp4', 'video/quicktime', 'video/x-msvideo',
-      'image/jpeg', 'image/png', 'image/webp', 'image/gif'
-    ]
-    
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Please use video or image format.' },
-        { status: 400 }
-      )
-    }
-
-    // Max 50MB for public uploads
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: 'File too large. Maximum size is 50MB' },
-        { status: 400 }
-      )
-    }
-
-    // Convert to base64
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const base64 = buffer.toString('base64')
-    const dataURI = `data:${file.type};base64,${base64}`
-
-    // Upload to testimonials folder
-    const isVideo = file.type.startsWith('video/')
-    const resourceType = isVideo ? 'video' : 'image'
-    
-    const uploadResult = await cloudinary.uploader.upload(dataURI, {
-      folder: 'portfolio/testimonials',
-      public_id: `testimonial-${Date.now()}`,
-      resource_type: resourceType,
-    })
-
-    return NextResponse.json({
-      success: true,
-      url: uploadResult.secure_url,
-    })
-  } catch (error) {
-    console.error('Public upload error:', error)
-    return NextResponse.json(
-      { error: 'Upload failed. Please try again.' },
-      { status: 500 }
-    )
+  const origin = request.headers.get('origin')
+  if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: 'Invalid origin.' }, { status: 403 })
+  if (!rateLimit(`testimonial-upload:${getClientIP(request)}`, 10, 60 * 60 * 1000).allowed) {
+    return NextResponse.json({ error: 'Upload limit reached. Please try again later.' }, { status: 429 })
   }
+  const body = await request.json().catch(() => null)
+  const type = typeof body?.type === 'string' ? body.type.split(';')[0].toLowerCase() : ''
+  const isVideo = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'].includes(type)
+  const isImage = ['image/jpeg', 'image/png', 'image/webp'].includes(type)
+  if ((!isVideo && !isImage) || !Number.isFinite(body?.size) || body.size <= 0) {
+    return NextResponse.json({ error: 'Choose an MP4, WebM, MOV video or JPG, PNG, WebP photo.' }, { status: 400 })
+  }
+  if (body.size > (isVideo ? 50 : 5) * 1024 * 1024) return NextResponse.json({ error: isVideo ? 'Video must be under 50MB.' : 'Photo must be under 5MB.' }, { status: 400 })
+  const config = cloudinaryConfig()
+  if (!config) return NextResponse.json({ error: 'Video and photo uploads are temporarily unavailable. Please use a written testimonial.' }, { status: 503 })
+  const params = {
+    timestamp: Math.floor(Date.now() / 1000),
+    public_id: `portfolio/testimonials/${crypto.randomUUID()}`,
+    overwrite: false,
+    allowed_formats: isVideo ? 'mp4,webm,mov,avi' : 'jpg,jpeg,png,webp',
+  }
+  return NextResponse.json({
+    uploadUrl: `https://api.cloudinary.com/v1_1/${config.cloudName}/${isVideo ? 'video' : 'image'}/upload`,
+    apiKey: config.apiKey, params,
+    signature: cloudinary.utils.api_sign_request(params, config.apiSecret),
+  }, { headers: { 'Cache-Control': 'no-store' } })
 }

@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -265,7 +267,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
 
     // Save server-side via API (stores in Vercel Blob + sends email)
     try {
-      const response = await fetch('/api/booking', {
+      const response = await submitPortfolioForm('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -282,7 +284,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
         }),
       })
 
-      if (!response.ok) return false
+      if (!response.ok || !(await response.json()).success) return false
       trackEvent('/intent/booking', 'ai-chatbot')
       return true
     } catch (error) {
@@ -363,13 +365,13 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
 
     // Save server-side via API (stores in Vercel Blob + sends email)
     try {
-      const response = await fetch('/api/service-inquiry', {
+      const response = await submitPortfolioForm('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newLead),
       })
 
-      if (!response.ok) return false
+      if (!response.ok || !(await response.json()).success) return false
       trackEvent('/intent/service-inquiry', 'ai-chatbot')
       return true
     } catch (error) {
@@ -621,7 +623,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: ok
-          ? '🎉 Booking request received successfully. Emmanuel has been notified and the confirmation workflow has been started.'
+          ? '🎉 Booking request received successfully. Emmanuel will follow up to confirm availability.'
           : 'I could not submit the booking right now. Your details were not confirmed as saved. Please try again or use the contact option.',
         options: ok ? ['See projects', 'Contact info'] : ['Book a meeting', 'Contact info'],
       }])

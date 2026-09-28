@@ -11,7 +11,7 @@ Production portfolio for Emmanuel Inambao (Electronic Engineer, IoT & Robotics D
 | Styling | Tailwind CSS, Framer Motion |
 | Storage | Vercel Blob (`data/**`) |
 | Media CDN | Cloudinary |
-| Email | Web3Forms (primary) + Formspree (fallback) |
+| Email | Resend / Formspree on the server; Web3Forms in the browser |
 | Auth | Server-only, HMAC-signed session cookies (httpOnly + sameSite=lax + secure in prod) |
 | Analytics | Vercel Analytics + first-party visitor tracking in Blob |
 | Testing | Playwright (e2e) |
@@ -54,8 +54,11 @@ All secrets are server-side only. Never prefix with `NEXT_PUBLIC_` unless you wa
 | `BLOB_READ_WRITE_TOKEN` | prod | Public Vercel Blob (profile, projects, case studies, public portfolio data) |
 | `PRIVATE_BLOB_READ_WRITE_TOKEN` | prod | Private Vercel Blob (contact messages, newsletter, bookings, leads, analytics) |
 | `NEXT_PUBLIC_SITE_URL` | prod | Absolute URL for sitemap, OG, canonical tags |
-| `WEB3FORMS_ACCESS_KEY` | one of | Primary contact-form backend — https://web3forms.com |
-| `FORMSPREE_ID` | one of | Fallback contact-form backend — https://formspree.io |
+| `WEB3FORMS_ACCESS_KEY` | one of | Browser form-email fallback (intentionally public form key) — https://web3forms.com |
+| `FORMSPREE_ID` | one of | Server form-email fallback — https://formspree.io |
+| `RESEND_API_KEY` + `EMAIL_FROM` | optional | Server email with a verified sender domain |
+| `NOTIFICATION_EMAIL` | optional | Resend owner notification recipient |
+| `CLOUDINARY_URL` | media | Alternative to the three separate Cloudinary values |
 | `CLOUDINARY_CLOUD_NAME` | admin | Media uploader |
 | `CLOUDINARY_API_KEY` | admin | Media uploader |
 | `CLOUDINARY_API_SECRET` | admin | Media uploader |\n| `GROQ_API_KEY` | AI | Server-side Groq API key for client Q&A and case-study generation |\n| `GROQ_MODEL` | optional | Global Groq model override; defaults to `openai/gpt-oss-20b` |\n| `GROQ_CHAT_MODEL` | optional | Optional chat-specific Groq model override |\n| `GROQ_CASE_STUDY_MODEL` | optional | Optional case-study-specific Groq model override |
@@ -127,3 +130,18 @@ Personal portfolio — source available for reference, not licensed for reuse as
 **Emmanuel Inambao**
 Electronic Engineer · IoT & Robotics Developer · Full-Stack Systems Engineer
 Lusaka, Zambia · denuelinambao@gmail.com
+
+## Submission and publishing diagnostics
+
+In Admin, expand **Storage, email and video service status** and select **Check integrations**.
+This is read-only and does not send mail. A configured email service is not proof of inbox delivery.
+
+- `BLOB_READ_WRITE_TOKEN` must be from the **public** store; `PRIVATE_BLOB_READ_WRITE_TOKEN` must be from the **private** store. Set both for the production project, then redeploy after changes. Never swap the tokens or make visitor data public to work around errors.
+- Contact, inquiry and booking records and subscriber addresses stay in private Blob storage. Private reads use the Blob SDK with origin reads; conditional writes retry conflicts and never replace a failed read with an empty list.
+- Web3Forms rejects server-side proxying on some accounts. Public forms now submit its browser fallback directly after the local API validates the request. Only the intentionally public Web3Forms form key reaches the browser; other credentials stay server-only. The form verifies the provider's success response before reporting delivery.
+- Resend requires `RESEND_API_KEY` and `EMAIL_FROM` from a verified domain. The destination is `NOTIFICATION_EMAIL`, defaulting to the portfolio contact address. Formspree and Web3Forms deliver to the address configured in their dashboards. These are owner notifications; this patch does not create a newsletter campaign sender or promise client confirmation emails.
+- Client video/photo uploads go directly to Cloudinary using a server-signed, unique testimonial path. Limits shown in the UI are 50 MB per video and 5 MB per photo; Cloudinary account limits also apply. Keep Cloudinary account quotas and upload monitoring enabled. The public signing endpoint is rate limited per running instance.
+- Public testimonials are stored in `data/testimonial-submissions.json` as **pending**. Admin can review, approve or reject them; only approved records are returned to public visitors. Existing published testimonials are preserved. The form keeps input and uploaded media URLs available for retries when saving fails.
+- Case-study generation reports whether Groq or the local generator produced the draft. Publishing still requires a valid public Blob token; a failed publish keeps the draft open. The editor checks current stored studies before saving to avoid replacing data after a failed read.
+
+Verification: `npm run test:submissions`, `npx tsc --noEmit`, `npm run build`.

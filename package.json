@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "gen:icons": "node scripts/gen-icons.mjs",
-    "eval:ai": "node scripts/ai-eval.mjs"
+    "eval:ai": "node scripts/ai-eval.mjs",
+    "test:submissions": "node --test tests/submissions.test.cjs"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",

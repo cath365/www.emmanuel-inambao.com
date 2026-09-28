@@ -1,350 +1,175 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguage } from '@/lib/i18n'
-import { useTestimonials } from '@/lib/testimonials'
+import { submitPortfolioForm } from '@/lib/submit-form'
+import { uploadTestimonialMedia, MAX_VIDEO_BYTES } from '@/lib/testimonial-upload'
 
-interface TestimonialFormData {
-  name: string
-  email: string
-  role: string
-  company: string
-  content: string
-  rating: number
-  videoUrl?: string
-  imageUrl?: string
-}
+interface TestimonialFormData { name: string; email: string; role: string; company: string; content: string; rating: number }
 
 export default function TestimonialForm() {
   const { language, isRTL } = useLanguage()
-  const { addTestimonial } = useTestimonials()
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [hoveredStar, setHoveredStar] = useState(0)
   const [activeTab, setActiveTab] = useState<'text' | 'video'>('text')
-
-  // Video recording states
   const [isRecording, setIsRecording] = useState(false)
+  const [startingCamera, setStartingCamera] = useState(false)
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null)
   const [recordedUrl, setRecordedUrl] = useState<string | null>(null)
   const [recordingTime, setRecordingTime] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [cameraError, setCameraError] = useState<string | null>(null)
-
-  // File upload states
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [uploadedFilePreview, setUploadedFilePreview] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [videoMode, setVideoMode] = useState<'record' | 'upload'>('upload')
-
   const videoRef = useRef<HTMLVideoElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
+  const cameraRequestRef = useRef(0)
+  const uploadedMediaRef = useRef(new WeakMap<Blob, string>())
+  const [formData, setFormData] = useState<TestimonialFormData>({ name: '', email: '', role: '', company: '', content: '', rating: 5 })
 
-  const [formData, setFormData] = useState<TestimonialFormData>({
-    name: '',
-    email: '',
-    role: '',
-    company: '',
-    content: '',
-    rating: 5,
-  })
-
-  // ===== Camera Recording Functions =====
-  const startCamera = useCallback(async () => {
-    try {
-      setCameraError(null)
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: true
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.muted = true
-        await videoRef.current.play()
-      }
-    } catch (err) {
-      console.error('Camera error:', err)
-      setCameraError('Could not access camera. Please allow camera permissions or upload a video file instead.')
-    }
-  }, [])
+  useEffect(() => () => { if (recordedUrl) URL.revokeObjectURL(recordedUrl) }, [recordedUrl])
+  useEffect(() => () => { if (uploadedFilePreview) URL.revokeObjectURL(uploadedFilePreview) }, [uploadedFilePreview])
+  useEffect(() => () => { if (photoPreview) URL.revokeObjectURL(photoPreview) }, [photoPreview])
 
   const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop())
-      streamRef.current = null
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null
-    }
+    cameraRequestRef.current++
+    streamRef.current?.getTracks().forEach(track => track.stop())
+    streamRef.current = null
+    if (videoRef.current) videoRef.current.srcObject = null
   }, [])
-
-  const startRecording = useCallback(() => {
-    if (!streamRef.current) return
-
-    chunksRef.current = []
-    const mimeTypes = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
-    let selectedMimeType = ''
-    for (const mimeType of mimeTypes) {
-      if (MediaRecorder.isTypeSupported(mimeType)) {
-        selectedMimeType = mimeType
-        break
-      }
-    }
-
-    const options: MediaRecorderOptions = {}
-    if (selectedMimeType) options.mimeType = selectedMimeType
-
-    const mediaRecorder = new MediaRecorder(streamRef.current, options)
-
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data)
-    }
-
-    mediaRecorder.onstop = () => {
-      const mimeType = selectedMimeType || 'video/webm'
-      const blob = new Blob(chunksRef.current, { type: mimeType })
-      setRecordedBlob(blob)
-      const url = URL.createObjectURL(blob)
-      setRecordedUrl(url)
-      stopCamera()
-    }
-
-    mediaRecorderRef.current = mediaRecorder
-    mediaRecorder.start(1000)
-    setIsRecording(true)
-    setRecordingTime(0)
-
-    timerRef.current = setInterval(() => {
-      setRecordingTime(prev => {
-        if (prev >= 120) {
-          stopRecording()
-          return prev
-        }
-        return prev + 1
-      })
-    }, 1000)
-  }, [stopCamera])
-
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop()
-    }
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    const recorder = mediaRecorderRef.current
+    if (recorder && recorder.state !== 'inactive') recorder.stop()
     setIsRecording(false)
   }, [])
-
-  const resetRecording = useCallback(() => {
-    if (recordedUrl) URL.revokeObjectURL(recordedUrl)
-    setRecordedBlob(null)
-    setRecordedUrl(null)
-    setRecordingTime(0)
-    startCamera()
-  }, [recordedUrl, startCamera])
-
-  // ===== File Upload Functions =====
-  const handleVideoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Validate
-    const allowedTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo']
-    if (!allowedTypes.includes(file.type)) {
-      alert('Please upload a video file (MP4, WebM, MOV, or AVI)')
-      return
-    }
-    if (file.size > 100 * 1024 * 1024) {
-      alert('Video file must be under 100MB')
-      return
-    }
-
-    setUploadedFile(file)
-    const url = URL.createObjectURL(file)
-    setUploadedFilePreview(url)
-    // Clear any recorded video
-    if (recordedUrl) URL.revokeObjectURL(recordedUrl)
-    setRecordedBlob(null)
-    setRecordedUrl(null)
-  }
-
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
-      alert('Please upload an image (JPG, PNG, or WebP)')
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Photo must be under 5MB')
-      return
-    }
-
-    setPhotoFile(file)
-    const url = URL.createObjectURL(file)
-    setPhotoPreview(url)
-  }
-
-  const removeUploadedVideo = () => {
-    if (uploadedFilePreview) URL.revokeObjectURL(uploadedFilePreview)
-    setUploadedFile(null)
-    setUploadedFilePreview(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
-  // ===== Upload to Cloudinary =====
-  const uploadFileToCloud = async (file: File | Blob, type: string): Promise<string | null> => {
-    setIsUploading(true)
-    setUploadProgress(0)
-
-    try {
-      const uploadFormData = new FormData()
-      const fileName = file instanceof File ? file.name : `testimonial-${Date.now()}.webm`
-      uploadFormData.append('file', file, fileName)
-      uploadFormData.append('type', type)
-
-      const response = await fetch('/api/upload/public', {
-        method: 'POST',
-        body: uploadFormData,
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Upload failed')
-      }
-
-      const result = await response.json()
-      setUploadProgress(100)
-      return result.url
-    } catch (error) {
-      console.error('Upload error:', error)
-      return null
-    } finally {
-      setIsUploading(false)
-    }
-  }
-
-  // ===== Submit Handler =====
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    try {
-      let videoUrl: string | undefined
-      let imageUrl: string | undefined
-
-      // Upload video (recorded or file)
-      const videoToUpload = recordedBlob || uploadedFile
-      if (videoToUpload) {
-        const uploaded = await uploadFileToCloud(videoToUpload, 'testimonials')
-        if (uploaded) videoUrl = uploaded
-      }
-
-      // Upload photo if provided
-      if (photoFile) {
-        const uploaded = await uploadFileToCloud(photoFile, 'testimonials')
-        if (uploaded) imageUrl = uploaded
-      }
-
-      // Send notification to admin via API
-      await fetch('/api/testimonials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          videoUrl,
-          photo: imageUrl,
-        }),
-      })
-
-      // Save testimonial directly to state (visible on the site immediately)
-      const newTestimonial = {
-        id: `testimonial-${Date.now()}`,
-        name: formData.name,
-        position: formData.role,
-        company: formData.company,
-        content: formData.content || (videoUrl ? `Video testimonial from ${formData.name}` : ''),
-        image: imageUrl,
-        video: videoUrl,
-        rating: formData.rating,
-        featured: false,
-        status: 'approved' as const,
-        submittedAt: new Date().toISOString(),
-      }
-
-      addTestimonial(newTestimonial)
-
-      setSubmitted(true)
-
-      // Cleanup
-      stopCamera()
-      if (recordedUrl) URL.revokeObjectURL(recordedUrl)
-      if (uploadedFilePreview) URL.revokeObjectURL(uploadedFilePreview)
-      if (photoPreview) URL.revokeObjectURL(photoPreview)
-
-      setTimeout(() => {
-        setIsOpen(false)
-        setSubmitted(false)
-        setRecordedBlob(null)
-        setRecordedUrl(null)
-        setUploadedFile(null)
-        setUploadedFilePreview(null)
-        setPhotoFile(null)
-        setPhotoPreview(null)
-        setActiveTab('text')
-        setVideoMode('upload')
-        setFormData({ name: '', email: '', role: '', company: '', content: '', rating: 5 })
-      }, 3000)
-    } catch (error) {
-      console.error('Testimonial error:', error)
-      alert('Failed to submit. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleTabChange = (tab: 'text' | 'video') => {
-    setActiveTab(tab)
-    if (tab === 'video' && videoMode === 'record' && !recordedUrl) {
-      startCamera()
-    } else if (tab === 'text') {
-      stopCamera()
-    }
-  }
-
-  const handleClose = () => {
-    stopCamera()
+  const discardCamera = useCallback(() => {
+    const recorder = mediaRecorderRef.current
+    if (recorder) recorder.onstop = null
     stopRecording()
-    if (recordedUrl) URL.revokeObjectURL(recordedUrl)
-    if (uploadedFilePreview) URL.revokeObjectURL(uploadedFilePreview)
-    if (photoPreview) URL.revokeObjectURL(photoPreview)
-    setRecordedBlob(null)
-    setRecordedUrl(null)
-    setUploadedFile(null)
-    setUploadedFilePreview(null)
-    setPhotoFile(null)
-    setPhotoPreview(null)
-    setIsOpen(false)
-  }
+    stopCamera()
+    setStartingCamera(false)
+  }, [stopCamera, stopRecording])
+  useEffect(() => () => {
+    cameraRequestRef.current++
+    if (timerRef.current) clearInterval(timerRef.current)
+    const recorder = mediaRecorderRef.current
+    if (recorder) { recorder.onstop = null; if (recorder.state !== 'inactive') recorder.stop() }
+    streamRef.current?.getTracks().forEach(track => track.stop())
+  }, [])
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
+  const startRecording = async () => {
+    if (startingCamera || isRecording) return
+    setStartingCamera(true)
+    setCameraError(null)
+    const requestId = ++cameraRequestRef.current
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        throw new Error('This browser cannot record video. Record with your phone camera, then choose Upload Video File.')
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true,
+      })
+      if (requestId !== cameraRequestRef.current) { stream.getTracks().forEach(track => track.stop()); return }
+      streamRef.current = stream
+      if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play() }
+      const mimeType = ['video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'].find(type => MediaRecorder.isTypeSupported(type))
+      const recorder = new MediaRecorder(stream, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: 1500000 })
+      chunksRef.current = []
+      let recordedBytes = 0
+      recorder.ondataavailable = event => {
+        if (event.data.size) { chunksRef.current.push(event.data); recordedBytes += event.data.size }
+        if (recordedBytes >= MAX_VIDEO_BYTES) stopRecording()
+      }
+      recorder.onstop = () => {
+        if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+        setIsRecording(false)
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType.split(';')[0] || mimeType?.split(';')[0] || 'video/webm' })
+        if (blob.size && blob.size <= MAX_VIDEO_BYTES) { setRecordedBlob(blob); setRecordedUrl(URL.createObjectURL(blob)) }
+        else setCameraError('The recording is empty or too large. Please record a shorter video.')
+        stopCamera()
+      }
+      recorder.onerror = () => { setCameraError('Recording stopped unexpectedly. Please try again or upload a video.'); discardCamera() }
+      mediaRecorderRef.current = recorder
+      recorder.start(1000)
+      setRecordingTime(0)
+      setIsRecording(true)
+      let seconds = 0
+      timerRef.current = setInterval(() => { seconds++; setRecordingTime(seconds); if (seconds >= 120) stopRecording() }, 1000)
+    } catch (error) {
+      stopCamera()
+      setCameraError(error instanceof Error && error.message.startsWith('This browser') ? error.message : 'Could not start recording. Allow camera and microphone access, or upload a video from your phone.')
+    } finally { setStartingCamera(false) }
   }
+  const resetRecording = () => { discardCamera(); setRecordedBlob(null); setRecordedUrl(null); setRecordingTime(0); setCameraError(null) }
+
+  const handleVideoFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const type = file.type.split(';')[0]
+    if (!['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo'].includes(type)) { setSubmitError('Choose an MP4, WebM, MOV or AVI video.'); return }
+    if (!file.size || file.size > MAX_VIDEO_BYTES) { setSubmitError('Video must be under 50MB.'); return }
+    discardCamera()
+    setSubmitError(''); setUploadedFile(file); setUploadedFilePreview(URL.createObjectURL(file))
+    setRecordedBlob(null); setRecordedUrl(null)
+  }
+  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) { setSubmitError('Choose a JPG, PNG or WebP photo under 5MB.'); return }
+    setSubmitError(''); setPhotoFile(file); setPhotoPreview(URL.createObjectURL(file))
+  }
+  const removeUploadedVideo = () => { setUploadedFile(null); setUploadedFilePreview(null); if (fileInputRef.current) fileInputRef.current.value = '' }
+  const uploadFileToCloud = async (file: File | Blob) => {
+    const previousUrl = uploadedMediaRef.current.get(file)
+    if (previousUrl) return previousUrl
+    setIsUploading(true); setUploadProgress(0)
+    try {
+      const url = await uploadTestimonialMedia(file, setUploadProgress)
+      uploadedMediaRef.current.set(file, url)
+      return url
+    } finally { setIsUploading(false) }
+  }
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (isSubmitting || isRecording || startingCamera) return
+    setIsSubmitting(true); setSubmitError('')
+    try {
+      const videoToUpload = activeTab === 'video' ? (videoMode === 'record' ? recordedBlob : uploadedFile) : null
+      if (activeTab === 'video' && !videoToUpload) throw new Error('Record or select a video first.')
+      const videoUrl = videoToUpload ? await uploadFileToCloud(videoToUpload) : undefined
+      const photo = photoFile ? await uploadFileToCloud(photoFile) : undefined
+      const response = await submitPortfolioForm('/api/testimonials', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, videoUrl, photo }),
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.error || 'Your testimonial could not be saved.')
+      setSubmitted(true); discardCamera()
+    } catch (error) { setSubmitError(error instanceof Error ? error.message : 'Submission failed. Please try again.') }
+    finally { setIsSubmitting(false) }
+  }
+  const handleTabChange = (tab: 'text' | 'video') => { discardCamera(); setActiveTab(tab) }
+  const handleClose = () => {
+    if (isSubmitting) return
+    discardCamera(); setRecordedBlob(null); setRecordedUrl(null); setUploadedFile(null); setUploadedFilePreview(null)
+    setPhotoFile(null); setPhotoPreview(null); setIsOpen(false); setSubmitted(false); setSubmitError('')
+    setFormData({ name: '', email: '', role: '', company: '', content: '', rating: 5 })
+  }
+  const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 
   const labels = {
     en: {
@@ -362,7 +187,7 @@ export default function TestimonialForm() {
       submit: 'Submit Testimonial',
       submitting: 'Submitting...',
       success: 'Thank you!',
-      successMsg: 'Your testimonial is now live on the portfolio!',
+      successMsg: 'Your testimonial has been saved and is awaiting review.',
       placeholder: 'Share your experience working with Emmanuel...',
       startRecording: 'Start Recording',
       stopRecording: 'Stop Recording',
@@ -374,7 +199,7 @@ export default function TestimonialForm() {
       uploadFile: 'Upload Video File',
       recordVideo: 'Record with Camera',
       dragDrop: 'Drag & drop a video or click to browse',
-      supportedFormats: 'MP4, WebM, MOV — max 100MB',
+      supportedFormats: 'MP4, WebM, MOV — max 50MB',
       addPhoto: 'Add Your Photo (optional)',
       photoHint: 'JPG, PNG — max 5MB',
       removeVideo: 'Remove',
@@ -394,7 +219,7 @@ export default function TestimonialForm() {
       submit: 'Soumettre',
       submitting: 'Envoi en cours...',
       success: 'Merci!',
-      successMsg: 'Votre témoignage est maintenant en ligne!',
+      successMsg: 'Votre témoignage a été enregistré et sera examiné.',
       placeholder: 'Partagez votre expérience de travail avec Emmanuel...',
       startRecording: "Commencer l'enregistrement",
       stopRecording: 'Arrêter',
@@ -406,7 +231,7 @@ export default function TestimonialForm() {
       uploadFile: 'Télécharger une vidéo',
       recordVideo: 'Enregistrer avec la caméra',
       dragDrop: 'Glissez-déposez une vidéo ou cliquez pour parcourir',
-      supportedFormats: 'MP4, WebM, MOV — max 100Mo',
+      supportedFormats: 'MP4, WebM, MOV — max 50Mo',
       addPhoto: 'Ajoutez votre photo (optionnel)',
       photoHint: 'JPG, PNG — max 5Mo',
       removeVideo: 'Supprimer',
@@ -426,7 +251,7 @@ export default function TestimonialForm() {
       submit: 'إرسال',
       submitting: 'جاري الإرسال...',
       success: 'شكراً لك!',
-      successMsg: 'شهادتك الآن مباشرة على الموقع!',
+      successMsg: 'تم حفظ شهادتك وهي بانتظار المراجعة.',
       placeholder: 'شارك تجربتك في العمل مع إيمانويل...',
       startRecording: 'بدء التسجيل',
       stopRecording: 'إيقاف',
@@ -438,7 +263,7 @@ export default function TestimonialForm() {
       uploadFile: 'رفع ملف فيديو',
       recordVideo: 'التسجيل بالكاميرا',
       dragDrop: 'اسحب وأسقط فيديو أو انقر للتصفح',
-      supportedFormats: 'MP4، WebM، MOV — أقصى 100 ميجابايت',
+      supportedFormats: 'MP4، WebM، MOV — أقصى 50 ميجابايت',
       addPhoto: 'أضف صورتك (اختياري)',
       photoHint: 'JPG، PNG — أقصى 5 ميجابايت',
       removeVideo: 'حذف',
@@ -446,7 +271,7 @@ export default function TestimonialForm() {
   }
 
   const t = labels[language as keyof typeof labels] || labels.en
-  const hasVideo = !!recordedBlob || !!uploadedFile
+  const hasVideo = videoMode === 'record' ? !!recordedBlob : !!uploadedFile
 
   return (
     <>
@@ -567,7 +392,7 @@ export default function TestimonialForm() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => { setVideoMode('upload'); stopCamera() }}
+                            onClick={() => { discardCamera(); setVideoMode('upload') }}
                             className={`flex-1 py-2 text-xs rounded-lg border transition-all ${
                               videoMode === 'upload'
                                 ? 'border-amber-500 bg-amber-500/10 text-amber-400'
@@ -578,7 +403,7 @@ export default function TestimonialForm() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => { setVideoMode('record'); if (!recordedUrl) startCamera() }}
+                            onClick={() => { discardCamera(); setVideoMode('record') }}
                             className={`flex-1 py-2 text-xs rounded-lg border transition-all ${
                               videoMode === 'record'
                                 ? 'border-amber-500 bg-amber-500/10 text-amber-400'
@@ -595,7 +420,7 @@ export default function TestimonialForm() {
                             {uploadedFilePreview ? (
                               <div className="space-y-2">
                                 <div className="relative bg-gray-800 rounded-xl overflow-hidden aspect-video">
-                                  <video src={uploadedFilePreview} controls className="w-full h-full object-cover" />
+                                  <video src={uploadedFilePreview} controls playsInline className="w-full h-full object-cover" />
                                 </div>
                                 <button
                                   type="button"
@@ -629,10 +454,10 @@ export default function TestimonialForm() {
                           <>
                             <div className="relative bg-gray-800 rounded-xl overflow-hidden aspect-video">
                               {recordedUrl ? (
-                                <video src={recordedUrl} controls className="w-full h-full object-cover" />
+                                <video src={recordedUrl} controls playsInline className="w-full h-full object-cover" />
                               ) : (
                                 <>
-                                  <video ref={videoRef} className="w-full h-full object-cover" style={{ transform: 'scaleX(-1)' }} />
+                                  <video autoPlay muted playsInline ref={videoRef} className="w-full h-full object-cover" style={{ transform: 'scaleX(-1)' }} />
                                   {!streamRef.current && !cameraError && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
                                       <div className="text-center">
@@ -665,7 +490,7 @@ export default function TestimonialForm() {
                             <div className="flex gap-2">
                               {!recordedUrl ? (
                                 !isRecording ? (
-                                  <button type="button" onClick={streamRef.current ? startRecording : startCamera}
+                                  <button type="button" onClick={startRecording} disabled={startingCamera}
                                     className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg transition-colors">
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" /></svg>
                                     {t.startRecording}
@@ -772,16 +597,18 @@ export default function TestimonialForm() {
                     {isUploading && (
                       <div className="space-y-1">
                         <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                          <div className="h-full bg-amber-500 rounded-full transition-all duration-300 animate-pulse" style={{ width: '60%' }} />
+                          <div className="h-full bg-amber-500 rounded-full transition-all duration-300 animate-pulse" style={{ width: `${uploadProgress}%` }} />
                         </div>
-                        <p className="text-xs text-gray-500 text-center">{t.uploading}</p>
+                        <p className="text-xs text-gray-500 text-center">{t.uploading} {uploadProgress}%</p>
                       </div>
                     )}
+
+                    {submitError && <p role="alert" className="text-sm text-red-400">{submitError}</p>}
 
                     {/* Submit */}
                     <button
                       type="submit"
-                      disabled={isSubmitting || isUploading || (activeTab === 'video' && !hasVideo)}
+                      disabled={isSubmitting || isUploading || isRecording || startingCamera || (activeTab === 'video' && !hasVideo)}
                       className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-lg font-medium hover:from-amber-400 hover:to-orange-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isSubmitting || isUploading ? (

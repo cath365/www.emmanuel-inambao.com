@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import { motion, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
 import {
@@ -88,7 +90,7 @@ export default function Contact() {
     try {
       // Include honeypot field for spam detection
       const honeypotEl = (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[name="_honeypot"]')
-      const response = await fetch('/api/contact', {
+      const response = await submitPortfolioForm('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, _honeypot: honeypotEl?.value || '' }),

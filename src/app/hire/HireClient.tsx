@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -145,7 +147,7 @@ export default function HireClient() {
     ].join('\n')
 
     try {
-      const response = await fetch('/api/service-inquiry', {
+      const response = await submitPortfolioForm('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

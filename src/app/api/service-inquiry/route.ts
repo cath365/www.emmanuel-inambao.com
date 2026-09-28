@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
-function getPrivateBlobToken() {
-  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
-  if (!token) {
-    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
-  }
-  return token
-}
+import { readPrivateJson, updatePrivateJson, storageError } from '@/lib/blob-json'
+import { submissionResponse } from '@/lib/notifications'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
 const LEADS_BLOB_PATH = 'data/leads.json'
 
@@ -24,28 +19,7 @@ interface ServiceLead {
 }
 
 async function readLeads(): Promise<ServiceLead[]> {
-  try {
-    const { blobs } = await list({ prefix: LEADS_BLOB_PATH, token: getPrivateBlobToken() })
-    if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
-      cache: 'no-store',
-    })
-    if (!res.ok) return []
-    return await res.json()
-  } catch (e) {
-    console.error('readLeads error:', e)
-    return []
-  }
-}
-
-async function writeLeads(leads: ServiceLead[]) {
-  await put(LEADS_BLOB_PATH, JSON.stringify(leads), {
-    access: 'private',
-    token: getPrivateBlobToken(),
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  })
+  return readPrivateJson<ServiceLead[]>(LEADS_BLOB_PATH, [])
 }
 
 // GET - fetch all leads for admin panel
@@ -59,7 +33,7 @@ export async function GET() {
     return NextResponse.json({ leads, count: leads.length })
   } catch (error) {
     console.error('Failed to read leads:', error)
-    return NextResponse.json({ leads: [], error: String(error) })
+    return NextResponse.json({ error: storageError('private') }, { status: 503 })
   }
 }
 
@@ -76,9 +50,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid lead status' }, { status: 400 })
     }
 
-    const leads = await readLeads()
-    const updated = leads.map(l => l.id === id ? { ...l, status } : l)
-    await writeLeads(updated)
+    await updatePrivateJson<ServiceLead[]>(LEADS_BLOB_PATH, [], leads => leads.map(l => l.id === id ? { ...l, status } : l))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to update lead:', error)
@@ -94,9 +66,7 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { id } = await request.json()
-    const leads = await readLeads()
-    const updated = leads.filter(l => l.id !== id)
-    await writeLeads(updated)
+    await updatePrivateJson<ServiceLead[]>(LEADS_BLOB_PATH, [], leads => leads.filter(l => l.id !== id))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete lead:', error)
@@ -107,6 +77,9 @@ export async function DELETE(request: NextRequest) {
 // POST - save new lead + send email
 export async function POST(request: NextRequest) {
   try {
+    if (!rateLimit(`inquiry:${getClientIP(request)}`, 8, 15 * 60 * 1000).allowed) {
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+    }
     const data: ServiceLead = await request.json()
 
     const email = String(data.email || '').trim()
@@ -114,7 +87,7 @@ export async function POST(request: NextRequest) {
     const phoneDigits = phone.replace(/\D/g, '')
     const validEmail = !email || /^\S+@\S+\.\S+$/.test(email)
 
-    if (!data.name || !data.service || !validEmail || (!email && phoneDigits.length < 7)) {
+    if (typeof data.name !== 'string' || !data.name.trim() || data.name.length > 200 || typeof data.service !== 'string' || !data.service.trim() || data.service.length > 300 || (data.details != null && typeof data.details !== 'string') || (data.details?.length || 0) > 30000 || email.length > 254 || !validEmail || (!email && phoneDigits.length < 7)) {
       return NextResponse.json(
         { error: 'Name, service, and at least one valid email or WhatsApp number are required' },
         { status: 400 }
@@ -122,20 +95,19 @@ export async function POST(request: NextRequest) {
     }
 
     const newLead: ServiceLead = {
-      id: data.id || `lead-${Date.now()}`,
+      id: `lead-${crypto.randomUUID()}`,
       name: data.name,
       email,
       phone,
       service: data.service,
       details: data.details || '',
-      submittedAt: data.submittedAt || new Date().toISOString(),
+      submittedAt: new Date().toISOString(),
       status: 'new',
     }
 
     let saved = false
     try {
-      const existing = await readLeads()
-      await writeLeads([newLead, ...existing])
+      await updatePrivateJson<ServiceLead[]>(LEADS_BLOB_PATH, [], existing => [newLead, ...existing])
       saved = true
     } catch (blobError) {
       console.error('Blob write failed:', blobError)
@@ -158,103 +130,11 @@ export async function POST(request: NextRequest) {
       email ? `Reply to ${email} to follow up.` : `Follow up on WhatsApp: ${phone}`,
     ].join('\n')
 
-    const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY?.trim()
-    const FORMSPREE_ID = process.env.FORMSPREE_ID?.trim()
-    const emailProviderConfigured = Boolean(WEB3FORMS_KEY || FORMSPREE_ID)
-    let emailSent = false
-    let emailProvider: 'web3forms' | 'formspree' | null = null
-    let emailError: string | null = null
-
-    if (WEB3FORMS_KEY) {
-      try {
-        const response = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-          body: JSON.stringify({
-            access_key: WEB3FORMS_KEY,
-            subject: isQuotation
-              ? `New quotation awaiting review - ${data.name}`
-              : `New Service Inquiry: ${data.service} - ${data.name}`,
-            from_name: isQuotation ? 'Portfolio Quotation Assistant' : 'Portfolio AI Chatbot',
-            name: data.name,
-            ...(email ? { email, replyto: email } : {}),
-            message: inquiryDetails,
-          }),
-        })
-
-        const result = await response.json().catch(() => null)
-        emailSent = response.ok && result?.success === true
-
-        if (emailSent) {
-          emailProvider = 'web3forms'
-        } else {
-          emailError =
-            typeof result?.message === 'string'
-              ? result.message
-              : `Web3Forms returned status ${response.status}.`
-          console.error('Web3Forms quotation notification failed:', emailError)
-        }
-      } catch (e) {
-        console.error('Web3Forms failed:', e)
-      }
-    }
-
-    if (FORMSPREE_ID && !emailSent) {
-      try {
-        const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-          body: JSON.stringify({
-            name: data.name,
-            ...(email ? { email } : {}),
-            _subject: isQuotation
-              ? `📄 New quotation awaiting review - ${data.name}`
-              : `🔔 Service Inquiry: ${data.service}`,
-            message: inquiryDetails,
-          }),
-        })
-        emailSent = response.ok
-        if (emailSent) {
-          emailProvider = 'formspree'
-        } else if (!emailError) {
-          emailError = `Formspree returned status ${response.status}.`
-        }
-      } catch (e) {
-        console.error('Formspree failed:', e)
-      }
-    }
-
-    if (!saved && !emailSent) {
-      return NextResponse.json(
-        {
-          error: !emailProviderConfigured
-            ? 'The inquiry could not be delivered because email notifications are not configured in Production.'
-            : emailError
-              ? `The inquiry could not be delivered by the configured email provider: ${emailError}`
-              : 'The inquiry could not be saved or delivered. Please use the direct email or WhatsApp option.',
-          saved,
-          emailSent,
-          emailProviderConfigured,
-        },
-        { status: 503 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      saved,
-      emailSent,
-      emailProvider,
-      emailProviderConfigured,
-      message: emailSent
-        ? 'Inquiry saved and email notification sent.'
-        : emailProviderConfigured
-          ? 'Inquiry saved, but the configured email provider did not confirm delivery.'
-          : 'Inquiry saved to Admin Leads. Email notifications are not configured in Production.',
-    })
+    return submissionResponse(saved, {
+      name: newLead.name, email,
+      subject: isQuotation ? `New quotation awaiting review - ${newLead.name}` : `New Service Inquiry: ${newLead.service}`,
+      message: inquiryDetails,
+    }, 'Your inquiry has been received for review.')
   } catch (error) {
     console.error('Service inquiry error:', error)
     return NextResponse.json({ error: 'Failed to process inquiry' }, { status: 500 })
