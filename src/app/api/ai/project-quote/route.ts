@@ -5,6 +5,7 @@ import { marketRangeSummary, resolveMarketPricing } from '@/lib/market-pricing'
 import {
   buildProjectQuotation,
   fallbackQuoteExplanation,
+  projectImprovementIdeas,
   quotationSummary,
   type ProjectQuoteSelection,
 } from '@/lib/project-quotation'
@@ -65,6 +66,16 @@ export async function POST(request: NextRequest) {
         ].join('\n')
       : 'No Zambia market benchmark is currently enabled.'
 
+    const improvements = projectImprovementIdeas(body.selection, quotation)
+    const improvementText = improvements.length
+      ? [
+          'Approved improvement ideas with deterministic price impact:',
+          ...improvements.map(idea =>
+            `- ${idea.title}: +ZMW ${idea.priceImpact.toLocaleString('en-ZM')}; new known total ZMW ${idea.newKnownTotal.toLocaleString('en-ZM')}; upfront increases by ZMW ${idea.upfrontImpact.toLocaleString('en-ZM')}. Impact: ${idea.impact}`
+          ),
+        ].join('\n')
+      : 'No deterministic improvement suggestion is currently triggered by the client description.'
+
     const fallbackBase = fallbackQuoteExplanation(body.selection, quotation)
     const asksAboutMarket = /\b(expensive|cheap|affordable|market|zambia|competitor|agency|developer|compare|comparison)\b/i.test(question)
     const fallback = asksAboutMarket
@@ -74,7 +85,7 @@ export async function POST(request: NextRequest) {
     const groq = await createGroqCompletion({
       model: process.env.GROQ_QUOTE_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
       temperature: 0.25,
-      maxCompletionTokens: 650,
+      maxCompletionTokens: 950,
       reasoningEffort: 'low',
       timeoutMs: 12_000,
       messages: [
@@ -82,8 +93,13 @@ export async function POST(request: NextRequest) {
           role: 'system',
           content: [
             'You are Emmanuel Inambao\'s project sales and quotation assistant.',
-            'Your job is to understand the client, explain value, handle price objections professionally, encourage a sensible next step and help the client reach a confident decision without pressure.',
+            'Your job is to act as a project strategist and sales assistant: understand what the client is trying to achieve, explain how the proposed system will help, identify useful improvements, explain the business or operational impact of each improvement, handle price objections professionally, and help the client reach a confident decision without pressure.',
             'The deterministic pricing engine is the ONLY authority for prices and calculations.',
+            'Whenever you recommend a priced improvement, use only an approved improvement supplied in the user context or an already-selected deterministic line item.',
+            'For every approved improvement you mention, show: current known total -> price increase -> new known total -> change to the 35% upfront payment, then explain the practical benefit the client receives for that increase.',
+            'Do not present a feature as automatically included when it is not selected.',
+            'If a potentially valuable idea is not covered by the approved deterministic improvements or fixed pricing rules, describe it as an idea that requires scope review and do not invent a price.',
+            'When answering broad questions, structure the response in short sections: What you are building, Why the current scope matters, Best improvements, Price impact, Recommended next step.',
             'Never invent, alter, hide, discount or increase a deterministic charge.',
             'Website base price is ZMW 5,000.',
             'E-commerce is an additional ZMW 3,000.',
@@ -101,7 +117,9 @@ export async function POST(request: NextRequest) {
             'Do not use fake scarcity, misleading urgency, guilt, or pressure tactics.',
             'If IoT is selected, explain that hardware, sensors, connectivity, quantity, power, enclosure and field conditions affect the final amount.',
             'Third-party fees, purchased hardware, hosting and requirements outside the selected scope are not automatically included.',
-            'Be persuasive through clarity, value and practical trade-offs. Be concise, professional, warm and easy to understand. Use ZMW, not USD.',
+            'Be persuasive through clarity, value and practical trade-offs. Explain outcomes in client language such as saving staff time, reducing manual work, improving customer access, increasing conversion, improving reliability, or making management easier when those outcomes are genuinely supported by the selected scope.',
+            'Never guarantee revenue, profit, adoption or business success. Present benefits as practical potential, not promises.',
+            'Be concise, professional, warm and easy to understand. Use ZMW, not USD.',
           ].join(' '),
         },
         {
@@ -113,6 +131,8 @@ export async function POST(request: NextRequest) {
             quotationSummary(body.selection, quotation),
             '',
             marketText,
+            '',
+            improvementText,
           ].join('\n'),
         },
       ],
