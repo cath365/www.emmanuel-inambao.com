@@ -20,7 +20,7 @@ export type GroqResult =
   | { ok: false; reason: 'not_configured' | 'provider_error' | 'empty_response'; status?: number; detail?: string }
 
 export async function createGroqCompletion(options: GroqRequestOptions): Promise<GroqResult> {
-  const apiKey = process.env.GROQ_API_KEY
+  const apiKey = process.env.GROQ_API_KEY?.trim()
   if (!apiKey) {
     return { ok: false, reason: 'not_configured' }
   }
@@ -39,7 +39,7 @@ export async function createGroqCompletion(options: GroqRequestOptions): Promise
         messages: options.messages,
         max_completion_tokens: options.maxCompletionTokens ?? 900,
         temperature: options.temperature ?? 0.25,
-        reasoning_effort: options.reasoningEffort ?? 'low',
+        ...(model.startsWith('openai/gpt-oss-') ? { reasoning_effort: options.reasoningEffort ?? 'low' } : {}),
         // GPT-OSS supports reasoning_effort but rejects reasoning_format.
         // JSON Object Mode is enough to keep the case-study response parseable.
         response_format: options.responseFormat ?? { type: 'text' },

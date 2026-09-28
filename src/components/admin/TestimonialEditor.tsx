@@ -8,13 +8,14 @@ import {
 } from 'lucide-react'
 import { useTestimonials, Testimonial } from '@/lib/testimonials'
 import Image from 'next/image'
+import { uploadTestimonialMedia } from '@/lib/testimonial-upload'
 
 interface Props {
   onNotify: (type: 'success' | 'error', message: string) => void
 }
 
 export default function TestimonialEditor({ onNotify }: Props) {
-  const { testimonials, pendingTestimonials, addTestimonial, updateTestimonial, deleteTestimonial, approveTestimonial, rejectTestimonial } = useTestimonials()
+  const { testimonials, loadError, pendingTestimonials, addTestimonial, updateTestimonial, deleteTestimonial, approveTestimonial, rejectTestimonial } = useTestimonials()
   const [editing, setEditing] = useState<Testimonial | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -36,34 +37,20 @@ export default function TestimonialEditor({ onNotify }: Props) {
     setIsCreating(true)
   }
 
-  const handleApprove = (id: string) => {
-    approveTestimonial(id)
-    onNotify('success', 'Testimonial approved and now visible!')
+  const report = async (action: () => Promise<void>, message: string) => {
+    try { await action(); onNotify('success', message); return true }
+    catch (error) { onNotify('error', error instanceof Error ? error.message : 'Could not save testimonial.'); return false }
   }
-
-  const handleReject = (id: string) => {
-    rejectTestimonial(id)
-    onNotify('success', 'Testimonial rejected')
-  }
-
-  const handleSave = (t: Testimonial) => {
-    // Ensure status is set
+  const handleApprove = (id: string) => report(() => approveTestimonial(id), 'Testimonial approved and published.')
+  const handleReject = (id: string) => report(() => rejectTestimonial(id), 'Testimonial rejected.')
+  const handleSave = async (t: Testimonial) => {
     const withStatus = { ...t, status: t.status || ('approved' as const) }
-    if (isCreating) {
-      addTestimonial(withStatus)
-      onNotify('success', 'Testimonial added!')
-    } else {
-      updateTestimonial(t.id, withStatus)
-      onNotify('success', 'Testimonial updated!')
+    if (await report(() => isCreating ? addTestimonial(withStatus) : updateTestimonial(t.id, withStatus), 'Testimonial saved.')) {
+      setEditing(null); setIsCreating(false)
     }
-    setEditing(null)
-    setIsCreating(false)
   }
-
-  const handleDelete = (id: string) => {
-    deleteTestimonial(id)
-    setDeleteConfirm(null)
-    onNotify('success', 'Testimonial deleted!')
+  const handleDelete = async (id: string) => {
+    if (await report(() => deleteTestimonial(id), 'Testimonial deleted.')) setDeleteConfirm(null)
   }
 
   return (
@@ -82,6 +69,7 @@ export default function TestimonialEditor({ onNotify }: Props) {
         </button>
       </div>
 
+      {loadError && <p role="alert" className="mb-5 text-sm text-red-400">{loadError}</p>}
       {/* Pending Testimonials (from public submissions) */}
       {pendingTestimonials.length > 0 && (
         <div className="mb-8">
@@ -259,38 +247,20 @@ function TestimonialModal({
   const imageRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLInputElement>(null)
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
     setUploadingImage(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'testimonial')
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
-      const data = await res.json()
-      if (data.success) setForm({ ...form, image: data.url })
-      else alert(data.error || 'Image upload failed')
-    } catch (err) { console.error('Image upload error:', err); alert('Image upload failed') }
+    try { const image = await uploadTestimonialMedia(file); setForm(previous => ({ ...previous, image })) }
+    catch (error) { alert(error instanceof Error ? error.message : 'Photo upload failed.') }
     finally { setUploadingImage(false) }
   }
-
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
     setUploadingVideo(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'testimonial-video')
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
-      const data = await res.json()
-      if (data.success) setForm({ ...form, video: data.url })
-      else alert(data.error || 'Video upload failed')
-    } catch (err) { 
-      console.error('Video upload error:', err)
-      alert('Video upload failed')
-    }
+    try { const video = await uploadTestimonialMedia(file); setForm(previous => ({ ...previous, video })) }
+    catch (error) { alert(error instanceof Error ? error.message : 'Video upload failed.') }
     finally { setUploadingVideo(false) }
   }
 
@@ -361,7 +331,7 @@ function TestimonialModal({
                 ) : (
                   <div className="w-full aspect-video rounded-lg bg-dark-700 flex flex-col items-center justify-center">
                     <Video className="w-10 h-10 text-dark-500 mb-2" />
-                    <p className="text-dark-500 text-xs">MP4, WebM, MOV (max 100MB)</p>
+                    <p className="text-dark-500 text-xs">MP4, WebM, MOV (max 50MB)</p>
                   </div>
                 )}
                 <button
@@ -470,7 +440,7 @@ function TestimonialModal({
           </button>
           <button
             onClick={() => onSave(form)}
-            disabled={!form.name || !form.content}
+            disabled={!form.name || (!form.content && !form.video) || uploadingImage || uploadingVideo}
             className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <Save className="w-5 h-5" />

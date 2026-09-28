@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
+import { put } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
+
+import { readPublicJson, storageError } from '@/lib/blob-json'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -12,27 +14,7 @@ function blobPath(key: string) {
 }
 
 async function readSection(key: string) {
-  try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
-    if (!token) return null
-
-    const { blobs } = await list({
-      prefix: blobPath(key),
-      token,
-    })
-    if (blobs.length === 0) return null
-
-    const url = new URL(blobs[0].url)
-    url.searchParams.set('v', String(Date.now()))
-    const res = await fetch(url, {
-      cache: 'no-store',
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch (error) {
-    console.error('Portfolio data read failed:', error)
-    return null
-  }
+  return readPublicJson<unknown>(blobPath(key))
 }
 
 async function writeSection(key: string, data: unknown) {
@@ -71,7 +53,13 @@ export async function GET(request: NextRequest) {
   if (!key || !ALLOWED_KEYS.includes(key)) {
     return NextResponse.json(null)
   }
-  const data = await readSection(key)
+  let data
+  try { data = await readSection(key) }
+  catch (error) {
+    console.error('Portfolio data read failed:', error)
+    if (await isAuthenticated()) return NextResponse.json({ error: storageError('public') }, { status: 503 })
+    data = null
+  }
   return NextResponse.json(data, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
@@ -100,6 +88,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error('Portfolio data save failed:', message)
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: storageError('public') }, { status: 503 })
   }
 }

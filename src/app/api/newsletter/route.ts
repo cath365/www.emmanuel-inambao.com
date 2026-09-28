@@ -1,165 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
-import { put, list } from '@vercel/blob'
+import { readPrivateJson, updatePrivateJson } from '@/lib/blob-json'
+import { submissionResponse } from '@/lib/notifications'
 
-function getPrivateBlobToken() {
-  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
-  if (!token) {
-    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
-  }
-  return token
-}
-
+export const dynamic = 'force-dynamic'
 const BLOB_PATH = 'data/newsletter-subscribers.json'
 
-async function readSubscribers(): Promise<string[]> {
-  try {
-    const { blobs } = await list({ prefix: BLOB_PATH, token: getPrivateBlobToken() })
-    if (blobs.length === 0) return []
-
-    const response = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
-      cache: 'no-store',
-    })
-
-    if (!response.ok) return []
-    const data = await response.json()
-    return Array.isArray(data) ? data : []
-  } catch (error) {
-    console.error('Newsletter read failed:', error)
-    return []
-  }
-}
-
-async function writeSubscribers(subscribers: string[]) {
-  await put(BLOB_PATH, JSON.stringify(subscribers), {
-    access: 'private',
-    token: getPrivateBlobToken(),
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  })
-}
-
-async function notifyFallback(email: string) {
-  const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
-  const FORMSPREE_ID = process.env.FORMSPREE_ID
-
-  if (WEB3FORMS_KEY) {
-    try {
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: 'New Portfolio Newsletter Subscription',
-          from_name: 'Portfolio Newsletter',
-          email,
-          message: `Newsletter subscription request from ${email}`,
-        }),
-      })
-      if (response.ok) return true
-    } catch (error) {
-      console.error('Newsletter Web3Forms fallback failed:', error)
-    }
-  }
-
-  if (FORMSPREE_ID) {
-    try {
-      const response = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          email,
-          _subject: 'New Portfolio Newsletter Subscription',
-          message: `Newsletter subscription request from ${email}`,
-        }),
-      })
-      if (response.ok) return true
-    } catch (error) {
-      console.error('Newsletter Formspree fallback failed:', error)
-    }
-  }
-
-  return false
-}
-
 export async function POST(request: NextRequest) {
-  try {
-    const ip = getClientIP(request)
-    const rl = rateLimit(`newsletter:${ip}`, 3, 10 * 60 * 1000)
-
-    if (!rl.allowed) {
-      return NextResponse.json(
-        { error: 'Too many attempts. Please try again later.' },
-        { status: 429 }
-      )
-    }
-
-    const body = await request.json()
-    const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
-
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
-    }
-
-    const subscribers = await readSubscribers()
-
-    if (subscribers.includes(email)) {
-      return NextResponse.json({
-        success: true,
-        duplicate: true,
-        message: 'You are already subscribed.',
-      })
-    }
-
-    try {
-      await writeSubscribers([...subscribers, email])
-      console.log('New subscriber saved:', email)
-
-      // Always notify Emmanuel about a new subscription.
-      // Storage success and email delivery are tracked independently.
-      const emailSent = await notifyFallback(email)
-
-      return NextResponse.json({
-        success: true,
-        emailSent,
-        message: emailSent
-          ? 'Successfully subscribed. Notification email sent.'
-          : 'Successfully subscribed. Email notification is not configured or could not be delivered.',
-      })
-    } catch (storageError) {
-      console.error('Newsletter storage failed:', storageError)
-
-      const notified = await notifyFallback(email)
-      if (notified) {
-        return NextResponse.json({
-          success: true,
-          queued: true,
-          emailSent: true,
-          message: 'Subscription request received and notification email sent.',
-        })
-      }
-
-      return NextResponse.json(
-        { error: 'Subscription storage is temporarily unavailable. Please try again later.' },
-        { status: 503 }
-      )
-    }
-  } catch (error) {
-    console.error('Newsletter subscription error:', error)
-    return NextResponse.json(
-      { error: 'Unable to subscribe right now. Please try again.' },
-      { status: 500 }
-    )
+  if (!rateLimit(`newsletter:${getClientIP(request)}`, 3, 10 * 60 * 1000).allowed) {
+    return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 })
   }
+  const body = await request.json().catch(() => null)
+  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
+  }
+  let saved = false
+  try {
+    await updatePrivateJson<string[]>(BLOB_PATH, [], subscribers =>
+      subscribers.includes(email) ? subscribers : [...subscribers, email])
+    saved = true
+  } catch (error) { console.error('Newsletter storage failed:', error) }
+  return submissionResponse(saved, {
+    email, subject: 'Portfolio newsletter subscription request',
+    message: `Newsletter subscription request from ${email}.\n${saved ? 'Saved to the subscriber list.' : 'Storage was unavailable. Please add this address to the subscriber list.'}`,
+  }, saved ? 'Thank you for subscribing.' : 'Your subscription request has been received for processing.')
 }
 
 export async function GET() {
-  const subscribers = await readSubscribers()
-  return NextResponse.json({ count: subscribers.length })
+  try {
+    const subscribers = await readPrivateJson<string[]>(BLOB_PATH, [])
+    return NextResponse.json({ count: subscribers.length }, { headers: { 'Cache-Control': 'no-store' } })
+  } catch {
+    return NextResponse.json({ error: 'Subscriber count is temporarily unavailable.' }, { status: 503 })
+  }
 }

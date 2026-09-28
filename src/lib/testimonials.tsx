@@ -1,6 +1,6 @@
 'use client'
 
-import { persistPortfolioData } from '@/lib/portfolio-persistence'
+import { useAuth } from '@/lib/auth'
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export interface Testimonial {
@@ -19,137 +19,62 @@ export interface Testimonial {
 
 interface TestimonialContextType {
   testimonials: Testimonial[]
+  loadError: string
   approvedTestimonials: Testimonial[]
   pendingTestimonials: Testimonial[]
-  addTestimonial: (testimonial: Testimonial) => void
-  updateTestimonial: (id: string, testimonial: Partial<Testimonial>) => void
-  deleteTestimonial: (id: string) => void
-  approveTestimonial: (id: string) => void
-  rejectTestimonial: (id: string) => void
+  addTestimonial: (testimonial: Testimonial) => Promise<void>
+  updateTestimonial: (id: string, testimonial: Partial<Testimonial>) => Promise<void>
+  deleteTestimonial: (id: string) => Promise<void>
+  approveTestimonial: (id: string) => Promise<void>
+  rejectTestimonial: (id: string) => Promise<void>
 }
-
-const defaultTestimonials: Testimonial[] = [
-  {
-    id: 'testimonial-1',
-    name: 'James Mwanza',
-    position: 'Farm Manager',
-    company: 'Green Valley Farms',
-    content: 'Emmanuel\'s smart irrigation system transformed our farming operations. We\'ve cut water usage by 40% and our crop yield has improved significantly. The remote monitoring dashboard is incredibly useful — I can check everything from my phone.',
-    rating: 5,
-    featured: true,
-    status: 'approved',
-  },
-  {
-    id: 'testimonial-2',
-    name: 'Sarah Banda',
-    position: 'Operations Director',
-    company: 'Lusaka Recycling Co.',
-    content: 'The automated bottle sorting system exceeded our expectations. Processing over 1,000 bottles daily with 98% accuracy has completely changed our throughput. Emmanuel delivered on time and provided excellent post-installation support.',
-    rating: 5,
-    featured: true,
-    status: 'approved',
-  },
-  {
-    id: 'testimonial-3',
-    name: 'David Chisanga',
-    position: 'Maintenance Supervisor',
-    company: 'ZamOil Industrial',
-    content: 'The oil level monitoring system gives us real-time visibility into all 12 tanks. We haven\'t had a single unexpected shortage since deployment. The predictive alerts save us significant downtime and costs.',
-    rating: 5,
-    featured: true,
-    status: 'approved',
-  },
-]
 
 const TestimonialContext = createContext<TestimonialContextType | undefined>(undefined)
 
-function saveToServer(data: Testimonial[]) {
-  void persistPortfolioData('testimonials', data).catch(error => console.error('Failed to save testimonials:', error))
-}
-
 export function TestimonialProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAuth()
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
-  const [isLoaded, setIsLoaded] = useState(false)
-
+  const [loadError, setLoadError] = useState('')
   useEffect(() => {
-    fetch('/api/portfolio-data?key=testimonials', { cache: 'no-store' })
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setTestimonials(data.map((t: Testimonial) => ({ ...t, status: t.status || 'approved' })))
-        } else {
-          setTestimonials(defaultTestimonials)
-        }
-      })
-      .catch(() => {
-        setTestimonials(defaultTestimonials)
-      })
-      .finally(() => setIsLoaded(true))
-  }, [])
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('portfolio-testimonials', JSON.stringify(testimonials))
+    let active = true
+    const refresh = async () => {
+      try {
+        const response = await fetch('/api/testimonials', { cache: 'no-store' })
+        const payload = await response.json()
+        if (!response.ok || !Array.isArray(payload)) throw new Error(payload?.error || 'Could not load testimonials.')
+        if (active) { setTestimonials(payload); setLoadError('') }
+      } catch (error) { if (active) setLoadError(error instanceof Error ? error.message : 'Could not load testimonials.') }
     }
-  }, [testimonials, isLoaded])
+    refresh()
+    window.addEventListener('focus', refresh)
+    return () => { active = false; window.removeEventListener('focus', refresh) }
+  }, [isAuthenticated])
 
-  const addTestimonial = (testimonial: Testimonial) => {
-    setTestimonials(prev => {
-      const updated = [testimonial, ...prev]
-      saveToServer(updated)
-      return updated
-    })
+  const save = async (testimonial: Testimonial) => {
+    const response = await fetch('/api/testimonials', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testimonial }) })
+    const result = await response.json()
+    if (!response.ok || !result.success) throw new Error(result.error || 'Could not save testimonial.')
+    setTestimonials(previous => [testimonial, ...previous.filter(item => item.id !== testimonial.id)])
   }
-
-  const updateTestimonial = (id: string, updates: Partial<Testimonial>) => {
-    setTestimonials(prev => {
-      const updated = prev.map(t => t.id === id ? { ...t, ...updates } : t)
-      saveToServer(updated)
-      return updated
-    })
+  const updateTestimonial = async (id: string, updates: Partial<Testimonial>) => {
+    const existing = testimonials.find(item => item.id === id)
+    if (!existing) throw new Error('Testimonial not found.')
+    await save({ ...existing, ...updates })
   }
-
-  const deleteTestimonial = (id: string) => {
-    setTestimonials(prev => {
-      const updated = prev.filter(t => t.id !== id)
-      saveToServer(updated)
-      return updated
-    })
+  const deleteTestimonial = async (id: string) => {
+    const response = await fetch('/api/testimonials', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    const result = await response.json()
+    if (!response.ok || !result.success) throw new Error(result.error || 'Could not delete testimonial.')
+    setTestimonials(previous => previous.filter(item => item.id !== id))
   }
-
-  const approveTestimonial = (id: string) => {
-    setTestimonials(prev => {
-      const updated = prev.map(t => t.id === id ? { ...t, status: 'approved' as const } : t)
-      saveToServer(updated)
-      return updated
-    })
-  }
-
-  const rejectTestimonial = (id: string) => {
-    setTestimonials(prev => {
-      const updated = prev.map(t => t.id === id ? { ...t, status: 'rejected' as const } : t)
-      saveToServer(updated)
-      return updated
-    })
-  }
-
-  const approvedTestimonials = testimonials.filter(t => t.status === 'approved')
-  const pendingTestimonials = testimonials.filter(t => t.status === 'pending')
-
-  return (
-    <TestimonialContext.Provider value={{
-      testimonials,
-      approvedTestimonials,
-      pendingTestimonials,
-      addTestimonial,
-      updateTestimonial,
-      deleteTestimonial,
-      approveTestimonial,
-      rejectTestimonial,
-    }}>
-      {children}
-    </TestimonialContext.Provider>
-  )
+  return <TestimonialContext.Provider value={{
+    testimonials, loadError,
+    approvedTestimonials: testimonials.filter(item => item.status === 'approved'),
+    pendingTestimonials: testimonials.filter(item => item.status === 'pending'),
+    addTestimonial: save, updateTestimonial, deleteTestimonial,
+    approveTestimonial: id => updateTestimonial(id, { status: 'approved' }),
+    rejectTestimonial: id => updateTestimonial(id, { status: 'rejected' }),
+  }}>{children}</TestimonialContext.Provider>
 }
 
 export function useTestimonials() {

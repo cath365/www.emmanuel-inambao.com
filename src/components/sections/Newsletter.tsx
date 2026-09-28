@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 
@@ -16,7 +18,7 @@ export default function Newsletter() {
     setStatusMessage('')
 
     try {
-      const response = await fetch('/api/newsletter', {
+      const response = await submitPortfolioForm('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

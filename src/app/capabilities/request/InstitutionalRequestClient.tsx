@@ -1,5 +1,7 @@
 'use client'
 
+import { submitPortfolioForm } from '@/lib/submit-form'
+
 import { useState } from 'react'
 import Link from 'next/link'
 import {
@@ -174,7 +176,7 @@ export default function InstitutionalRequestClient() {
     ].join('\n')
 
     try {
-      const response = await fetch('/api/service-inquiry', {
+      const response = await submitPortfolioForm('/api/service-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

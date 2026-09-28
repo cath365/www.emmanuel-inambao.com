@@ -5,6 +5,7 @@ import type { CaseStudy } from '@/lib/case-studies'
 import { createGroqCompletion } from '@/lib/groq'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 function sentences(value?: string) {
   if (!value) return []
@@ -40,7 +41,7 @@ function localDraft(project: Project): CaseStudy {
         description: project.outcome || 'Outcome is documented in the project record.',
       },
       ...highlights.slice(0, 3).map((highlight, index) => ({
-        value: 'Verified',
+        value: 'Documented',
         label: `Project highlight ${index + 1}`,
         description: highlight,
       })),
@@ -126,11 +127,11 @@ Write clear professional English suitable for an international engineering portf
         content: JSON.stringify(project),
       },
     ],
-    maxCompletionTokens: 1800,
+    maxCompletionTokens: 4096,
     temperature: 0.2,
-    reasoningEffort: 'medium',
+    reasoningEffort: 'low',
     responseFormat: { type: 'json_object' },
-    timeoutMs: 25_000,
+    timeoutMs: 45_000,
   })
 
   if (!groq.ok) {
@@ -190,6 +191,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       caseStudy: generated || fallback,
       source: generated ? 'groq' : 'local',
+      ...(!generated ? { warning: 'Groq could not return a complete draft. This draft was built locally from your project record. Check the Groq key, model and quota if AI generation keeps failing.' } : {}),
     })
   } catch (error) {
     console.error('Case study generation route error:', error)

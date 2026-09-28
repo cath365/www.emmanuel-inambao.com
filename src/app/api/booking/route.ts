@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
-function getPrivateBlobToken() {
-  const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
-  if (!token) {
-    throw new Error('Private storage is not configured. Connect a private Vercel Blob store to Production and set PRIVATE_BLOB_READ_WRITE_TOKEN.')
-  }
-  return token
-}
+import { readPrivateJson, updatePrivateJson, storageError } from '@/lib/blob-json'
+import { submissionResponse } from '@/lib/notifications'
+import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
-const ADMIN_EMAIL = 'denuelinambao@gmail.com'
 const BOOKINGS_BLOB_PATH = 'data/bookings.json'
 
 interface BookingData {
@@ -30,28 +24,7 @@ interface BookingData {
 }
 
 async function readBookings(): Promise<BookingData[]> {
-  try {
-    const { blobs } = await list({ prefix: BOOKINGS_BLOB_PATH, token: getPrivateBlobToken() })
-    if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
-      cache: 'no-store',
-    })
-    if (!res.ok) return []
-    return await res.json()
-  } catch (e) {
-    console.error('readBookings error:', e)
-    return []
-  }
-}
-
-async function writeBookings(bookings: BookingData[]) {
-  await put(BOOKINGS_BLOB_PATH, JSON.stringify(bookings), {
-    access: 'private',
-    token: getPrivateBlobToken(),
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  })
+  return readPrivateJson<BookingData[]>(BOOKINGS_BLOB_PATH, [])
 }
 
 // GET - fetch all bookings for admin panel
@@ -65,7 +38,7 @@ export async function GET() {
     return NextResponse.json({ bookings })
   } catch (error) {
     console.error('Failed to read bookings:', error)
-    return NextResponse.json({ bookings: [] })
+    return NextResponse.json({ error: storageError('private') }, { status: 503 })
   }
 }
 
@@ -77,9 +50,8 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const { id, status } = await request.json()
-    const bookings = await readBookings()
-    const updated = bookings.map(b => b.id === id ? { ...b, status } : b)
-    await writeBookings(updated)
+    if (!['pending', 'confirmed', 'cancelled'].includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    await updatePrivateJson<BookingData[]>(BOOKINGS_BLOB_PATH, [], bookings => bookings.map(b => b.id === id ? { ...b, status } : b))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to update booking:', error)
@@ -95,9 +67,7 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { id } = await request.json()
-    const bookings = await readBookings()
-    const updated = bookings.filter(b => b.id !== id)
-    await writeBookings(updated)
+    await updatePrivateJson<BookingData[]>(BOOKINGS_BLOB_PATH, [], bookings => bookings.filter(b => b.id !== id))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete booking:', error)
@@ -108,9 +78,10 @@ export async function DELETE(request: NextRequest) {
 // POST - create new booking
 export async function POST(request: NextRequest) {
   try {
+    if (!rateLimit(`booking:${getClientIP(request)}`, 5, 15 * 60 * 1000).allowed) return NextResponse.json({ error: 'Too many requests. Please try later.' }, { status: 429 })
     const data = await request.json()
 
-    if (!data.name || !data.email || !data.date || !data.time) {
+    if (typeof data.name !== 'string' || !data.name.trim() || data.name.length > 200 || typeof data.email !== 'string' || data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) || !data.date || !data.time) {
       return NextResponse.json(
         { error: 'Name, email, date, and time are required' },
         { status: 400 }
@@ -119,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Save to Vercel Blob (non-critical — don't fail the booking if blob errors)
     const newBooking: BookingData = {
-      id: `booking-${Date.now()}`,
+      id: `booking-${crypto.randomUUID()}`,
       name: data.name,
       email: data.email,
       phone: data.phone || '',
@@ -134,36 +105,16 @@ export async function POST(request: NextRequest) {
       source: data.source || 'scheduler',
     }
 
+    let saved = false
     try {
-      const existing = await readBookings()
-      await writeBookings([newBooking, ...existing])
-    } catch (blobError) {
-      console.error('Blob write failed (non-critical):', blobError)
-    }
-
-    // Send email notification via Web3Forms
-    const WEB3FORMS_KEY = process.env.WEB3FORMS_ACCESS_KEY
-    if (WEB3FORMS_KEY) {
-      const bookingDetails = `📅 NEW BOOKING\n\n👤 ${data.name}\n📧 ${data.email}\n📱 ${data.phone || 'Not provided'}\n\n📆 ${data.date} at ${data.time}\n🌍 ${data.timezone}\n⏱️ ${data.duration} min\n📝 ${data.topic || 'Not specified'}`
-
-      await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_key: WEB3FORMS_KEY,
-          subject: `🗓️ New Booking: ${data.name} — ${data.date} at ${data.time}`,
-          from_name: 'Portfolio Booking System',
-          name: data.name,
-          email: data.email,
-          message: bookingDetails,
-        }),
-      })
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Booking confirmed! Check your email for details.',
-    })
+      await updatePrivateJson<BookingData[]>(BOOKINGS_BLOB_PATH, [], existing => [newBooking, ...existing])
+      saved = true
+    } catch (error) { console.error('Booking storage failed:', error) }
+    return submissionResponse(saved, {
+      name: newBooking.name, email: newBooking.email,
+      subject: `Booking request: ${newBooking.name} — ${newBooking.date} at ${newBooking.time}`,
+      message: `Name: ${newBooking.name}\nEmail: ${newBooking.email}\nPhone: ${newBooking.phone}\n${newBooking.date} at ${newBooking.time} (${newBooking.timezone})\n${newBooking.topic}`,
+    }, 'Your booking request has been received. Emmanuel will confirm availability.')
 
   } catch (error) {
     console.error('Booking error:', error)

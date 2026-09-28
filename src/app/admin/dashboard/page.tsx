@@ -1,5 +1,7 @@
 'use client'
 
+import IntegrationStatus from '@/components/admin/IntegrationStatus'
+
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -589,6 +591,7 @@ export default function AdminDashboard() {
 
       {/* Main content */}
       <main className="mx-auto w-full max-w-[1600px] min-w-0 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <IntegrationStatus />
         <AnimatePresence mode="wait">
           {activeTab === 'projects' ? (
             <motion.div
@@ -1881,13 +1884,17 @@ function leadWhatsAppHref(phone?: string, name?: string) {
 function ServiceLeadsPanel() {
   const [leads, setLeads] = useState<ServiceLead[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
 
   const loadLeads = (silent = false) => {
     if (!silent) setLoading(true)
     fetch('/api/service-inquiry')
-      .then(r => r.json())
-      .then(data => setLeads(data.leads || []))
-      .catch(() => setLeads([]))
+      .then(async response => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Unable to load inquiries.')
+        setLeads(data.leads || []); setLoadError('')
+      })
+      .catch(error => setLoadError(error.message || 'Unable to load inquiries.'))
       .finally(() => {
         if (!silent) setLoading(false)
       })
@@ -1944,13 +1951,15 @@ function ServiceLeadsPanel() {
     )
   }
 
+  if (loadError) return <div role="alert" className="rounded-xl border border-amber-700 p-5 text-amber-300"><p>{loadError}</p><button onClick={() => loadLeads()} className="btn-secondary mt-3">Retry</button></div>
+
   if (leads.length === 0) {
     return (
       <div className="text-center py-16">
         <Bell className="w-16 h-16 text-dark-600 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">No Service Inquiries Yet</h3>
         <p className="text-dark-400 mb-4">When visitors ask about your services through the AI chatbot, their inquiries will appear here.</p>
-        <button onClick={loadLeads} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+        <button onClick={() => loadLeads()} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
           Refresh
         </button>
       </div>
@@ -1962,7 +1971,7 @@ function ServiceLeadsPanel() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white">Service Inquiries</h2>
         <div className="flex items-center gap-3">
-          <button onClick={loadLeads} className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg hover:text-white transition-colors text-sm">
+          <button onClick={() => loadLeads()} className="px-3 py-1.5 bg-dark-700 text-dark-300 rounded-lg hover:text-white transition-colors text-sm">
             Refresh
           </button>
           {newLeads.length > 0 && (
@@ -2283,7 +2292,7 @@ function BookingsPanel() {
         <Calendar className="w-16 h-16 text-dark-600 mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-white mb-2">No Bookings Yet</h3>
         <p className="text-dark-400 mb-4">When visitors book a meeting via the AI chatbot or booking form, they will appear here.</p>
-        <button onClick={loadBookings} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
+        <button onClick={() => loadBookings()} className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
           Refresh
         </button>
       </div>
