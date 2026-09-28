@@ -28,7 +28,9 @@ import {
 import { useProfile } from '@/lib/profile'
 import {
   buildProjectQuotation,
+  buildScopeOptions,
   formatZmw,
+  improvementImpactProfile,
   projectImprovementIdeas,
   quotationSummary,
   type ProjectImprovement,
@@ -66,6 +68,10 @@ const DEFAULT_SELECTION: ProjectQuoteSelection = {
   iotDetails: '',
   customFeatures: [],
   projectDescription: '',
+  clientGoal: '',
+  targetUsers: '',
+  currentProcess: '',
+  successOutcome: '',
   timeline: 'flexible',
 }
 
@@ -162,6 +168,10 @@ export default function StartProjectPage() {
   const quotation = useMemo(() => buildProjectQuotation(selection), [selection])
   const improvementIdeas = useMemo(
     () => projectImprovementIdeas(selection, quotation),
+    [selection, quotation]
+  )
+  const scopeOptions = useMemo(
+    () => buildScopeOptions(selection, quotation),
     [selection, quotation]
   )
   const anyDeliverable = selection.website || selection.mobileApplication || selection.iotIntegration
@@ -438,7 +448,7 @@ export default function StartProjectPage() {
                   {step === 'extras' && 'Which additional software features does the project need?'}
                   {step === 'mobile' && 'Which mobile platform should the application support?'}
                   {step === 'iot' && 'Tell me about the connected hardware so Emmanuel can prepare the custom IoT portion.'}
-                  {step === 'description' && 'What should the finished system actually do for you or your organization?'}
+                  {step === 'description' && 'Before I recommend improvements, help me understand the business problem, users, current process and what success should look like.'}
                   {step === 'timeline' && 'When would you like the project delivered? This does not automatically change the displayed price.'}
                   {step === 'contact' && 'Who should the quotation be prepared for?'}
                   {step === 'review' && 'Here is the preliminary quotation. Review the scope and ask me anything before accepting it.'}
@@ -596,17 +606,72 @@ export default function StartProjectPage() {
             )}
 
             {step === 'description' && (
-              <div>
-                <label className="mb-2 block text-sm font-medium text-[#39495A] dark:text-dark-300">
-                  Project goal
-                </label>
-                <textarea
-                  rows={8}
-                  value={selection.projectDescription}
-                  onChange={e => setSelection(prev => ({ ...prev, projectDescription: e.target.value }))}
-                  placeholder="Describe the problem, who will use the system, and what you need it to do..."
-                  className="w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] focus:ring-1 focus:ring-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500"
-                />
+              <div className="space-y-5">
+                <div className="rounded-sm border border-[#D8D2C8] bg-[#F6F3EC] p-4 dark:border-dark-700 dark:bg-dark-900/60">
+                  <p className="text-sm font-semibold text-[#10243E] dark:text-white">Project discovery</p>
+                  <p className="mt-1 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                    The better the business context, the better the assistant can explain what is worth paying for and what can wait until a later phase.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#39495A] dark:text-dark-300">
+                    What are you trying to build? *
+                  </label>
+                  <textarea
+                    rows={5}
+                    value={selection.projectDescription}
+                    onChange={e => setSelection(prev => ({ ...prev, projectDescription: e.target.value }))}
+                    placeholder="Example: An ordering website for a vegetable business where customers can see products, place orders and receive updates."
+                    className="w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] focus:ring-1 focus:ring-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white dark:focus:border-primary-500 dark:focus:ring-primary-500"
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="text-sm font-medium text-[#39495A] dark:text-dark-300">
+                    Main business goal
+                    <textarea
+                      rows={4}
+                      value={selection.clientGoal || ''}
+                      onChange={e => setSelection(prev => ({ ...prev, clientGoal: e.target.value }))}
+                      placeholder="Example: Reduce manual ordering and make it easier for customers to buy."
+                      className="mt-2 w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-[#39495A] dark:text-dark-300">
+                    Who will use the system?
+                    <textarea
+                      rows={4}
+                      value={selection.targetUsers || ''}
+                      onChange={e => setSelection(prev => ({ ...prev, targetUsers: e.target.value }))}
+                      placeholder="Example: Customers on mobile phones and two staff members managing orders."
+                      className="mt-2 w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="text-sm font-medium text-[#39495A] dark:text-dark-300">
+                    How is this done today?
+                    <textarea
+                      rows={4}
+                      value={selection.currentProcess || ''}
+                      onChange={e => setSelection(prev => ({ ...prev, currentProcess: e.target.value }))}
+                      placeholder="Example: Customers WhatsApp us, staff reply manually, confirm payment and write orders in a notebook."
+                      className="mt-2 w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                    />
+                  </label>
+                  <label className="text-sm font-medium text-[#39495A] dark:text-dark-300">
+                    What would make this project successful?
+                    <textarea
+                      rows={4}
+                      value={selection.successOutcome || ''}
+                      onChange={e => setSelection(prev => ({ ...prev, successOutcome: e.target.value }))}
+                      placeholder="Example: Customers order faster, staff spend less time confirming payments, and management can see orders."
+                      className="mt-2 w-full rounded-sm border border-[#D4CEC4] bg-white/80 px-4 py-3 text-[#10243E] outline-none focus:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-white"
+                    />
+                  </label>
+                </div>
               </div>
             )}
 
@@ -674,6 +739,89 @@ export default function StartProjectPage() {
 
             {step === 'review' && (
               <div className="space-y-6">
+                <div className="rounded-sm border border-[#D8D2C8] bg-white/70 p-5 dark:border-dark-700 dark:bg-dark-900/50">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-[#526E8A] dark:text-primary-400" />
+                    <h2 className="font-semibold text-[#10243E] dark:text-white">Project value map</h2>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-sm border border-[#E3DDD3] bg-[#FAF8F3] p-4 dark:border-dark-800 dark:bg-dark-950/40">
+                      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#7A8491] dark:text-dark-500">Goal</p>
+                      <p className="mt-2 text-sm leading-6 text-[#39495A] dark:text-dark-300">
+                        {selection.clientGoal || selection.projectDescription}
+                      </p>
+                    </div>
+                    <div className="rounded-sm border border-[#E3DDD3] bg-[#FAF8F3] p-4 dark:border-dark-800 dark:bg-dark-950/40">
+                      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#7A8491] dark:text-dark-500">Users</p>
+                      <p className="mt-2 text-sm leading-6 text-[#39495A] dark:text-dark-300">
+                        {selection.targetUsers || 'Not yet confirmed — the assistant will treat this as a discovery item.'}
+                      </p>
+                    </div>
+                    <div className="rounded-sm border border-[#E3DDD3] bg-[#FAF8F3] p-4 dark:border-dark-800 dark:bg-dark-950/40">
+                      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#7A8491] dark:text-dark-500">Current process</p>
+                      <p className="mt-2 text-sm leading-6 text-[#39495A] dark:text-dark-300">
+                        {selection.currentProcess || 'Not yet confirmed — the assistant will avoid inventing a current workflow.'}
+                      </p>
+                    </div>
+                    <div className="rounded-sm border border-[#C9D7C9] bg-[#F4F8F2] p-4 dark:border-green-500/20 dark:bg-green-500/5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#356244] dark:text-green-300">Desired outcome</p>
+                      <p className="mt-2 text-sm leading-6 text-[#4D6A57] dark:text-green-200">
+                        {selection.successOutcome || 'A successful outcome will be confirmed during final discovery.'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 rounded-sm border border-[#D9E4D6] bg-[#FBFDF9] p-4 dark:border-green-500/15 dark:bg-dark-950/30">
+                    <p className="text-xs font-semibold uppercase tracking-[0.1em] text-[#356244] dark:text-green-300">Proposed system</p>
+                    <p className="mt-2 text-sm leading-6 text-[#4D6A57] dark:text-green-200">
+                      {quotation.lineItems.map(item => item.label).join(' + ') || 'Scope still needs to be selected.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-sm border border-[#D8D2C8] bg-[#FCFBF7] p-5 dark:border-dark-700 dark:bg-dark-900/60">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#526E8A] dark:text-primary-400">Choose the right level of investment</p>
+                    <h2 className="mt-1 font-semibold text-[#10243E] dark:text-white">Scope options</h2>
+                    <p className="mt-1 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                      These options do not change your fixed pricing. They show what can launch now, what the strongest improvements add, and what can wait for a growth phase.
+                    </p>
+                  </div>
+                  <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                    {scopeOptions.map(option => (
+                      <div
+                        key={option.id}
+                        className={`rounded-sm border p-4 ${
+                          option.id === 'recommended'
+                            ? 'border-[#AFC8B4] bg-[#F4F8F2] dark:border-green-500/25 dark:bg-green-500/5'
+                            : 'border-[#DDD7CC] bg-white/70 dark:border-dark-700 dark:bg-dark-950/35'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-[#10243E] dark:text-white">{option.title}</p>
+                          {option.id === 'recommended' && (
+                            <span className="rounded-full bg-[#DDEBDD] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#356244] dark:bg-green-500/10 dark:text-green-300">
+                              Value focus
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">{option.description}</p>
+                        <p className="mt-4 text-2xl font-semibold text-[#10243E] dark:text-white">{formatZmw(option.total)}</p>
+                        <p className="mt-1 text-xs text-[#697483] dark:text-dark-400">35% upfront: {formatZmw(option.upfront)}</p>
+                        {option.addedInvestment > 0 && (
+                          <p className="mt-1 text-xs font-medium text-[#526E8A] dark:text-primary-300">
+                            +{formatZmw(option.addedInvestment)} beyond current scope
+                          </p>
+                        )}
+                        {option.additions.length > 0 && (
+                          <div className="mt-3 space-y-1 border-t border-[#E3DDD3] pt-3 text-xs text-[#566273] dark:border-dark-800 dark:text-dark-300">
+                            {option.additions.map(addition => <p key={addition}>+ {addition}</p>)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="divide-y divide-[#E3DDD3] border-y border-[#E3DDD3] dark:divide-dark-800 dark:border-dark-800">
                   {quotation.lineItems.map(item => (
                     <div key={item.id} className="py-4">
@@ -794,6 +942,24 @@ export default function StartProjectPage() {
                               <span className="font-semibold">Practical impact:</span> {idea.impact}
                             </p>
                           </div>
+
+                          {(() => {
+                            const impactProfile = improvementImpactProfile(idea)
+                            return (
+                              <div className="mt-3 grid grid-cols-3 gap-2">
+                                {[
+                                  ['Operations', impactProfile.operations],
+                                  ['Customer experience', impactProfile.customerExperience],
+                                  ['Automation', impactProfile.automation],
+                                ].map(([label, level]) => (
+                                  <div key={label} className="rounded-sm border border-[#E3DDD3] bg-[#FAF8F3] p-2.5 text-center dark:border-dark-800 dark:bg-dark-950/40">
+                                    <p className="text-[10px] uppercase tracking-[0.08em] text-[#7A8491] dark:text-dark-500">{label}</p>
+                                    <p className="mt-1 text-sm font-semibold text-[#10243E] dark:text-white">{level}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                          })()}
 
                           <div className="mt-3 grid gap-2 border-t border-[#E1E8DF] pt-3 text-xs dark:border-dark-800 sm:grid-cols-4">
                             <div>
