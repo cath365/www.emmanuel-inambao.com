@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import {
   buildProjectQuotation,
+  buildScopeOptions,
   formatZmw,
   type ProjectQuoteSelection,
 } from '@/lib/project-quotation'
@@ -158,6 +159,7 @@ function buildPdf(pageStreams: string[]) {
 
 function buildProfessionalQuotation(body: PdfRequest) {
   const quotation = buildProjectQuotation(body.selection)
+  const scopeOptions = buildScopeOptions(body.selection, quotation)
   const pages: string[][] = []
   let page: string[] = []
   let y = 0
@@ -250,6 +252,36 @@ function buildProfessionalQuotation(body: PdfRequest) {
 
   sectionTitle('Project scope')
   paragraph(body.selection.projectDescription || 'Project scope to be finalized during discovery.')
+
+  if (
+    body.selection.clientGoal ||
+    body.selection.targetUsers ||
+    body.selection.currentProcess ||
+    body.selection.successOutcome
+  ) {
+    sectionTitle('Value case')
+    if (body.selection.clientGoal) paragraph(`Client goal: ${body.selection.clientGoal}`, 88, 9, 12)
+    if (body.selection.targetUsers) paragraph(`Target users: ${body.selection.targetUsers}`, 88, 9, 12)
+    if (body.selection.currentProcess) paragraph(`Current process: ${body.selection.currentProcess}`, 88, 9, 12)
+    if (body.selection.successOutcome) paragraph(`Desired outcome: ${body.selection.successOutcome}`, 88, 9, 12)
+  }
+
+  sectionTitle('Scope options')
+  for (const option of scopeOptions) {
+    ensure(54)
+    page.push(textCommand(option.title, 46, y, 9.5, true, NAVY))
+    page.push(textCommand(formatZmw(option.total), 430, y, 10, true, option.id === 'recommended' ? GOLD : NAVY))
+    y -= 14
+    page.push(textCommand(`35% upfront: ${formatZmw(option.upfront)}`, 46, y, 8.2, false, MID))
+    y -= 11
+    const additions = option.additions.length ? ` Adds: ${option.additions.join(', ')}.` : ''
+    const optionLines = wrap(`${option.description}${additions}`, 82).slice(0, 3)
+    for (const line of optionLines) {
+      page.push(textCommand(line, 46, y, 8.2, false, MID))
+      y -= 10
+    }
+    y -= 8
+  }
 
   sectionTitle('Investment breakdown')
   ensure(32)
