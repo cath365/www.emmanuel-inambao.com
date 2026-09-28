@@ -45,6 +45,9 @@ export interface ProjectImprovement {
   title: string
   description: string
   impact: string
+  withoutChange: string
+  withChange: string
+  stage: 'High-impact improvement' | 'Later phase'
   action: ImprovementAction
   featureName?: string
   priceImpact: number
@@ -210,6 +213,9 @@ export function projectImprovementIdeas(
       title: 'Add online selling / ordering',
       description: 'Add catalogue, cart/ordering and checkout workflows instead of relying on manual enquiries for every sale.',
       impact: 'Can shorten the path from interest to purchase and lets customers place orders outside normal working hours.',
+      withoutChange: 'Customers still need to message or call the business to place many orders manually.',
+      withChange: 'Customers can browse, choose products and place orders directly through the website.',
+      stage: 'High-impact improvement',
       action: 'ecommerce',
       priceImpact: PROJECT_PRICING.ecommerce,
     }))
@@ -226,6 +232,9 @@ export function projectImprovementIdeas(
       title: 'Add an admin dashboard',
       description: 'Give the client team a protected workspace to manage records, users, content, orders or reports.',
       impact: 'Reduces manual work and makes the system easier to operate after launch without asking a developer for every update.',
+      withoutChange: 'Routine records, updates and operational changes depend on manual work or developer support.',
+      withChange: 'Authorized staff can manage day-to-day operations from one protected dashboard.',
+      stage: 'High-impact improvement',
       action: 'adminDashboard',
       priceImpact: PROJECT_PRICING.adminDashboard,
     }))
@@ -240,6 +249,9 @@ export function projectImprovementIdeas(
       title: 'Add digital payment integration',
       description: 'Connect an approved payment provider and verify transactions automatically inside the system.',
       impact: 'Removes payment friction, reduces manual confirmation and can improve conversion for services that customers need to pay for.',
+      withoutChange: 'Customers pay outside the system and staff may need to verify transactions manually.',
+      withChange: 'Customers can pay through the service and successful transactions can be verified and recorded automatically.',
+      stage: 'High-impact improvement',
       action: 'paymentIntegration',
       priceImpact: PROJECT_PRICING.paymentIntegration,
     }))
@@ -254,6 +266,9 @@ export function projectImprovementIdeas(
       title: 'Add a dedicated mobile application',
       description: 'Provide a mobile-first experience for repeat users or teams who work away from a desktop.',
       impact: 'Improves convenience and engagement for users who primarily access services through Android/iOS phones.',
+      withoutChange: 'Users depend on the browser experience whenever they need to use the service.',
+      withChange: 'Repeat and field users get a dedicated mobile experience designed around phone-based use.',
+      stage: 'Later phase',
       action: 'mobileApplication',
       priceImpact: PROJECT_PRICING.mobileApplication,
     }))
@@ -266,6 +281,9 @@ export function projectImprovementIdeas(
       match: /alert|notify|notification|customer|booking|order|appointment|status|delivery/,
       description: 'Send important status updates or reminders to users instead of requiring them to keep checking the system.',
       impact: 'Improves follow-up and reduces missed updates, especially for users who are already comfortable with messaging channels.',
+      withoutChange: 'Users must keep checking the system or wait for someone to contact them manually.',
+      withChange: 'Important status changes and reminders can reach users through familiar messaging channels.',
+      stage: 'High-impact improvement' as const,
     },
     {
       id: 'suggest-analytics',
@@ -273,6 +291,9 @@ export function projectImprovementIdeas(
       match: /report|analytics|data|performance|sales|usage|monitor|dashboard|decision/,
       description: 'Add simple reporting so the client can see activity, trends and operational results.',
       impact: 'Makes the system more useful for management decisions because the client can see what is happening instead of only storing data.',
+      withoutChange: 'The system stores activity, but management has limited visibility into trends and performance.',
+      withChange: 'Simple reports turn operational data into information the client can use for decisions.',
+      stage: 'Later phase' as const,
     },
     {
       id: 'suggest-roles',
@@ -280,6 +301,9 @@ export function projectImprovementIdeas(
       match: /staff|teacher|student|employee|admin|manager|organization|organisation|school|team|department/,
       description: 'Give different users the right level of access based on their role.',
       impact: 'Improves security and makes workflows clearer when several people or departments use the same platform.',
+      withoutChange: 'Different users may see or manage more information than they actually need.',
+      withChange: 'Each user gets access that matches their responsibility, improving control and accountability.',
+      stage: 'High-impact improvement' as const,
     },
     {
       id: 'suggest-offline',
@@ -287,6 +311,9 @@ export function projectImprovementIdeas(
       match: /offline|field|rural|farm|farmer|unstable|internet|connectivity|remote/,
       description: 'Design critical tasks to tolerate weak connectivity and synchronize when the connection returns.',
       impact: 'Makes the product more reliable in real operating conditions where mobile data can be weak or inconsistent.',
+      withoutChange: 'Critical work can stop when the internet connection becomes weak or unavailable.',
+      withChange: 'Key tasks can continue during poor connectivity and synchronize when the connection returns.',
+      stage: 'High-impact improvement' as const,
     },
   ]
 
@@ -299,6 +326,9 @@ export function projectImprovementIdeas(
       title: candidate.name,
       description: candidate.description,
       impact: candidate.impact,
+      withoutChange: candidate.withoutChange,
+      withChange: candidate.withChange,
+      stage: candidate.stage,
       action: 'customFeature',
       featureName: candidate.name,
       priceImpact: PROJECT_PRICING.additionalFeature,
@@ -349,7 +379,7 @@ export function fallbackQuoteExplanation(selection: ProjectQuoteSelection, quota
   const ideaText = ideas.length
     ? `\n\nPossible improvements:\n${ideas
         .map(idea =>
-          `- ${idea.title}: +${formatZmw(idea.priceImpact)}; new known total ${formatZmw(idea.newKnownTotal)}; upfront increases by ${formatZmw(idea.upfrontImpact)}. ${idea.impact}`
+          `- ${idea.title} [${idea.stage}]: WITHOUT: ${idea.withoutChange} WITH: ${idea.withChange} Investment: +${formatZmw(idea.priceImpact)}; new known total ${formatZmw(idea.newKnownTotal)}; upfront increases by ${formatZmw(idea.upfrontImpact)}. Practical impact: ${idea.impact}`
         )
         .join('\n')}`
     : ''

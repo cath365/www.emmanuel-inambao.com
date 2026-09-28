@@ -31,27 +31,16 @@ export default function Hero() {
       <div className="section-container">
         <div className="mx-auto max-w-[1180px] overflow-hidden rounded-xl border border-[#D9D2C4] bg-[#FCFBF7] shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:border-dark-700/80 dark:bg-dark-900 dark:shadow-xl dark:shadow-black/10">
           {/* LinkedIn-style cover. The foreground image uses contain so text/logos are never cropped. */}
-          <div className="relative aspect-[7/2] min-h-[112px] w-full overflow-hidden bg-[#DCE4E9] dark:bg-dark-800">
+          <div className="relative aspect-[7/2] w-full overflow-hidden bg-[#DCE4E9] dark:bg-dark-800">
             {profile.coverImage ? (
-              <>
-                <Image
-                  src={profile.coverImage}
-                  alt=""
-                  fill
-                  aria-hidden
-                  className="scale-110 object-cover opacity-30 blur-xl"
-                  sizes="(max-width: 1200px) 100vw, 1180px"
-                  priority
-                />
-                <Image
-                  src={profile.coverImage}
-                  alt="Emmanuel Inambao portfolio cover"
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 1200px) 100vw, 1180px"
-                  priority
-                />
-              </>
+              <Image
+                src={profile.coverImage}
+                alt="Emmanuel Inambao portfolio cover"
+                fill
+                className="object-cover object-center"
+                sizes="(max-width: 1200px) 100vw, 1180px"
+                priority
+              />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-[#DCE4E9] via-[#E9E6DF] to-[#F7F5EF] dark:from-slate-800 dark:via-dark-900 dark:to-dark-950">
                 <div

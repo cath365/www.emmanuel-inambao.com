@@ -1012,10 +1012,78 @@ interface ProfileEditorProps {
   onSave: (updates: Partial<Profile>) => void
 }
 
+const COVER_WIDTH = 1400
+const COVER_HEIGHT = 400
+
+async function normalizeCoverBanner(file: File): Promise<{ file: File; previewUrl: string }> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Please select an image file.')
+  }
+
+  const sourceUrl = URL.createObjectURL(file)
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new window.Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('The selected banner image could not be opened.'))
+      img.src = sourceUrl
+    })
+
+    const sourceRatio = image.naturalWidth / image.naturalHeight
+    const targetRatio = COVER_WIDTH / COVER_HEIGHT
+
+    let sourceWidth = image.naturalWidth
+    let sourceHeight = image.naturalHeight
+    let sourceX = 0
+    let sourceY = 0
+
+    if (sourceRatio > targetRatio) {
+      sourceWidth = image.naturalHeight * targetRatio
+      sourceX = (image.naturalWidth - sourceWidth) / 2
+    } else if (sourceRatio < targetRatio) {
+      sourceHeight = image.naturalWidth / targetRatio
+      sourceY = (image.naturalHeight - sourceHeight) / 2
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width = COVER_WIDTH
+    canvas.height = COVER_HEIGHT
+    const context = canvas.getContext('2d')
+    if (!context) throw new Error('Banner crop is not supported in this browser.')
+
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      COVER_WIDTH,
+      COVER_HEIGHT
+    )
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        result => result ? resolve(result) : reject(new Error('Could not prepare the banner image.')),
+        'image/webp',
+        0.92
+      )
+    })
+
+    const baseName = file.name.replace(/\.[^.]+$/, '') || 'portfolio-cover'
+    const normalized = new File([blob], `${baseName}-1400x400.webp`, { type: 'image/webp' })
+    return { file: normalized, previewUrl: URL.createObjectURL(blob) }
+  } finally {
+    URL.revokeObjectURL(sourceUrl)
+  }
+}
+
 function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
   const [formData, setFormData] = useState<Profile>(profile)
   const [uploading, setUploading] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState('')
   const [uploadingCV, setUploadingCV] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
@@ -1024,6 +1092,12 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
   useEffect(() => {
     setFormData(profile)
   }, [profile])
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl)
+    }
+  }, [coverPreviewUrl])
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1057,15 +1131,19 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
   }
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
 
     setUploadingCover(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'cover')
-
     try {
+      const normalized = await normalizeCoverBanner(selectedFile)
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl)
+      setCoverPreviewUrl(normalized.previewUrl)
+
+      const form = new FormData()
+      form.append('file', normalized.file)
+      form.append('type', 'cover')
+
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: form,
@@ -1076,14 +1154,17 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
         const updated = { ...formData, coverImage: data.url }
         setFormData(updated)
         onSave(updated)
+        URL.revokeObjectURL(normalized.previewUrl)
+        setCoverPreviewUrl('')
       } else {
-        alert(data.error || 'Cover upload failed')
+        throw new Error(data.error || 'Cover upload failed')
       }
     } catch (err) {
       console.error('Cover upload error:', err)
-      alert('Cover upload failed.')
+      alert(err instanceof Error ? err.message : 'Cover upload failed.')
     } finally {
       setUploadingCover(false)
+      e.target.value = ''
     }
   }
 
@@ -1185,17 +1266,26 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
         {/* Cover Image Section */}
         <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Cover Banner</h2>
-          <div className="relative w-full h-32 sm:h-40 rounded-xl overflow-hidden bg-dark-700 border border-dark-600 mb-4">
-            {formData.coverImage ? (
+          <div className="relative aspect-[7/2] w-full overflow-hidden rounded-xl bg-dark-700 border border-dark-600 mb-4">
+            {coverPreviewUrl || formData.coverImage ? (
               <Image
-                src={formData.coverImage}
-                alt="Cover"
+                src={coverPreviewUrl || formData.coverImage || ''}
+                alt="Cover banner preview"
                 fill
-                className="object-cover"
+                unoptimized={Boolean(coverPreviewUrl)}
+                className="object-cover object-center"
+                sizes="(max-width: 1024px) 100vw, 900px"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950 flex items-center justify-center">
                 <p className="text-dark-400 text-sm">No cover image — a gradient will be shown</p>
+              </div>
+            )}
+            {uploadingCover && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[1px]">
+                <div className="rounded-lg bg-dark-950/85 px-4 py-2 text-sm font-medium text-white">
+                  Cropping to 1400 × 400 and uploading…
+                </div>
               </div>
             )}
           </div>
@@ -1230,7 +1320,14 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
               className="hidden"
             />
           </div>
-          <p className="text-dark-500 text-sm mt-2">Recommended: 1400x400px (landscape). Appears at top of your portfolio like LinkedIn.</p>
+          <div className="mt-3 rounded-lg border border-dark-700 bg-dark-900/60 p-3">
+            <p className="text-sm font-medium text-dark-200">LinkedIn-style banner output: 1400 × 400 px</p>
+            <p className="mt-1 text-xs leading-5 text-dark-500">
+              Any landscape image you choose is automatically center-cropped to the exact 7:2 hero ratio before upload.
+              The preview above uses the same ratio as the public portfolio, so what you see here is what visitors will see.
+              Keep important text and logos away from the extreme edges.
+            </p>
+          </div>
         </div>
 
         {/* Basic Info */}
