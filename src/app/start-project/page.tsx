@@ -745,11 +745,11 @@ export default function StartProjectPage() {
                         >
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0">
-                              <p className="font-semibold text-[#10243E] dark:text-white">{idea.title}</p>
+                              <span className="inline-flex rounded-full border border-[#C9D7C9] bg-[#F4F8F2] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#356244] dark:border-green-500/20 dark:bg-green-500/5 dark:text-green-300">
+                                {idea.stage}
+                              </span>
+                              <p className="mt-2 font-semibold text-[#10243E] dark:text-white">{idea.title}</p>
                               <p className="mt-1 text-sm leading-6 text-[#697483] dark:text-dark-400">{idea.description}</p>
-                              <p className="mt-2 text-sm leading-6 text-[#4D6A57] dark:text-green-300">
-                                <span className="font-semibold">Why it may help:</span> {idea.impact}
-                              </p>
                             </div>
                             <button
                               type="button"
@@ -761,19 +761,51 @@ export default function StartProjectPage() {
                             </button>
                           </div>
 
-                          <div className="mt-3 grid gap-2 border-t border-[#E1E8DF] pt-3 text-xs dark:border-dark-800 sm:grid-cols-3">
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            <div className="rounded-sm border border-[#E3DDD3] bg-[#FAF8F3] p-3 dark:border-dark-800 dark:bg-dark-950/40">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8A6B5B] dark:text-dark-500">
+                                Without this improvement
+                              </p>
+                              <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                                {idea.withoutChange}
+                              </p>
+                            </div>
+                            <div className="rounded-sm border border-[#C9D7C9] bg-[#F4F8F2] p-3 dark:border-green-500/20 dark:bg-green-500/5">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#356244] dark:text-green-300">
+                                With this improvement
+                              </p>
+                              <p className="mt-2 text-sm leading-6 text-[#4D6A57] dark:text-green-200">
+                                {idea.withChange}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 rounded-sm border border-[#D9E4D6] bg-[#FBFDF9] p-3 dark:border-green-500/15 dark:bg-dark-950/30">
+                            <p className="text-sm leading-6 text-[#4D6A57] dark:text-green-300">
+                              <span className="font-semibold">Practical impact:</span> {idea.impact}
+                            </p>
+                          </div>
+
+                          <div className="mt-3 grid gap-2 border-t border-[#E1E8DF] pt-3 text-xs dark:border-dark-800 sm:grid-cols-4">
                             <div>
                               <span className="text-[#7A8491] dark:text-dark-500">Current total</span>
                               <p className="mt-1 font-semibold text-[#10243E] dark:text-white">{formatZmw(quotation.knownTotal)}</p>
+                            </div>
+                            <div>
+                              <span className="text-[#7A8491] dark:text-dark-500">Added investment</span>
+                              <p className="mt-1 font-semibold text-[#10243E] dark:text-white">+{formatZmw(idea.priceImpact)}</p>
                             </div>
                             <div>
                               <span className="text-[#7A8491] dark:text-dark-500">New total</span>
                               <p className="mt-1 font-semibold text-[#10243E] dark:text-white">{formatZmw(idea.newKnownTotal)}</p>
                             </div>
                             <div>
-                              <span className="text-[#7A8491] dark:text-dark-500">Upfront change</span>
+                              <span className="text-[#7A8491] dark:text-dark-500">35% upfront change</span>
                               <p className="mt-1 font-semibold text-[#356244] dark:text-green-300">
-                                +{formatZmw(idea.upfrontImpact)}
+                                {formatZmw(quotation.upfrontAmount)} → {formatZmw(quotation.upfrontAmount + idea.upfrontImpact)}
+                              </p>
+                              <p className="mt-0.5 text-[11px] text-[#617064] dark:text-dark-400">
+                                +{formatZmw(idea.upfrontImpact)} now
                               </p>
                             </div>
                           </div>
@@ -789,14 +821,14 @@ export default function StartProjectPage() {
                     <h2 className="font-semibold text-[#10243E] dark:text-white">AI project strategist</h2>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">
-                    Ask about value, improvements, an MVP, or how to reduce cost without removing the most important outcome.
+                    Ask what makes the proposed system different, what each extra investment changes, which improvement has the strongest practical impact, or how to phase the project without losing the core value.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {[
-                      'How can this project be improved?',
-                      'What business impact will this scope have?',
-                      'What is the best MVP for this project?',
-                      'How can I reduce the initial cost without losing the core value?',
+                      'Show me the before-and-after difference for each improvement.',
+                      'Why is this system better than a basic version?',
+                      'Which extra investment has the strongest practical impact?',
+                      'What is the best MVP and what can wait until phase 2?',
                     ].map(prompt => (
                       <button
                         key={prompt}
