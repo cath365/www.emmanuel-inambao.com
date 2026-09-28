@@ -14,12 +14,14 @@ import {
   Download,
   Globe2,
   LayoutDashboard,
+  Lightbulb,
   MessageCircle,
   Plus,
   RefreshCcw,
   Send,
   ShoppingCart,
   Smartphone,
+  TrendingUp,
   Cpu,
   X,
 } from 'lucide-react'
@@ -27,7 +29,9 @@ import { useProfile } from '@/lib/profile'
 import {
   buildProjectQuotation,
   formatZmw,
+  projectImprovementIdeas,
   quotationSummary,
+  type ProjectImprovement,
   type ProjectQuoteSelection,
   type ProjectTimeline,
   type MobilePlatform,
@@ -140,7 +144,7 @@ export default function StartProjectPage() {
   const [selection, setSelection] = useState<ProjectQuoteSelection>(DEFAULT_SELECTION)
   const [client, setClient] = useState<ClientDetails>(DEFAULT_CLIENT)
   const [step, setStep] = useState<Step>('deliverables')
-  const [aiQuestion, setAiQuestion] = useState('Why does this quotation cost this amount?')
+  const [aiQuestion, setAiQuestion] = useState('How can this project be improved, and what will each improvement change?')
   const [aiAnswer, setAiAnswer] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
@@ -154,6 +158,10 @@ export default function StartProjectPage() {
   })
 
   const quotation = useMemo(() => buildProjectQuotation(selection), [selection])
+  const improvementIdeas = useMemo(
+    () => projectImprovementIdeas(selection, quotation),
+    [selection, quotation]
+  )
   const anyDeliverable = selection.website || selection.mobileApplication || selection.iotIntegration
 
   const toggle = (key: 'website' | 'mobileApplication' | 'iotIntegration') => {
@@ -176,6 +184,26 @@ export default function StartProjectPage() {
       ...prev,
       customFeatures: prev.customFeatures.filter((_, itemIndex) => itemIndex !== index),
     }))
+  }
+
+  const applyImprovement = (idea: ProjectImprovement) => {
+    setSelection(prev => {
+      if (idea.action === 'ecommerce') return { ...prev, website: true, ecommerce: true }
+      if (idea.action === 'adminDashboard') return { ...prev, adminDashboard: true }
+      if (idea.action === 'paymentIntegration') return { ...prev, paymentIntegration: true }
+      if (idea.action === 'mobileApplication') return { ...prev, mobileApplication: true }
+
+      if (idea.action === 'customFeature' && idea.featureName) {
+        const exists = prev.customFeatures.some(
+          item => item.toLowerCase() === idea.featureName?.toLowerCase()
+        )
+        if (exists || prev.customFeatures.length >= 30) return prev
+        return { ...prev, customFeatures: [...prev.customFeatures, idea.featureName] }
+      }
+
+      return prev
+    })
+    setAiAnswer('')
   }
 
   const goForward = () => {
@@ -214,7 +242,7 @@ export default function StartProjectPage() {
       if (!hasValidClientContact(client)) return
       setStep('review')
       void askAi(
-        'Explain this quotation to the client, explain why each selected item is charged, show the 35% upfront calculation, and encourage a sensible next step without changing any fixed price.'
+        'Act as a project strategist. Explain what the client is trying to build, why the current scope matters, the practical impact of each selected item, and the best approved improvements. For every improvement, show the price increase, new known total, and how the 35% upfront payment changes. Recommend a sensible next step without changing any fixed price.'
       )
     }
   }
@@ -349,7 +377,7 @@ export default function StartProjectPage() {
     setClient(DEFAULT_CLIENT)
     setStep('deliverables')
     setAiAnswer('')
-    setAiQuestion('Why does this quotation cost this amount?')
+    setAiQuestion('How can this project be improved, and what will each improvement change?')
     setFeatureDraft('')
     setQuoteId('')
     setDeliveryStatus({ saved: false, emailSent: false, emailProviderConfigured: false })
@@ -380,8 +408,9 @@ export default function StartProjectPage() {
             Tell the assistant what you want to build.
           </h1>
           <p className="mt-4 text-base leading-7 text-[#667384] dark:text-dark-400">
-            The assistant asks for the scope, explains every charge and prepares a downloadable quotation.
-            Prices are calculated from fixed rules — the AI cannot invent or change them.
+            The assistant understands the project goal, explains the value of each item, suggests practical improvements,
+            shows exactly how every approved addition changes the total and upfront payment, and prepares a downloadable quotation.
+            Prices are calculated from fixed rules — the AI cannot invent or secretly change them.
           </p>
         </div>
 
@@ -465,6 +494,7 @@ export default function StartProjectPage() {
                     <p className="font-semibold text-[#10243E] dark:text-white">Additional custom features</p>
                     <p className="text-sm leading-6 text-[#697483] dark:text-dark-400">
                       Add any extra feature not covered above. Each additional feature adds exactly ZMW 350 to the quotation.
+                      That changes the 35% upfront payment by ${formatZmw(350 * 0.35)} for each added feature.
                     </p>
                   </div>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -642,6 +672,9 @@ export default function StartProjectPage() {
                         <div>
                           <p className="font-semibold text-[#10243E] dark:text-white">{item.label}</p>
                           <p className="mt-1 text-sm leading-6 text-[#697483] dark:text-dark-400">{item.reason}</p>
+                          <p className="mt-2 text-sm leading-6 text-[#4D6A57] dark:text-green-300">
+                            <span className="font-semibold">Client impact:</span> {item.impact}
+                          </p>
                         </div>
                         <p className="shrink-0 font-semibold text-[#10243E] dark:text-white">
                           {item.amount === null ? 'Custom' : formatZmw(item.amount)}
@@ -689,10 +722,94 @@ export default function StartProjectPage() {
                   </p>
                 </div>
 
+                {improvementIdeas.length > 0 && (
+                  <div className="rounded-sm border border-[#C9D7C9] bg-[#F4F8F2] p-5 dark:border-green-500/20 dark:bg-green-500/5">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#DDEBDD] text-[#356244] dark:bg-green-500/10 dark:text-green-300">
+                        <Lightbulb className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h2 className="font-semibold text-[#10243E] dark:text-white">Smart project improvements</h2>
+                        <p className="mt-1 text-sm leading-6 text-[#617064] dark:text-dark-300">
+                          These ideas are based on the project goal you described. Nothing is added automatically.
+                          Every card shows the exact price effect before you choose it.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3">
+                      {improvementIdeas.map(idea => (
+                        <div
+                          key={idea.id}
+                          className="rounded-sm border border-[#D6E1D4] bg-white/80 p-4 dark:border-dark-700 dark:bg-dark-900/60"
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#10243E] dark:text-white">{idea.title}</p>
+                              <p className="mt-1 text-sm leading-6 text-[#697483] dark:text-dark-400">{idea.description}</p>
+                              <p className="mt-2 text-sm leading-6 text-[#4D6A57] dark:text-green-300">
+                                <span className="font-semibold">Why it may help:</span> {idea.impact}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => applyImprovement(idea)}
+                              className="btn-secondary shrink-0 justify-center"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Add · +{formatZmw(idea.priceImpact)}
+                            </button>
+                          </div>
+
+                          <div className="mt-3 grid gap-2 border-t border-[#E1E8DF] pt-3 text-xs dark:border-dark-800 sm:grid-cols-3">
+                            <div>
+                              <span className="text-[#7A8491] dark:text-dark-500">Current total</span>
+                              <p className="mt-1 font-semibold text-[#10243E] dark:text-white">{formatZmw(quotation.knownTotal)}</p>
+                            </div>
+                            <div>
+                              <span className="text-[#7A8491] dark:text-dark-500">New total</span>
+                              <p className="mt-1 font-semibold text-[#10243E] dark:text-white">{formatZmw(idea.newKnownTotal)}</p>
+                            </div>
+                            <div>
+                              <span className="text-[#7A8491] dark:text-dark-500">Upfront change</span>
+                              <p className="mt-1 font-semibold text-[#356244] dark:text-green-300">
+                                +{formatZmw(idea.upfrontImpact)}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="rounded-sm border border-[#DDD7CC] bg-white/60 p-5 dark:border-dark-700 dark:bg-dark-900/50">
                   <div className="flex items-center gap-2">
-                    <Bot className="h-5 w-5 text-[#526E8A] dark:text-primary-400" />
-                    <h2 className="font-semibold text-[#10243E] dark:text-white">Ask the AI about this price</h2>
+                    <TrendingUp className="h-5 w-5 text-[#526E8A] dark:text-primary-400" />
+                    <h2 className="font-semibold text-[#10243E] dark:text-white">AI project strategist</h2>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">
+                    Ask about value, improvements, an MVP, or how to reduce cost without removing the most important outcome.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {[
+                      'How can this project be improved?',
+                      'What business impact will this scope have?',
+                      'What is the best MVP for this project?',
+                      'How can I reduce the initial cost without losing the core value?',
+                    ].map(prompt => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => {
+                          setAiQuestion(prompt)
+                          void askAi(prompt)
+                        }}
+                        className="rounded-full border border-[#D4CEC4] bg-white px-3 py-1.5 text-xs font-medium text-[#526E8A] transition hover:border-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:text-primary-300"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
                   </div>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                     <input
