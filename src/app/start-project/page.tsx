@@ -494,7 +494,7 @@ export default function StartProjectPage() {
                     <p className="font-semibold text-[#10243E] dark:text-white">Additional custom features</p>
                     <p className="text-sm leading-6 text-[#697483] dark:text-dark-400">
                       Add any extra feature not covered above. Each additional feature adds exactly ZMW 350 to the quotation.
-                      That changes the 35% upfront payment by ${formatZmw(350 * 0.35)} for each added feature.
+                      That changes the 35% upfront payment by {formatZmw(350 * 0.35)} for each added feature.
                     </p>
                   </div>
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row">
