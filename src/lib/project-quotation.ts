@@ -370,23 +370,53 @@ export function fallbackQuoteExplanation(selection: ProjectQuoteSelection, quota
     return 'Select at least one deliverable first so I can explain the pricing.'
   }
 
-  const lines = quotation.lineItems.map(item => {
-    const price = item.amount === null ? 'custom quotation' : formatZmw(item.amount)
-    return `${item.label} is ${price} because ${item.reason.charAt(0).toLowerCase()}${item.reason.slice(1)} Its practical impact is: ${item.impact}`
-  })
+  const selectedValue = quotation.lineItems
+    .map(item => {
+      const price = item.amount === null ? 'Custom quotation after technical discovery' : formatZmw(item.amount)
+      return `• ${item.label} — ${price}\n  What it changes: ${item.impact}`
+    })
+    .join('\n')
 
   const ideas = projectImprovementIdeas(selection, quotation)
-  const ideaText = ideas.length
-    ? `\n\nPossible improvements:\n${ideas
-        .map(idea =>
-          `- ${idea.title} [${idea.stage}]: WITHOUT: ${idea.withoutChange} WITH: ${idea.withChange} Investment: +${formatZmw(idea.priceImpact)}; new known total ${formatZmw(idea.newKnownTotal)}; upfront increases by ${formatZmw(idea.upfrontImpact)}. Practical impact: ${idea.impact}`
-        )
-        .join('\n')}`
-    : ''
+  const improvementText = ideas.length
+    ? ideas
+        .map(idea => {
+          const newUpfront = quotation.upfrontAmount + idea.upfrontImpact
+          return [
+            `• ${idea.title} — ${idea.stage}`,
+            `  Without it: ${idea.withoutChange}`,
+            `  With it: ${idea.withChange}`,
+            `  Added investment: +${formatZmw(idea.priceImpact)}`,
+            `  Total: ${formatZmw(quotation.knownTotal)} → ${formatZmw(idea.newKnownTotal)}`,
+            `  35% upfront: ${formatZmw(quotation.upfrontAmount)} → ${formatZmw(newUpfront)} (+${formatZmw(idea.upfrontImpact)})`,
+            `  Practical impact: ${idea.impact}`,
+          ].join('\n')
+        })
+        .join('\n\n')
+    : 'No extra paid improvement is currently triggered by the project description. The current scope can be treated as the core launch version.'
 
   const customNote = quotation.hasCustomPricing
-    ? ' The IoT portion stays custom until the hardware, sensors, connectivity and quantity are clear.'
+    ? '\n\nIoT note: the connected-device portion still needs technical discovery because hardware, sensors, connectivity, power, enclosure and quantity affect the final amount.'
     : ''
 
-  return `${lines.join(' ')} The current known total is ${formatZmw(quotation.knownTotal)}. The upfront payment is 35%, which is ${formatZmw(quotation.upfrontAmount)}, leaving ${formatZmw(quotation.balanceAmount)} as the remaining 65% balance.${customNote}${ideaText}`
+  return [
+    'WHAT YOU ARE BUILDING',
+    selection.projectDescription || 'A digital system based on the selected project scope.',
+    '',
+    'WHY THE CURRENT SCOPE MATTERS',
+    selectedValue,
+    '',
+    'CURRENT INVESTMENT',
+    `Known total: ${formatZmw(quotation.knownTotal)}`,
+    `35% upfront: ${formatZmw(quotation.upfrontAmount)}`,
+    `65% remaining balance: ${formatZmw(quotation.balanceAmount)}`,
+    '',
+    'BEFORE VS AFTER — BEST IMPROVEMENTS',
+    improvementText,
+    '',
+    'RECOMMENDED NEXT STEP',
+    ideas.length
+      ? 'Keep the core scope needed to launch, add the high-impact improvement only when its operational benefit justifies the extra investment, and move lower-priority items to phase 2.'
+      : 'Proceed with the current core scope, then review optional improvements after the first version is validated with real users.',
+  ].join('\n') + customNote
 }
