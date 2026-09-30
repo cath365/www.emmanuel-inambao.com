@@ -17,7 +17,7 @@ const SkillGlobe = dynamic(() => import('@/components/ui/SkillGlobe'), {
 import { 
   Cpu, 
   Code, 
-  ClipboardCheck,
+  CheckCircle2,
   Cog,
   Wifi,
   Smartphone,
@@ -29,7 +29,7 @@ const iconMap = {
   software: Code,
   iot: Wifi,
   mobile: Smartphone,
-  'project-management': ClipboardCheck,
+  'project-management': CheckCircle2,
   stem: GraduationCap,
   default: Cog,
 }
