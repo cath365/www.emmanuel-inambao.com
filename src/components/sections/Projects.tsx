@@ -27,10 +27,10 @@ export default function Projects() {
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >
           <div>
-            <span className="text-sm font-medium uppercase tracking-[0.2em] text-[#526E8A] dark:text-primary-500">01 — Engineering Work</span>
-            <h2 id="projects-heading" className="section-heading mt-2">Flagship systems built for real-world use.</h2>
+            <span className="text-sm font-medium uppercase tracking-[0.2em] text-[#526E8A] dark:text-primary-500">01 — Selected Work</span>
+            <h2 id="projects-heading" className="section-heading mt-2">Selected systems across robotics, IoT, software and client delivery.</h2>
             <p className="section-subheading mt-4">
-              Embedded control, IoT, robotics and full-stack platforms presented as engineering systems — problem, architecture, implementation and outcome.
+              Projects are presented with their actual role, type, organisation context and status so production systems, client work, R&D and prototypes are not blurred together.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">

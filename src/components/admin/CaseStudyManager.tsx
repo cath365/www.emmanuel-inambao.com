@@ -35,6 +35,10 @@ export default function CaseStudyManager() {
   const [architectureText, setArchitectureText] = useState('')
   const [technologyText, setTechnologyText] = useState('')
   const [resultsText, setResultsText] = useState('')
+  const [requirementsText, setRequirementsText] = useState('')
+  const [planningText, setPlanningText] = useState('')
+  const [testingText, setTestingText] = useState('')
+  const [futureText, setFutureText] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [generationSource, setGenerationSource] = useState<'groq' | 'local' | ''>('')
@@ -72,6 +76,10 @@ export default function CaseStudyManager() {
     setArchitectureText(study.architecture.join('\n'))
     setTechnologyText(study.technologies.join('\n'))
     setResultsText(resultsToText(study.results))
+    setRequirementsText((study.requirements || []).join('\n'))
+    setPlanningText((study.planning || []).join('\n'))
+    setTestingText((study.testing || []).join('\n'))
+    setFutureText((study.futureImprovements || []).join('\n'))
   }
 
   const generate = async () => {
@@ -123,6 +131,10 @@ export default function CaseStudyManager() {
       architecture: linesToArray(architectureText),
       technologies: linesToArray(technologyText),
       results: textToResults(resultsText),
+      requirements: linesToArray(requirementsText),
+      planning: linesToArray(planningText),
+      testing: linesToArray(testingText),
+      futureImprovements: linesToArray(futureText),
     }
   }
 
@@ -278,6 +290,9 @@ export default function CaseStudyManager() {
               ['status', 'Status'],
               ['timeline', 'Timeline'],
               ['role', 'Role'],
+              ['projectType', 'Project type'],
+              ['organization', 'Organisation / context'],
+              ['contribution', 'My contribution'],
             ] as const).map(([field, label]) => (
               <label key={field} className="block">
                 <span className="mb-2 block text-sm font-medium text-dark-300">{label}</span>
@@ -299,6 +314,27 @@ export default function CaseStudyManager() {
               className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm leading-6 text-white outline-none focus:border-primary-500"
             />
           </label>
+
+          <label className="mt-5 block">
+            <span className="mb-2 block text-sm font-medium text-dark-300">Context</span>
+            <textarea
+              value={draft.context || ''}
+              onChange={event => updateDraft('context', event.target.value)}
+              rows={4}
+              className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm leading-6 text-white outline-none focus:border-primary-500"
+            />
+          </label>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <label>
+              <span className="mb-2 block text-sm font-medium text-dark-300">Requirements · one per line</span>
+              <textarea value={requirementsText} onChange={event => setRequirementsText(event.target.value)} rows={7} className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm text-white outline-none focus:border-primary-500" />
+            </label>
+            <label>
+              <span className="mb-2 block text-sm font-medium text-dark-300">Project planning · one per line</span>
+              <textarea value={planningText} onChange={event => setPlanningText(event.target.value)} rows={7} className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm text-white outline-none focus:border-primary-500" />
+            </label>
+          </div>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <label>
@@ -322,6 +358,27 @@ export default function CaseStudyManager() {
           <label className="mt-5 block">
             <span className="mb-2 block text-sm font-medium text-dark-300">Results · value | label | description</span>
             <textarea value={resultsText} onChange={event => setResultsText(event.target.value)} rows={6} className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 font-mono text-xs leading-6 text-white outline-none focus:border-primary-500" />
+          </label>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+            <label>
+              <span className="mb-2 block text-sm font-medium text-dark-300">Testing / validation · one per line</span>
+              <textarea value={testingText} onChange={event => setTestingText(event.target.value)} rows={7} className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm text-white outline-none focus:border-primary-500" />
+            </label>
+            <label>
+              <span className="mb-2 block text-sm font-medium text-dark-300">Future improvements · one per line</span>
+              <textarea value={futureText} onChange={event => setFutureText(event.target.value)} rows={7} className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm text-white outline-none focus:border-primary-500" />
+            </label>
+          </div>
+
+          <label className="mt-5 block">
+            <span className="mb-2 block text-sm font-medium text-dark-300">Outcome</span>
+            <textarea
+              value={draft.outcome || ''}
+              onChange={event => updateDraft('outcome', event.target.value)}
+              rows={4}
+              className="w-full rounded-lg border border-dark-700 bg-dark-900 px-3 py-2.5 text-sm leading-6 text-white outline-none focus:border-primary-500"
+            />
           </label>
         </section>
       )}

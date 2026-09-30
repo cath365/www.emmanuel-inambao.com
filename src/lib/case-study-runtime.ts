@@ -43,7 +43,9 @@ export async function getAllCaseStudies(): Promise<CaseStudy[]> {
 
   for (const study of staticCaseStudies) merged.set(study.slug, study)
   for (const study of dynamicStudies) {
-    if (study?.slug) merged.set(study.slug, study)
+    if (!study?.slug) continue
+    const staticStudy = merged.get(study.slug)
+    merged.set(study.slug, staticStudy ? { ...staticStudy, ...study } : study)
   }
 
   return Array.from(merged.values())

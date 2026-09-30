@@ -1,6 +1,6 @@
 # Emmanuel Inambao — Engineering Portfolio
 
-Production portfolio for Emmanuel Inambao (Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer, Lusaka, Zambia). Built with Next.js 14 App Router, TypeScript, Tailwind, Framer Motion. Backed by Vercel Blob + Cloudinary.
+Production portfolio for Emmanuel Inambao (Robotics & IoT Engineer, Full-Stack Systems Developer, Technical Project Manager, Lusaka, Zambia). Built with Next.js 14 App Router, TypeScript, Tailwind, Framer Motion. Backed by Vercel Blob + Cloudinary.
 
 ## Tech stack
 
@@ -128,7 +128,7 @@ Personal portfolio — source available for reference, not licensed for reuse as
 ## Author
 
 **Emmanuel Inambao**
-Electronic Engineer · IoT & Robotics Developer · Full-Stack Systems Engineer
+Robotics & IoT Engineer · Full-Stack Systems Developer · Technical Project Manager
 Lusaka, Zambia · denuelinambao@gmail.com
 
 ## Submission and publishing diagnostics

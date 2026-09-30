@@ -236,8 +236,7 @@ export default function Contact() {
                   <div>
                     <p className="text-[#7C6840] dark:text-green-400 font-medium">Available for Projects</p>
                     <p className="text-[#697483] dark:text-dark-400 text-sm mt-1">
-                      Currently accepting new engineering projects and consultations.
-                      Response time: typically within 24 hours.
+                      Open to relevant engineering roles, technical projects, R&amp;D collaboration, STEM programme work and professional partnerships.
                     </p>
                   </div>
                 </div>
@@ -320,10 +319,13 @@ export default function Contact() {
                       className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors"
                     >
                       <option value="">Select a topic</option>
-                      <option value="project">Project Inquiry</option>
-                      <option value="consultation">Technical Consultation</option>
-                      <option value="partnership">Partnership Opportunity</option>
-                      <option value="mentorship">Mentorship / Training</option>
+                      <option value="employment">Employment / Engineering Role</option>
+                      <option value="engineering-contract">Engineering Contract</option>
+                      <option value="software-development">Software Development</option>
+                      <option value="iot-project">IoT / Robotics Project</option>
+                      <option value="research-collaboration">Research / R&amp;D Collaboration</option>
+                      <option value="stem-program">STEM Programme</option>
+                      <option value="partnership">Professional Partnership</option>
                       <option value="other">Other</option>
                     </select>
                   </div>

@@ -73,9 +73,26 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
       </div>
 
       <div className={isEven ? 'lg:order-2' : 'lg:order-1'}>
+        <div className="mb-3 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.12em]">
+          {project.projectType && (
+            <span className="rounded-sm border border-[#D8D2C8] bg-white/70 px-2.5 py-1 text-[#526E8A] dark:border-dark-700 dark:bg-dark-900/60 dark:text-primary-300">
+              {project.projectType}
+            </span>
+          )}
+          {project.organization && (
+            <span className="rounded-sm border border-[#D8D2C8] bg-white/70 px-2.5 py-1 text-[#667384] dark:border-dark-700 dark:bg-dark-900/60 dark:text-dark-300">
+              {project.organization}
+            </span>
+          )}
+        </div>
         {project.role && (
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent-400">
-            {project.role}
+          <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent-400">
+            Role: {project.role}
+          </p>
+        )}
+        {project.contribution && (
+          <p className="mb-3 text-xs font-medium text-[#7A8491] dark:text-dark-500">
+            Contribution: {project.contribution}
           </p>
         )}
 

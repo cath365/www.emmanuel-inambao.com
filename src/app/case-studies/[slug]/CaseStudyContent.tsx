@@ -16,8 +16,11 @@ export default function CaseStudyContent({ study }: { study: CaseStudy }) {
         <motion.header initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full border border-primary-400/25 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">{study.status}</span>
-            <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{study.role}</span>
+            {study.projectType && <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{study.projectType}</span>}
+            {study.organization && <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{study.organization}</span>}
           </div>
+          <p className="mt-3 text-sm font-semibold uppercase tracking-[0.14em] text-accent-400">Role: {study.role}</p>
+          {study.contribution && <p className="mt-1 text-sm text-dark-500">Contribution: {study.contribution}</p>}
           <h1 className="mt-5 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">{study.title}</h1>
           <p className="mt-5 max-w-4xl text-lg leading-relaxed text-dark-300 sm:text-xl">{study.subtitle}</p>
           <p className="mt-3 text-sm text-dark-500">{study.timeline}</p>
@@ -36,6 +39,33 @@ export default function CaseStudyContent({ study }: { study: CaseStudy }) {
             </div>
           )}
         </section>
+
+        {(study.context || study.requirements?.length || study.planning?.length) && (
+          <section className="mt-6 grid gap-6 lg:grid-cols-3">
+            {study.context && (
+              <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6">
+                <h2 className="text-xl font-bold text-white">Context</h2>
+                <p className="mt-3 text-sm leading-7 text-dark-300">{study.context}</p>
+              </div>
+            )}
+            {study.requirements && study.requirements.length > 0 && (
+              <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6">
+                <h2 className="text-xl font-bold text-white">Requirements</h2>
+                <ul className="mt-3 space-y-3">
+                  {study.requirements.map(item => <li key={item} className="text-sm leading-6 text-dark-300">• {item}</li>)}
+                </ul>
+              </div>
+            )}
+            {study.planning && study.planning.length > 0 && (
+              <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6">
+                <h2 className="text-xl font-bold text-white">Project planning</h2>
+                <ul className="mt-3 space-y-3">
+                  {study.planning.map(item => <li key={item} className="text-sm leading-6 text-dark-300">• {item}</li>)}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {study.results.map(result => (
@@ -90,6 +120,33 @@ export default function CaseStudyContent({ study }: { study: CaseStudy }) {
             {study.technologies.map(tech => <span key={tech} className="tech-badge">{tech}</span>)}
           </div>
         </section>
+
+        {(study.testing?.length || study.outcome || study.futureImprovements?.length) && (
+          <section className="mt-6 grid gap-6 lg:grid-cols-3">
+            {study.testing && study.testing.length > 0 && (
+              <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6">
+                <h2 className="text-xl font-bold text-white">Testing / validation</h2>
+                <ul className="mt-3 space-y-3">
+                  {study.testing.map(item => <li key={item} className="text-sm leading-6 text-dark-300">• {item}</li>)}
+                </ul>
+              </div>
+            )}
+            {study.outcome && (
+              <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6">
+                <h2 className="text-xl font-bold text-white">Outcome</h2>
+                <p className="mt-3 text-sm leading-7 text-dark-300">{study.outcome}</p>
+              </div>
+            )}
+            {study.futureImprovements && study.futureImprovements.length > 0 && (
+              <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6">
+                <h2 className="text-xl font-bold text-white">Future improvements</h2>
+                <ul className="mt-3 space-y-3">
+                  {study.futureImprovements.map(item => <li key={item} className="text-sm leading-6 text-dark-300">• {item}</li>)}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="mt-12 rounded-2xl border border-primary-500/20 bg-primary-950/30 p-7 sm:p-9">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-400">Project enquiry</p>

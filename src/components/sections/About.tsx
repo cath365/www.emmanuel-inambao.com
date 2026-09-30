@@ -1,153 +1,90 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Target, Lightbulb, Wrench, Users } from 'lucide-react'
-import { useLanguage } from '@/lib/i18n'
+import { Cpu, Code, CheckCircle2, GraduationCap } from 'lucide-react'
 
-// Core values/pillars data
 const pillars = [
   {
-    icon: Target,
-    title: 'Problem-First Engineering',
-    description: 'Every project starts with a real problem that needs solving. I focus on understanding the challenge before writing a single line of code.',
+    icon: Cpu,
+    title: 'Robotics & Embedded Engineering',
+    description:
+      'Designing and troubleshooting robotics, IoT and embedded systems using microcontrollers, sensors, actuators, wireless communication and practical electronics.',
   },
   {
-    icon: Wrench,
-    title: 'Hardware + Software',
-    description: 'True systems engineering requires mastery of both domains. I design circuits, write firmware, and build the dashboards that bring it all together.',
+    icon: Code,
+    title: 'Full-Stack Systems Development',
+    description:
+      'Building the software around physical systems and business workflows: web applications, mobile applications, APIs, databases, dashboards, authentication and cloud deployment.',
   },
   {
-    icon: Lightbulb,
-    title: 'Practical Innovation',
-    description: 'Innovation should be deployable, not theoretical. I build systems that work in the field, offline when needed, and serve real users.',
+    icon: CheckCircle2,
+    title: 'Technical Project Management',
+    description:
+      'Turning a problem into requirements, scope, architecture, components, milestones, budgets, risks, testing plans and an implementation path that can be coordinated and delivered.',
   },
   {
-    icon: Users,
-    title: 'Knowledge Transfer',
-    description: 'Engineering skills must be shared. I actively mentor young engineers and students, building the next generation of African innovators.',
+    icon: GraduationCap,
+    title: 'STEM Project & Programme Planning',
+    description:
+      'Planning practical engineering projects for learners: defining objectives, selecting technologies, structuring project stages and designing activities that demonstrate real learning.',
   },
 ]
 
 export default function About() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
-  const { t } = useLanguage()
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1],
-      },
-    },
-  }
 
   return (
     <section
       id="about"
       ref={ref}
-      className="py-20 lg:py-28 bg-[#F7F5EF] dark:bg-dark-900/35 border-y border-[#E1DBD1] dark:border-dark-800/60"
+      className="border-y border-[#E1DBD1] bg-[#F7F5EF] py-20 dark:border-dark-800/60 dark:bg-dark-900/35 lg:py-28"
       aria-labelledby="about-heading"
     >
       <div className="section-container">
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          {/* Section header */}
-          <motion.div variants={itemVariants} className="text-center mb-14">
-            <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-[0.18em]">
-              02 — Professional Profile
-            </span>
-            <h2 id="about-heading" className="section-heading mt-3 tracking-tight">
-              {t('about.heading')}
+          <div className="mb-12 max-w-4xl">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#526E8A] dark:text-primary-400">
+              Professional profile
+            </p>
+            <h2 id="about-heading" className="section-heading mt-3">
+              Engineering across hardware, software and project delivery.
             </h2>
-          </motion.div>
+            <p className="mt-5 text-lg leading-8 text-[#39495A] dark:text-dark-200">
+              I am Emmanuel Inambao, a Robotics & IoT Engineer, Full-Stack Systems Developer and Technical Project Manager based in Lusaka, Zambia.
+            </p>
+            <p className="mt-4 max-w-3xl leading-7 text-[#697483] dark:text-dark-400">
+              My work combines electronics, embedded systems, robotics, IoT and software engineering with the planning needed to move a technical project from an idea into a testable and deployable system. I work across requirements, architecture, component planning, implementation, troubleshooting, testing, documentation and improvement rather than treating hardware, software and delivery as separate activities.
+            </p>
+            <p className="mt-4 max-w-3xl leading-7 text-[#697483] dark:text-dark-400">
+              At Robotix Institute, I contribute to engineering and R&D work, technical project coordination and project-based STEM programmes. This includes planning practical robotics and coding projects, defining what learners should understand from each project, selecting suitable technologies and supporting technical delivery with students, team members and stakeholders.
+            </p>
+          </div>
 
-          {/* Main content grid */}
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Story section */}
-            <motion.div variants={itemVariants} className="space-y-6">
-              <p className="text-lg text-[#39495A] dark:text-dark-200 leading-relaxed">
-                I'm <strong className="text-[#10243E] dark:text-white">Emmanuel Inambao</strong>, 
-                an Electronic Engineer based in Lusaka, Zambia. With hands-on experience across embedded systems, IoT, robotics and full-stack development, 
-                I build complete systems — from sensors and firmware to APIs, mobile applications and dashboards.
-              </p>
-              <p className="text-[#697483] dark:text-dark-400 leading-relaxed">
-                My journey in engineering has been driven by one principle: 
-                <em className="text-[#526E8A] dark:text-primary-400"> technology must serve people</em>. 
-                My portfolio spans deployed mobile and web applications, connected embedded devices, 
-                automation prototypes and assistive technology. I focus on systems that can move 
-                beyond demonstrations into useful products for businesses and communities.
-              </p>
-              <p className="text-[#697483] dark:text-dark-400 leading-relaxed">
-                I don't just write code or design circuits. I architect complete solutions 
-                that consider power constraints, network availability, user experience, 
-                and long-term maintenance. My systems are built to work in real African 
-                conditions — where internet may be unreliable, power may fluctuate, and 
-                robustness is non-negotiable.
-              </p>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 pt-6 border-t border-[#D8D2C8] dark:border-dark-700">
-                <div className="text-center sm:text-left">
-                  <p className="text-2xl sm:text-3xl font-semibold text-[#10243E] dark:text-white">15+</p>
-                  <p className="text-dark-500 text-xs sm:text-sm">Projects Delivered</p>
-                </div>
-                <div className="text-center sm:text-left">
-                  <p className="text-2xl sm:text-3xl font-semibold text-[#10243E] dark:text-white">50+</p>
-                  <p className="text-dark-500 text-xs sm:text-sm">Students Mentored</p>
-                </div>
-                <div className="col-span-2 sm:col-span-1 text-center sm:text-left">
-                  <p className="text-2xl sm:text-3xl font-semibold text-[#10243E] dark:text-white">5+</p>
-                  <p className="text-dark-500 text-xs sm:text-sm">Years Experience</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Pillars grid */}
-            <motion.div
-              variants={containerVariants}
-              className="grid sm:grid-cols-2 gap-4"
-            >
-              {pillars.map((pillar, index) => (
-                <motion.div
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {pillars.map((pillar, index) => {
+              const Icon = pillar.icon
+              return (
+                <motion.article
                   key={pillar.title}
-                  variants={itemVariants}
-                  className="card group bg-white/55 dark:bg-dark-900/55 border-[#DDD7CC] dark:border-dark-800 rounded-sm hover:border-[#AAB6C2] dark:hover:border-dark-600"
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                  className="rounded-sm border border-[#DDD7CC] bg-white/60 p-5 dark:border-dark-800 dark:bg-dark-900/55"
                 >
-                  <div className="w-12 h-12 rounded-sm bg-[#EEF1F3] dark:bg-primary-600/10 flex items-center justify-center mb-4 group-hover:bg-primary-600/20 transition-colors">
-                    <pillar.icon 
-                      className="w-6 h-6 text-primary-500" 
-                      aria-hidden="true" 
-                    />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-sm bg-[#EEF1F3] text-[#526E8A] dark:bg-primary-500/10 dark:text-primary-400">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-white font-semibold mb-2">
-                    {pillar.title}
-                  </h3>
-                  <p className="text-[#697483] dark:text-dark-400 text-sm leading-relaxed">
-                    {pillar.description}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
+                  <h3 className="mt-4 text-lg font-semibold text-[#10243E] dark:text-white">{pillar.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#697483] dark:text-dark-400">{pillar.description}</p>
+                </motion.article>
+              )
+            })}
           </div>
         </motion.div>
       </div>

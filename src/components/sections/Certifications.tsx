@@ -26,7 +26,7 @@ export default function Certifications() {
             <span className="text-[#526E8A] dark:text-primary-500">Certifications</span> & Credentials
           </h2>
           <p className="text-[#667384] dark:text-[#566273] dark:text-dark-300 max-w-2xl mx-auto">
-            Professional certifications and achievements that validate my expertise
+            Verified certifications and technical training records. Unverified credentials are intentionally excluded.
           </p>
         </motion.div>
 

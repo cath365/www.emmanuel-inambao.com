@@ -141,17 +141,13 @@ export default function Hero() {
               <Link href="#projects" className="btn-secondary justify-center rounded-md text-sm sm:text-base">
                 {t('hero.cta.projects')}
               </Link>
-              {profile.cv && (
-                <a
-                  href={profile.cv}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-secondary justify-center rounded-md text-sm sm:text-base"
-                >
-                  <Download className="h-4 w-4" />
-                  {t('hero.cta.cv')}
-                </a>
-              )}
+              <Link href="/resume" className="btn-secondary justify-center rounded-md text-sm sm:text-base">
+                <Download className="h-4 w-4" />
+                Resume
+              </Link>
+              <Link href="/cv" className="btn-secondary justify-center rounded-md text-sm sm:text-base">
+                CV
+              </Link>
             </motion.div>
           </div>
         </div>

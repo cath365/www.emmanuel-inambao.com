@@ -25,15 +25,15 @@ export interface Profile {
 
 const defaultProfile: Profile = {
   name: 'Emmanuel Inambao',
-  title: 'Embedded Systems | IoT & Robotics',
-  subtitle: 'Full-Stack Systems Engineer',
-  bio: 'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.',
+  title: 'Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager',
+  subtitle: 'Planning, designing, building and delivering practical technology systems',
+  bio: 'I work across robotics, IoT, embedded systems, software engineering and technical project delivery. I take projects from problem definition and requirements through architecture, planning, prototyping, development, testing, deployment and improvement. At Robotix Institute, my work includes engineering, R&D, technical project coordination and project-based STEM programme planning.',
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
   phone: '+260 973 914 432',
   image: '/images/profile/profile.jpg',
   coverImage: '',
-  cv: '/cv/emmanuel-inambao-cv.pdf',
+  cv: '',
   status: 'Available for Engineering Projects',
   socialLinks: {
     github: 'https://github.com/cath365',
@@ -53,6 +53,34 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
 
 const STORAGE_KEY = 'portfolio_profile'
 
+function normalizeProfileData(data: Partial<Profile> | null | undefined): Profile {
+  const merged = { ...defaultProfile, ...(data || {}) }
+  const legacyTitles = new Set([
+    'Embedded Systems | IoT & Robotics',
+    'Electronic Engineer | IoT & Robotics Developer',
+    'Electronic Engineer | IoT Developer',
+    'Full-Stack Systems Engineer',
+  ])
+
+  if (legacyTitles.has(String(data?.title || '').trim())) {
+    merged.title = defaultProfile.title
+  }
+  if (String(data?.subtitle || '').trim() === 'Full-Stack Systems Engineer') {
+    merged.subtitle = defaultProfile.subtitle
+  }
+  if (
+    String(data?.bio || '').trim() ===
+    'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.'
+  ) {
+    merged.bio = defaultProfile.bio
+  }
+  if (String(data?.cv || '').trim() === '/cv/emmanuel-inambao-cv.pdf') {
+    merged.cv = ''
+  }
+
+  return merged
+}
+
 function saveToServer(data: Profile) {
   void persistPortfolioData('profile', data).catch(error => console.error('Failed to save profile:', error))
 }
@@ -66,7 +94,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .then(r => r.json())
       .then(data => {
         if (data && !data.error) {
-          setProfile({ ...defaultProfile, ...data })
+          setProfile(normalizeProfileData(data))
         } else {
           setProfile(defaultProfile)
         }
@@ -83,7 +111,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         .then(response => response.json())
         .then(data => {
           if (data && !data.error) {
-            setProfile({ ...defaultProfile, ...data })
+            setProfile(normalizeProfileData(data))
           }
         })
         .catch(() => {})
