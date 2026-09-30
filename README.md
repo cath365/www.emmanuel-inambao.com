@@ -147,3 +147,5 @@ This is read-only and does not send mail. A configured email service is not proo
 Verification: `npm run test:submissions`, `npx tsc --noEmit`, `npm run build`.
 
 <!-- Temporary CI diagnostics probe; remove with probe branch. -->
+
+<!-- Temporary CI diagnostics probe refresh. -->
