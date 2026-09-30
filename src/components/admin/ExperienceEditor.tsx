@@ -347,7 +347,7 @@ function ExperienceModal({
 
           {/* Achievements */}
           <div>
-            <label className="block text-sm font-medium text-dark-300 mb-2">Key Achievements</label>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Responsibilities / Contributions</label>
             <div className="flex gap-2 mb-2">
               <input
                 type="text"
@@ -355,7 +355,7 @@ function ExperienceModal({
                 onChange={(e) => setNewAchievement(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && addAchievement()}
                 className="flex-1 px-4 py-2 bg-dark-900 border border-dark-700 rounded-lg text-white text-sm"
-                placeholder="Add an achievement"
+                placeholder="Add a responsibility or contribution"
               />
               <button
                 type="button"

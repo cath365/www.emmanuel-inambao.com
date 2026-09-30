@@ -14,6 +14,7 @@ import { ServiceProvider } from '@/lib/services'
 import { ResourcesProvider } from '@/lib/resources'
 import { GalleryProvider } from '@/lib/gallery'
 import { SkillsProvider } from '@/lib/skills'
+import { InstitutionalProgramsProvider } from '@/lib/institutional-programs'
 import { ThemeProvider } from '@/components/ui/ThemeToggle'
 import { LanguageProvider } from '@/lib/i18n'
 import SkipToContent from '@/components/ui/SkipToContent'
@@ -42,7 +43,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                   <CertificationProvider>
                     <ServiceProvider>
                       <SkillsProvider>
-                        <ResourcesProvider>
+                        <InstitutionalProgramsProvider>
+                          <ResourcesProvider>
                           <GalleryProvider>
                             <SkipToContent />
                             {!isAdminPage && <ScrollProgress />}
@@ -60,6 +62,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                             <ServiceWorkerRegistrar />
                           </GalleryProvider>
                         </ResourcesProvider>
+                        </InstitutionalProgramsProvider>
                       </SkillsProvider>
                     </ServiceProvider>
                   </CertificationProvider>
