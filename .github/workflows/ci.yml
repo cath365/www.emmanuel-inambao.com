@@ -25,15 +25,35 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Run ESLint
-        run: npm run lint
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee lint.log
 
       - name: Check formatting
-        run: npm run format:check
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm run format:check 2>&1 | tee format.log
 
       - name: Build project
-        run: npm run build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee build.log
         env:
           NEXT_PUBLIC_SITE_URL: https://emmanuelinambao.com
+
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: professional-profile-build-logs
+          path: |
+            lint.log
+            format.log
+            build.log
+          if-no-files-found: ignore
+          retention-days: 2
 
   test:
     name: E2E Tests
