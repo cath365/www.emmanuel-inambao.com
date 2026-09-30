@@ -13,7 +13,11 @@ export default function ProjectsDirectory() {
         <article key={project.id} className="group flex min-h-[330px] flex-col rounded-2xl border border-dark-800 bg-dark-900/60 p-6 transition hover:-translate-y-1 hover:border-primary-500/40">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-400">{project.role || 'Engineering project'}</p>
+              <div className="flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-dark-500">
+                <span>{project.projectType || 'Engineering project'}</span>
+                {project.organization && <span>· {project.organization}</span>}
+              </div>
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-400">Role: {project.role || 'Role to confirm'}</p>
               <h2 className="mt-2 text-2xl font-bold text-white">{project.title}</h2>
             </div>
             <ArrowUpRight className="h-5 w-5 shrink-0 text-dark-500 transition group-hover:text-primary-400" />
@@ -26,7 +30,10 @@ export default function ProjectsDirectory() {
           </div>
 
           <div className="mt-auto pt-7">
-            {project.status && <p className="mb-3 text-xs font-medium text-dark-500">Status: {project.status}</p>}
+            <div className="mb-3 space-y-1 text-xs text-dark-500">
+              {project.status && <p>Status: {project.status}</p>}
+              {project.contribution && <p>Contribution: {project.contribution}</p>}
+            </div>
             <div className="flex flex-wrap items-center gap-4">
               <Link href={'/projects/' + project.id} className="text-sm font-semibold text-primary-400 hover:text-primary-300">
                 Engineering details →
