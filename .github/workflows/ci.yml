@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, professional-profile-rebuild-sep-2026]
   pull_request:
-    branches: [main]
+    branches: [main, professional-profile-rebuild-sep-2026]
 
 jobs:
   lint-and-build:
