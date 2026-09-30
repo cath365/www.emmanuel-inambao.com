@@ -20,7 +20,7 @@ export default function CaseStudyContent({ study }: { study: CaseStudy }) {
             {study.organization && <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{study.organization}</span>}
           </div>
           <p className="mt-3 text-sm font-semibold uppercase tracking-[0.14em] text-accent-400">Role: {study.role}</p>
-          {study.contribution && <p className="mt-1 text-sm text-dark-500">Contribution: {study.contribution}</p>
+          {study.contribution && <p className="mt-1 text-sm text-dark-500">Contribution: {study.contribution}</p>}
           <h1 className="mt-5 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">{study.title}</h1>
           <p className="mt-5 max-w-4xl text-lg leading-relaxed text-dark-300 sm:text-xl">{study.subtitle}</p>
           <p className="mt-3 text-sm text-dark-500">{study.timeline}</p>
