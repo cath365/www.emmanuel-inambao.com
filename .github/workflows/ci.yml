@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, professional-profile-rebuild-sep-2026]
+    branches: [main]
   pull_request:
-    branches: [main, professional-profile-rebuild-sep-2026]
+    branches: [main]
 
 jobs:
   lint-and-build:
@@ -22,42 +22,18 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          npm ci --legacy-peer-deps 2>&1 | tee install.log
+        run: npm ci --legacy-peer-deps
 
       - name: Run ESLint
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          npm run lint 2>&1 | tee lint.log
+        run: npm run lint
 
       - name: Check formatting
-        continue-on-error: true
-        run: |
-          set -o pipefail
-          npm run format:check 2>&1 | tee format.log
+        run: npm run format:check
 
       - name: Build project
-        run: |
-          set -o pipefail
-          npm run build 2>&1 | tee build.log
+        run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: https://emmanuelinambao.com
-
-      - name: Upload diagnostic logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: professional-profile-build-logs
-          path: |
-            install.log
-            lint.log
-            format.log
-            build.log
-          if-no-files-found: ignore
-          retention-days: 2
 
   test:
     name: E2E Tests
