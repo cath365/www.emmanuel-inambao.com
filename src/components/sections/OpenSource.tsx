@@ -16,8 +16,8 @@ const ownProjects = [
 
 const interests = [
   'Arduino & ESP32 ecosystem libraries',
+  'Home Assistant integrations',
   'PlatformIO tooling',
-  'Next.js / React tooling',
   'Embedded systems education resources',
 ]
 
@@ -40,7 +40,8 @@ export default function OpenSource() {
           </p>
           <h2 className="section-heading">Current Public Repository</h2>
           <p className="section-subheading mx-auto">
-            My public GitHub account provides repository evidence for portfolio code and current engineering work where source access is appropriate.
+            I share my engineering projects on GitHub so others can learn from,
+            build upon, and contribute to practical IoT and embedded systems solutions.
           </p>
         </motion.div>
 
@@ -95,7 +96,7 @@ export default function OpenSource() {
             Open Source Interests
           </h3>
           <p className="text-dark-400 text-sm mb-3">
-            Open-source ecosystems relevant to the tools and engineering work represented in this portfolio:
+            Areas in the open-source ecosystem I actively follow and contribute to:
           </p>
           <div className="flex flex-wrap gap-2">
             {interests.map((interest) => (

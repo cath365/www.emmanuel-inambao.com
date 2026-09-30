@@ -6,32 +6,32 @@ import { ChevronDown, HelpCircle } from 'lucide-react'
 
 const faqs = [
   {
-    question: 'What kinds of technical work do you take on?',
-    answer: 'My strongest fit is work that combines robotics, IoT, embedded systems, full-stack software or technical project planning. That can include prototypes, connected devices, dashboards, mobile applications, APIs, automation workflows and engineering-learning projects.',
+    question: 'What types of projects do you work on?',
+    answer: 'I specialize in IoT systems, embedded firmware, industrial automation, robotics, and full-stack web applications. From a single sensor node to a complete smart factory system — I handle the entire engineering stack.',
   },
   {
-    question: 'Can you plan a project before development starts?',
-    answer: 'Yes. Technical project planning is part of my role. I can help turn a problem into requirements, scope, architecture, component needs, milestones, risks, testing plans and an implementation path before the build begins.',
+    question: 'How long does a typical project take?',
+    answer: 'It depends on complexity. A simple IoT prototype takes 2-4 weeks. A full industrial automation system with custom PCB design, firmware, and a web dashboard typically takes 2-4 months. I provide detailed timelines during the discovery phase.',
   },
   {
-    question: 'Do you work across both hardware and software?',
-    answer: 'Yes. I work with Arduino and ESP32-class devices, sensors, motors, Bluetooth, Wi-Fi, GSM and GPS, as well as web applications, APIs, databases, dashboards and React Native / Expo mobile applications. The exact stack is chosen according to the problem rather than treated as the goal.',
+    question: 'Do you work with international clients?',
+    answer: 'Absolutely. I work with clients across Africa, Europe, and beyond. All communication is handled professionally via video calls, and I support 7 languages. Time zone differences are never a problem.',
   },
   {
-    question: 'Can you support an existing system or prototype?',
-    answer: 'Yes. Existing projects can be reviewed for architecture, integration, firmware or software issues, unreliable workflows, missing documentation, testing gaps and deployment problems. The first step is to understand the current system and evidence before recommending changes.',
+    question: 'Can you help with an existing project that needs improvement?',
+    answer: 'Yes. I regularly audit and improve existing embedded systems, optimize firmware performance, fix hardware issues, and modernize legacy industrial control systems. I can review your current setup and propose targeted improvements.',
   },
   {
-    question: 'How long does a project take?',
-    answer: 'Timelines depend on requirements, hardware availability, integrations, testing and the maturity of the existing system. I define an estimated timeline and milestones after discovery instead of using one fixed duration for every project.',
+    question: 'What is your tech stack?',
+    answer: 'Hardware: Arduino, ESP32, STM32, Raspberry Pi, custom PCB design. Software: C/C++, Python, TypeScript, React/Next.js, Node.js. Protocols: MQTT, LoRa, BLE, Wi-Fi, Modbus, RS-485. Cloud: AWS IoT, Firebase, Vercel.',
   },
   {
     question: 'Do you provide post-deployment support?',
-    answer: 'Support, maintenance and iteration can be included in the agreed project scope. I do not assume the same support period for every engagement; the handover and follow-up plan should be clear before implementation begins.',
+    answer: 'Every project includes a support period after deployment. I also offer ongoing maintenance contracts for mission-critical systems. Your systems will always have someone who knows them inside out.',
   },
   {
     question: 'How do we get started?',
-    answer: 'Send the problem, intended users, operating environment, required hardware or software, timeline and any constraints. I can then assess the scope and respond with a more useful technical discussion or preliminary quotation.',
+    answer: 'Simple — book a free 30-minute discovery call or send me a message through the contact form. We\'ll discuss your requirements, I\'ll provide an initial assessment, and if it\'s a good fit, we move forward with a detailed proposal.',
   },
 ]
 

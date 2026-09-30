@@ -23,9 +23,9 @@ export default function Footer() {
               Emmanuel Inambao
             </Link>
             <p className="text-[#667384] dark:text-dark-400 max-w-md mb-6">
-              Robotics & IoT Engineer, Full-Stack Systems Developer and Technical Project Manager.
-              I plan, design, build, test and deliver practical systems that connect hardware,
-              software and real operating needs.
+              Electronic Engineer specializing in IoT, Robotics, and Full-Stack Systems.
+              Building intelligent solutions that bridge hardware and software to solve
+              real-world challenges across Africa and beyond.
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-4">

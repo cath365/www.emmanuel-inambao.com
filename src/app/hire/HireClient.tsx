@@ -215,13 +215,13 @@ export default function HireClient() {
             <div className="relative p-6 sm:p-10 lg:p-12">
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">
-                  Robotics & IoT Engineering
+                  Embedded Systems
                 </span>
                 <span className="rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">
-                  Full-Stack Systems Development
+                  IoT & Robotics
                 </span>
                 <span className="rounded-full border border-primary-400/20 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">
-                  Technical Project Management
+                  Full-Stack Systems
                 </span>
               </div>
 
@@ -229,10 +229,10 @@ export default function HireClient() {
                 For hiring teams, clients & technical partners
               </p>
               <h1 className="mt-3 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Engineering across hardware, software and technical project delivery.
+                Engineering across hardware, firmware, applications and cloud.
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-relaxed text-dark-300">
-                I plan, design and build systems where physical devices and software need to work together—from robotics and IoT prototypes to mobile/web products, APIs and deployment. My work also includes requirements, scope, architecture, milestones, testing and technical coordination. I am based in {profile.location} and open to engineering roles, contract projects and technical partnerships.
+                I build systems where physical devices and software have to work together reliably—from embedded control and IoT connectivity to mobile/web products and deployment. I am based in {profile.location} and open to remote roles, contract projects and technical partnerships worldwide.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -242,15 +242,12 @@ export default function HireClient() {
                 <Link href="/start-project" className="btn-secondary">
                   Start a project
                 </Link>
-                <Link href="/resume" className="btn-secondary">
-                  <FileText className="h-4 w-4" /> Resume
-                </Link>
-                <Link href="/cv" className="btn-secondary">
-                  <Download className="h-4 w-4" /> Detailed CV
+                <Link href="/hire/dossier" className="btn-secondary">
+                  <FileText className="h-4 w-4" /> Professional dossier
                 </Link>
                 {profile.cv && (
                   <a href={profile.cv} target="_blank" rel="noopener noreferrer" className="btn-secondary">
-                    Uploaded CV PDF
+                    <Download className="h-4 w-4" /> CV
                   </a>
                 )}
               </div>

@@ -35,11 +35,8 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           <div>
             <div className="mb-4 flex flex-wrap gap-2">
               {project.status && <span className="rounded-full border border-primary-400/25 bg-primary-500/10 px-3 py-1 text-xs font-semibold text-primary-300">{project.status}</span>}
-              {project.projectType && <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{project.projectType}</span>}
-              {project.organization && <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{project.organization}</span>}
+              {project.role && <span className="rounded-full border border-dark-700 bg-dark-900 px-3 py-1 text-xs font-medium text-dark-300">{project.role}</span>}
             </div>
-            {project.role && <p className="text-sm font-semibold uppercase tracking-[0.14em] text-accent-400">Role: {project.role}</p>}
-            {project.contribution && <p className="mt-1 text-sm text-dark-500">Contribution: {project.contribution}</p>
             <h1 className="text-4xl font-bold text-white sm:text-5xl lg:text-6xl">{project.title}</h1>
             <p className="mt-5 max-w-3xl text-lg leading-relaxed text-dark-300">{project.purpose}</p>
           </div>

@@ -9,13 +9,16 @@ import Testimonials from '@/components/sections/Testimonials'
 import Education from '@/components/sections/Education'
 import Gallery from '@/components/sections/Gallery'
 import Contact from '@/components/sections/Contact'
+import AchievementTimeline from '@/components/sections/AchievementTimeline'
 import Newsletter from '@/components/sections/Newsletter'
 import DownloadableResources from '@/components/sections/DownloadableResources'
 import GitHubContributions from '@/components/sections/GitHubContributions'
 import ClientLogos from '@/components/sections/ClientLogos'
 import HowIWork from '@/components/sections/HowIWork'
 import FAQ from '@/components/sections/FAQ'
+import Pricing from '@/components/sections/Pricing'
 import OpenSource from '@/components/sections/OpenSource'
+import EngineeringCTA from '@/components/sections/EngineeringCTA'
 import SectionViewTracker from '@/components/ui/SectionViewTracker'
 
 export default function Home() {
@@ -23,20 +26,23 @@ export default function Home() {
     <>
       <SectionViewTracker />
       <Hero />
-      <Projects />
-      <About />
       <ClientLogos />
-      <Experience />
+      <About />
+      <Projects />
+      <EngineeringCTA />
       <Skills />
-      <HowIWork />
-      <Education />
-      <Services />
       <GitHubContributions username="cath365" />
+      <Services />
+      <HowIWork />
+      <AchievementTimeline />
+      <Experience />
       <Certifications />
       <OpenSource />
       <Testimonials />
-      <Gallery />
+      <Pricing />
+      <Education />
       <DownloadableResources />
+      <Gallery />
       <FAQ />
       <Newsletter />
       <Contact />

@@ -81,11 +81,7 @@ export default function Experience() {
                   <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#697483] dark:text-dark-400">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
-                      {exp.startDate
-                        ? `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`
-                        : exp.current
-                          ? 'Current role'
-                          : exp.endDate || 'Dates to confirm'}
+                      {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
                     </span>
                     <span className="flex items-center gap-1">
                       <MapPin className="w-4 h-4" />

@@ -2,7 +2,7 @@ export default function Loading() {
   return (
     <main className="min-h-screen bg-dark-950 px-4 py-24 text-dark-100">
       <div className="mx-auto max-w-5xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary-400">Emmanuel Inambao · Robotics & IoT Engineer</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary-400">Emmanuel Inambao · Systems Engineer</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-bold text-white sm:text-5xl">
           AI, IoT, robotics, embedded systems and full-stack engineering.
         </h1>

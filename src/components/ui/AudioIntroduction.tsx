@@ -182,7 +182,11 @@ export default function AudioIntroduction() {
           View Transcript
         </summary>
         <p className="mt-2 text-sm text-white/70 leading-relaxed">
-          Hi, I&apos;m Emmanuel Inambao, a Robotics &amp; IoT Engineer, Full-Stack Systems Developer and Technical Project Manager. I work across robotics, IoT, embedded systems and software, taking projects from requirements and architecture through planning, prototyping, testing, deployment and improvement. At Robotix Institute, I also contribute to engineering R&amp;D and project-based STEM programmes. This portfolio focuses on the systems, projects and technical responsibilities I have actually worked on.
+          Hi, I&apos;m Emmanuel Inambao, an Electronic Engineer passionate about IoT, robotics, 
+          and building innovative solutions. With over 5 years of experience, I specialize 
+          in creating connected systems that solve real-world problems. I love turning 
+          complex engineering challenges into elegant, efficient solutions. Let&apos;s build 
+          something amazing together!
         </p>
       </details>
     </motion.div>

@@ -22,7 +22,7 @@ export default function EasterEggs() {
     ].join(';')
 
     console.log(
-      '%c⚡ Emmanuel Inambao — Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager',
+      '%c⚡ Emmanuel Inambao — Electronic Engineer & IoT Developer',
       styles
     )
     console.log(
