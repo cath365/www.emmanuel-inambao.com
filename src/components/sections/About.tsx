@@ -2,7 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Cpu, Layers3, ClipboardCheck, GraduationCap } from 'lucide-react'
+import { Cpu, Code, CheckCircle2, GraduationCap } from 'lucide-react'
 
 const pillars = [
   {
@@ -12,13 +12,13 @@ const pillars = [
       'Designing and troubleshooting robotics, IoT and embedded systems using microcontrollers, sensors, actuators, wireless communication and practical electronics.',
   },
   {
-    icon: Layers3,
+    icon: Code,
     title: 'Full-Stack Systems Development',
     description:
       'Building the software around physical systems and business workflows: web applications, mobile applications, APIs, databases, dashboards, authentication and cloud deployment.',
   },
   {
-    icon: ClipboardCheck,
+    icon: CheckCircle2,
     title: 'Technical Project Management',
     description:
       'Turning a problem into requirements, scope, architecture, components, milestones, budgets, risks, testing plans and an implementation path that can be coordinated and delivered.',
