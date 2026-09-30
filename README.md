@@ -145,3 +145,5 @@ This is read-only and does not send mail. A configured email service is not proo
 - Case-study generation reports whether Groq or the local generator produced the draft. Publishing still requires a valid public Blob token; a failed publish keeps the draft open. The editor checks current stored studies before saving to avoid replacing data after a failed read.
 
 Verification: `npm run test:submissions`, `npx tsc --noEmit`, `npm run build`.
+
+<!-- Temporary CI diagnostics probe; remove with probe branch. -->
