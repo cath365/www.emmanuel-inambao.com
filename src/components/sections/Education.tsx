@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Code2,
   Cpu,
-  FlaskConical,
   GraduationCap,
   Wrench,
 } from 'lucide-react'
@@ -43,7 +42,7 @@ const planningAreas = [
       'Split the build into manageable milestones so learners can assemble, program, troubleshoot and improve one subsystem at a time.',
   },
   {
-    icon: FlaskConical,
+    icon: CheckCircle2,
     title: 'Test the learning outcome',
     description:
       'Define how students will test the finished project and what evidence shows that the intended engineering concepts were learned.',
