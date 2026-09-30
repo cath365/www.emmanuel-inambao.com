@@ -24,52 +24,79 @@ interface ServiceContextType {
 const defaultServices: Service[] = [
   {
     id: 'iot-systems',
-    title: 'IoT System Design & Development',
-    description: 'End-to-end IoT solutions — from sensor selection and PCB design to cloud dashboards. Specializing in ESP32, LoRa, and MQTT-based architectures for agriculture, industry, and smart buildings.',
+    title: 'Robotics & IoT Systems',
+    description: 'Plan and develop connected or automated systems where sensors, controllers, communication and software need to work together in a real operating environment.',
     icon: 'wifi',
-    features: ['Custom sensor networks', 'Real-time dashboards', 'MQTT & LoRa connectivity', 'Offline-first design', 'Remote OTA updates'],
-    price: 'From $500',
+    features: ['ESP32 / Arduino systems', 'Sensor and actuator integration', 'Wireless communication', 'Remote monitoring and alerts', 'Prototype testing and iteration'],
     featured: true,
   },
   {
     id: 'embedded-firmware',
-    title: 'Embedded Systems & Firmware',
-    description: 'Low-level firmware for microcontrollers (ESP32, STM32, Arduino). Motor control, sensor fusion, communication protocols, and power-optimized designs for battery-operated devices.',
+    title: 'Embedded Systems & Prototyping',
+    description: 'Develop and troubleshoot embedded electronics, firmware and control logic for prototypes, smart devices and robotics projects.',
     icon: 'cpu',
-    features: ['ESP32 / STM32 / Arduino', 'Custom PCB design (KiCad)', 'Motor & actuator control', 'Power optimization', 'Communication protocols'],
-    price: 'From $300',
+    features: ['Embedded control logic', 'Motor and servo control', 'GSM / Bluetooth / Wi-Fi integration', 'Hardware-software troubleshooting', 'System testing'],
     featured: true,
   },
   {
     id: 'web-development',
-    title: 'Full-Stack Web Development',
-    description: 'Modern web applications with Next.js, React, and TypeScript. Real-time data visualization dashboards, admin panels, and progressive web apps optimized for performance and SEO.',
+    title: 'Full-Stack Software Systems',
+    description: 'Build web platforms, APIs, dashboards and admin systems around a defined workflow or operational problem rather than treating the website itself as the goal.',
     icon: 'code',
-    features: ['Next.js & React', 'TypeScript', 'REST & WebSocket APIs', 'Responsive design', 'SEO optimization'],
-    price: 'From $400',
+    features: ['Next.js & React', 'REST APIs', 'Authentication and authorization', 'PostgreSQL / Prisma', 'Dashboards and admin workflows'],
     featured: true,
   },
   {
-    id: 'robotics',
-    title: 'Robotics & Automation',
-    description: 'Custom robotic systems for industrial and educational use. From concept to deployment — mechanical design, motor control, sensor integration, and web-based remote operation interfaces.',
-    icon: 'settings',
-    features: ['Industrial automation', 'Conveyor & sorting systems', 'Web-controlled robots', 'Safety interlocks', 'PLC programming'],
-    price: 'From $800',
+    id: 'mobile-apps',
+    title: 'Mobile Application Development',
+    description: 'Develop React Native / Expo applications for Android and iOS workflows, including API integration, testing and production-release preparation.',
+    icon: 'smartphone',
+    features: ['React Native & Expo', 'Android and iOS', 'API integration', 'Mobile UX', 'Release and deployment support'],
     featured: false,
   },
   {
-    id: 'consulting',
-    title: 'Technical Consulting & Training',
-    description: 'Expert guidance for IoT projects, embedded systems architecture, and technical team training. Curriculum development for educational institutions and hands-on workshops.',
+    id: 'technical-project-management',
+    title: 'Technical Project Planning & Management',
+    description: 'Turn a technical idea or operational problem into requirements, scope, architecture, components, milestones, risks, testing and an implementation plan.',
+    icon: 'settings',
+    features: ['Requirements and scope', 'Architecture planning', 'Component and budget planning', 'Timeline and milestones', 'Testing and delivery planning'],
+    featured: true,
+  },
+  {
+    id: 'stem-programs',
+    title: 'STEM Engineering Project Planning',
+    description: 'Plan project-based robotics, coding and electronics activities that connect a practical build to clear learning objectives and validation.',
     icon: 'zap',
-    features: ['Architecture review', 'Technology selection', 'Team training', 'Curriculum development', 'Project mentorship'],
-    price: 'From $100/hr',
+    features: ['Learning objectives', 'Project selection', 'Component planning', 'Stage-by-stage delivery', 'Testing and programme improvement'],
     featured: false,
   },
 ]
 
 const ServiceContext = createContext<ServiceContextType | undefined>(undefined)
+
+const legacyServiceIds = new Set([
+  'iot-systems',
+  'embedded-firmware',
+  'web-development',
+  'robotics',
+  'consulting',
+])
+
+function normalizeServiceData(data: unknown): Service[] {
+  if (!Array.isArray(data) || data.length === 0) return defaultServices
+
+  const services = data.filter(
+    (item): item is Service => Boolean(item && typeof item === 'object' && 'id' in item)
+  )
+  const looksLikeLegacyDefaults =
+    services.some(item => item.id === 'iot-systems' && item.title === 'IoT System Design & Development' && item.price === 'From $500') ||
+    services.some(item => item.id === 'embedded-firmware' && item.title === 'Embedded Systems & Firmware' && item.price === 'From $300')
+
+  if (!looksLikeLegacyDefaults) return services
+
+  const custom = services.filter(item => !legacyServiceIds.has(item.id))
+  return [...defaultServices, ...custom]
+}
 
 function saveToServer(data: Service[]) {
   void persistPortfolioData('services', data).catch(error => console.error('Failed to save services:', error))
@@ -83,11 +110,7 @@ export function ServiceProvider({ children }: { children: ReactNode }) {
     fetch('/api/portfolio-data?key=services', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setServices(data)
-        } else {
-          setServices(defaultServices)
-        }
+        setServices(normalizeServiceData(data))
       })
       .catch(() => {
         setServices(defaultServices)

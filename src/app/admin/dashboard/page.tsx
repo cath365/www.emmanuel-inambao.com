@@ -10,7 +10,7 @@ import {
   FolderOpen, ExternalLink, Github, Image as ImageIcon,
   User, Upload, Camera, Check, AlertCircle, Briefcase,
   Quote, Award, Settings, Video, FileText, GalleryHorizontal,
-  Globe, Smartphone, Play, Bell, Mail, MessageCircle, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles
+  Globe, Smartphone, Play, Bell, Mail, MessageCircle, Clock, Calendar, BarChart2, Monitor, RefreshCw, Sparkles, GraduationCap
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
@@ -27,8 +27,9 @@ import GalleryEditor from '@/components/admin/GalleryEditor'
 import SkillsEditor from '@/components/admin/SkillsEditor'
 import CaseStudyManager from '@/components/admin/CaseStudyManager'
 import MarketPricingManager from '@/components/admin/MarketPricingManager'
+import InstitutionalProgramsEditor from '@/components/admin/InstitutionalProgramsEditor'
 
-type TabType = 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'institutionalPrograms' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -461,6 +462,17 @@ export default function AdminDashboard() {
               Experience
             </button>
             <button
+              onClick={() => setActiveTab('institutionalPrograms')}
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
+                activeTab === 'institutionalPrograms'
+                  ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10'
+                  : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40 lg:hover:border-dark-600 lg:hover:bg-dark-800/60'
+              }`}
+            >
+              <GraduationCap className="w-5 h-5" />
+              Programs
+            </button>
+            <button
               onClick={() => setActiveTab('testimonials')}
               className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
                 activeTab === 'testimonials'
@@ -871,6 +883,17 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, x: -20 }}
             >
               <ExperienceEditor 
+                onNotify={(type, message) => setNotification({ type, message })}
+              />
+            </motion.div>
+          ) : activeTab === 'institutionalPrograms' ? (
+            <motion.div
+              key="institutionalPrograms"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <InstitutionalProgramsEditor
                 onNotify={(type, message) => setNotification({ type, message })}
               />
             </motion.div>
@@ -1351,7 +1374,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="Electronic Engineer | IoT Developer"
+                placeholder="Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager"
               />
             </div>
             <div>
@@ -1361,7 +1384,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
                 value={formData.subtitle}
                 onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="Full-Stack Systems Engineer"
+                placeholder="Planning, designing, building and delivering practical technology systems"
               />
             </div>
             <div>
@@ -1725,6 +1748,63 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
               className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
               placeholder="Brief purpose of the project"
             />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Professional Role</label>
+              <input
+                type="text"
+                value={formData.role || ''}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="e.g. Robotics & IoT Engineer"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Project Type</label>
+              <input
+                type="text"
+                value={formData.projectType || ''}
+                onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="R&D / Client Project / Prototype / Production"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Organisation / Context</label>
+              <input
+                type="text"
+                value={formData.organization || ''}
+                onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="Robotix Institute / Client project / Personal R&D"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Status</label>
+              <input
+                type="text"
+                value={formData.status || ''}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="Production / Development / Prototype / Concept"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">My Contribution</label>
+            <input
+              type="text"
+              value={formData.contribution || ''}
+              onChange={(e) => setFormData({ ...formData, contribution: e.target.value })}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+              placeholder="Built by me / Contributed to / Team project / Planned by me"
+            />
+            <p className="mt-2 text-xs text-dark-500">
+              Use precise wording. Do not use “Led” unless leadership is confirmed.
+            </p>
           </div>
 
           {/* Problem Solved */}

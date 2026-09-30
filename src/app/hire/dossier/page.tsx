@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import DossierClient from './DossierClient'
 
 export const metadata: Metadata = {
-  title: 'Professional Engineering Profile | Emmanuel Inambao',
-  description: 'A concise professional profile for recruiters, clients, institutions and technical partners evaluating Emmanuel Inambao for engineering roles and projects.',
+  title: 'Resume | Emmanuel Inambao',
+  description: 'Professional resume of Emmanuel Inambao — Robotics & IoT Engineer, Full-Stack Systems Developer and Technical Project Manager.',
   alternates: { canonical: '/hire/dossier' },
 }
 

@@ -9,8 +9,8 @@ export function generatePersonSchema() {
     '@type': 'Person',
     name: 'Emmanuel Inambao',
     alternateName: 'Emmanuel Inambao',
-    description: 'Electronic Engineer, IoT & Robotics Developer, Full-Stack Systems Engineer based in Lusaka, Zambia',
-    jobTitle: 'Electronic Engineer & IoT Developer',
+    description: 'Robotics & IoT Engineer, Full-Stack Systems Developer and Technical Project Manager based in Lusaka, Zambia',
+    jobTitle: 'Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager',
     url: SITE_URL,
     email: 'denuelinambao@gmail.com',
     telephone: '+260973914432',
@@ -30,8 +30,9 @@ export function generatePersonSchema() {
       'Arduino',
       'ESP32',
       'Full-Stack Development',
+      'Technical Project Management',
+      'Project-Based STEM Programmes',
       'Industrial Automation',
-      'PCB Design',
     ],
   }
 }
@@ -42,7 +43,7 @@ export function generateWebsiteSchema() {
     '@type': 'WebSite',
     name: 'Emmanuel Inambao Portfolio',
     url: SITE_URL,
-    description: 'Professional portfolio of Emmanuel Inambao - Electronic Engineer, IoT & Robotics Developer',
+    description: 'Professional portfolio of Emmanuel Inambao - Robotics & IoT Engineer, Full-Stack Systems Developer and Technical Project Manager',
     author: {
       '@type': 'Person',
       name: 'Emmanuel Inambao',
@@ -55,7 +56,7 @@ export function generateProfessionalServiceSchema() {
     '@context': 'https://schema.org',
     '@type': 'ProfessionalService',
     name: 'Emmanuel Inambao Engineering Services',
-    description: 'Embedded systems development, IoT solutions, industrial automation, and full-stack engineering services',
+    description: 'Robotics, embedded systems, IoT, full-stack software and technical project delivery services',
     provider: {
       '@type': 'Person',
       name: 'Emmanuel Inambao',
@@ -69,7 +70,8 @@ export function generateProfessionalServiceSchema() {
       'IoT Solutions',
       'Industrial Automation',
       'Web Application Development',
-      'PCB Design',
+      'Technical Project Management',
+      'STEM Project Planning',
       'Technical Consulting',
     ],
   }

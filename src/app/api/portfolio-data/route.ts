@@ -7,7 +7,7 @@ import { readPublicJson, storageError } from '@/lib/blob-json'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing']
+const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing', 'institutionalPrograms']
 
 function blobPath(key: string) {
   return `data/portfolio/${key}.json`

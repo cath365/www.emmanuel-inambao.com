@@ -22,34 +22,20 @@ interface CertificationContextType {
   deleteCertification: (id: string) => void
 }
 
+const legacyUnsupportedCertificationIds = new Set([
+  'cisco-iot',
+  'arduino-pro',
+  'aws-iot',
+  'siemens-plc',
+])
+
 const defaultCertifications: Certification[] = [
   {
-    id: 'cisco-iot',
-    name: 'Certified IoT Developer',
-    issuer: 'Cisco Networking Academy',
-    issueDate: '2022-06',
-    description: 'IoT fundamentals, networking, security, and data analytics for connected devices.',
-  },
-  {
-    id: 'arduino-pro',
-    name: 'Arduino Professional Certification',
-    issuer: 'Arduino',
-    issueDate: '2022-03',
-    description: 'Advanced embedded programming, sensor integration, and system design with Arduino platforms.',
-  },
-  {
-    id: 'aws-iot',
-    name: 'AWS IoT Core Fundamentals',
-    issuer: 'Amazon Web Services',
-    issueDate: '2023-01',
-    description: 'Cloud-connected IoT architectures using AWS IoT Core, Greengrass, and device shadows.',
-  },
-  {
-    id: 'siemens-plc',
-    name: 'PLC Programming — Siemens TIA Portal',
-    issuer: 'Siemens',
-    issueDate: '2023-04',
-    description: 'Industrial automation programming with Siemens S7 PLCs and TIA Portal engineering framework.',
+    id: 'tme-basic-electronics-programming-2023',
+    name: 'Basic Electronics and Programming',
+    issuer: 'TME Education',
+    issueDate: '2023',
+    description: 'Certificate of Participation in basic electronics and programming.',
   },
 ]
 
@@ -68,7 +54,10 @@ export function CertificationProvider({ children }: { children: ReactNode }) {
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setCertifications(data)
+          const verifiedOrCustom = data.filter(
+            (item: Certification) => !legacyUnsupportedCertificationIds.has(item.id)
+          )
+          setCertifications(verifiedOrCustom.length > 0 ? verifiedOrCustom : defaultCertifications)
         } else {
           setCertifications(defaultCertifications)
         }

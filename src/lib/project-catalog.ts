@@ -18,6 +18,9 @@ export interface Project {
   featured: boolean
   role?: string
   status?: string
+  projectType?: string
+  organization?: string
+  contribution?: string
   architecture?: string[]
   highlights?: string[]
   githubUrl?: string
@@ -39,10 +42,13 @@ export const defaultProjects: Project[] = [
     techStack: ['ESP32 WROOM-32D', 'Flow Sensor', 'SIM800', '4×4 Keypad', 'I2C LCD', 'Next.js', 'REST API', 'NVS'],
     problemSolved: 'Small and medium cooking-oil retailers need accurate dispensing, clear operator accountability, and reliable sales records even when internet connectivity is unstable.',
     systemLogic: 'An operator signs in with a PIN, selects an amount or target volume, and the ESP32 converts the request into a dispensing target. Flow pulses are measured continuously, the pump stops automatically at the target, and sales data is queued locally when offline before syncing to the web platform.',
-    outcome: 'A commercial-ready IoT architecture combining embedded control, offline recovery, operator sales tracking, telemetry, receipts, and a web management dashboard.',
+    outcome: 'A working prototype architecture combining embedded control, offline recovery, operator sales tracking, telemetry, receipts and a web-management path. Field calibration and production hardening remain future work.',
     featured: true,
-    role: 'Lead Embedded & Full-Stack Engineer',
+    role: 'Embedded Systems & Full-Stack Developer',
     status: 'Prototype / Commercial Development',
+    projectType: 'Research & Development',
+    organization: 'Independent R&D',
+    contribution: 'Built and developed by me',
     architecture: ['Operator keypad + LCD', 'ESP32 control layer', 'Flow sensor + pump driver', 'Offline NVS queue', 'REST telemetry API', 'Owner dashboard'],
     highlights: ['Automatic target cut-off', 'Operator PIN verification', 'Offline-first operation', 'Sales and telemetry records'],
     media: [
@@ -64,9 +70,12 @@ export const defaultProjects: Project[] = [
     problemSolved: 'Low-cost embedded devices often become isolated prototypes. This project explores how one compact platform can combine local UI, connectivity, camera, communication and AI-ready services in a maintainable embedded architecture.',
     systemLogic: 'The ESP32 runs the device interface and coordinates modular services for touch input, connectivity, camera access, GSM communication and status indicators. Features are separated so camera, calls/SMS, Wi-Fi/Bluetooth, OTA and AI-assistant integration can evolve without rewriting the entire interface.',
     outcome: 'An active R&D smart-device platform that demonstrates a reusable embedded architecture for connected products rather than a single-purpose microcontroller demo.',
-    featured: true,
+    featured: false,
     role: 'Embedded Systems & Product Developer',
     status: 'Active R&D / Prototype',
+    projectType: 'Research & Development',
+    organization: 'Personal R&D',
+    contribution: 'Built by me',
     architecture: ['Touch UI + status layer', 'ESP32 application layer', 'Wi-Fi + Bluetooth services', 'ESP32-CAM integration', 'SIM800 calls/SMS path', 'OTA + AI integration layer'],
     highlights: ['Touch UI foundation', 'Modular communications architecture', 'Camera + GSM integration path', 'OTA and AI-ready design'],
   },
@@ -80,8 +89,11 @@ export const defaultProjects: Project[] = [
     systemLogic: 'The stick captures sensor data and selected image frames, then sends them to the paired smartphone over local Wi-Fi or Bluetooth. The phone performs fast on-device detection and can use cloud AI for deeper scene analysis before returning spoken navigation guidance through a wireless headset.',
     outcome: 'An assistive-technology prototype architecture focused on directional guidance and safer navigation rather than simple proximity alerts.',
     featured: true,
-    role: 'IoT & Assistive Systems Developer',
+    role: 'Robotics & IoT Engineer',
     status: 'Prototype / Active Development',
+    projectType: 'Research & Development',
+    organization: 'Robotix Institute',
+    contribution: 'Team / R&D contribution',
     architecture: ['Camera + obstacle sensors on stick', 'ESP32 local communications', 'Phone app as compute bridge', 'On-device AI detection', 'Cloud AI scene analysis', 'Wireless headset guidance'],
     highlights: ['Camera remains on the stick', 'Phone acts as the compute bridge', 'Fast local detection path', 'Cloud-assisted scene reasoning'],
     media: [
@@ -106,6 +118,9 @@ export const defaultProjects: Project[] = [
     featured: true,
     role: 'Mobile App & Deployment Developer',
     status: 'Production / Released',
+    projectType: 'Client Project',
+    organization: 'Client project',
+    contribution: 'Contributed to development and deployment',
     architecture: ['Mobile application', 'Cycle tracking + prediction', 'Educational content layer', 'Admin communication workflow', 'Android release pipeline', 'iOS release pipeline'],
     highlights: ['Android production release', 'iOS production release', 'Cycle-tracking improvements', 'Admin communication workflow'],
     media: [
@@ -128,8 +143,11 @@ export const defaultProjects: Project[] = [
     systemLogic: 'The control plane models organizations, projects, repositories, deployments, domains, environment variables, workloads, databases, usage records, subscriptions and audit logs. Git integration feeds deployment jobs into a queue-oriented workflow.',
     outcome: 'A modular control-plane foundation with authentication, organization RBAC, audit logging, GitHub integration, deployment APIs, queue concepts and a Lusaka region model.',
     featured: false,
-    role: 'Founder & Platform Engineer',
+    role: 'Platform Engineer',
     status: 'Active Development',
+    projectType: 'Internal Project',
+    organization: 'Independent product',
+    contribution: 'Built and developed by me',
     architecture: ['Next.js control plane', 'RBAC + audit layer', 'GitHub integration', 'Deployment queue', 'PostgreSQL data model', 'Compute/workload abstraction'],
     highlights: ['Organization RBAC', 'Deployment API', 'ZMW billing model', 'Region model: zm-lus-1'],
     liveUrl: 'https://denuel-dev-control-plane.vercel.app/',
@@ -146,6 +164,9 @@ export const defaultProjects: Project[] = [
     featured: false,
     role: 'Product & Full-Stack Engineer',
     status: 'Deployed / Growth Stage',
+    projectType: 'Production',
+    organization: 'Independent product',
+    contribution: 'Built and developed by me',
     architecture: ['Farmer onboarding', 'Product catalogue', 'Marketplace discovery', 'Responsive web application', 'Vercel deployment'],
     highlights: ['Farmer-first onboarding', 'Mobile-responsive experience', 'Public deployment', 'Growth-focused launch model'],
     liveUrl: 'https://kulimafarm-com.vercel.app/',
@@ -162,6 +183,9 @@ export const defaultProjects: Project[] = [
     featured: false,
     role: 'Embedded Systems Engineer',
     status: 'Working Prototype',
+    projectType: 'Prototype',
+    organization: 'Independent R&D',
+    contribution: 'Built and tested by me',
     architecture: ['Presence sensing', 'Conveyor control', '5-second leveling stage', 'Level measurement', 'Decision engine', 'Reject actuator', 'Offline dashboard'],
     highlights: ['Dual-sensor workflow', 'Automatic sorting sequence', 'Offline web dashboard', 'Exportable history'],
   },
@@ -177,21 +201,27 @@ export const defaultProjects: Project[] = [
     featured: false,
     role: 'Robotics & Embedded Developer',
     status: 'Prototype',
+    projectType: 'Educational / Prototype',
+    organization: 'Independent robotics project',
+    contribution: 'Built and tested by me',
     architecture: ['Local Wi-Fi control', 'ESP32 motion controller', 'Dual ultrasonic sensing', 'Servo scanning', 'Motor driver', 'LED/buzzer feedback'],
     highlights: ['Local web control', 'Rear reverse protection', 'Autonomous fallback design', 'Status lighting'],
   },
   {
     id: 'aquawatch-nrw',
-    title: 'AquaWatch NRW Intelligence',
+    title: 'AI Water Leak Detection R&D (AquaWatch NRW)',
     purpose: 'Water-loss monitoring architecture for DMA-based non-revenue-water analysis and leak prioritisation',
     image: '',
     techStack: ['ESP32', 'Flow/Pressure Sensors', 'DMA Analytics', 'Next.js', 'Time-Series Data', 'Decision Engine'],
     problemSolved: 'Water utilities need better visibility into district-level losses so field teams can prioritize investigations instead of relying only on reactive leak reporting.',
     systemLogic: 'Field nodes collect measurement data, DMA inlet values are compared against consumption and expected behaviour, and an analytics layer flags abnormal patterns for investigation and reporting.',
     outcome: 'A field-to-dashboard concept covering sensing, NRW calculation, anomaly analysis, decision support and operational reporting.',
-    featured: false,
-    role: 'IoT Systems Architect',
-    status: 'Engineering Concept / Pilot Design',
+    featured: true,
+    role: 'IoT Systems Architect / Technical Project Planner',
+    status: 'Research & Development / Pilot Design',
+    projectType: 'Research & Development',
+    organization: 'R&D project',
+    contribution: 'Planned and designed by me',
     architecture: ['Field sensor nodes', 'DMA ingestion', 'NRW calculation', 'Time-series analytics', 'Decision engine', 'Operations dashboard'],
     highlights: ['DMA-oriented design', 'Field IoT architecture', 'Anomaly prioritisation', 'Operational reporting'],
   },
@@ -205,8 +235,11 @@ export const defaultProjects: Project[] = [
     systemLogic: 'The platform brings customer onboarding, products and services, quotations, discount requests, orders, invoices, receipts, payments, reporting, inventory and administration into one workspace. The dashboard surfaces revenue, outstanding balances, active orders, recent activity and sales-pipeline information, while the navigation organizes day-to-day operational workflows.',
     outcome: 'A deployed mobile-responsive CRM and quotation platform that consolidates sales and administrative workflows into a single business workspace.',
     featured: true,
-    role: 'Full-Stack Developer',
+    role: 'Full-Stack Systems Developer',
     status: 'Production / Deployed',
+    projectType: 'Client Project',
+    organization: 'Client project',
+    contribution: 'Built and deployed by me',
     architecture: ['Authentication & customer onboarding', 'Customer records', 'Products & services', 'Quotation & order workflows', 'Payments, receipts & invoices', 'Reporting, inventory & administration'],
     highlights: ['Business dashboard with financial and operational summaries', 'Quotation and customer workflows', 'Payments, receipts and invoice modules', 'Sales pipeline and activity history', 'Inventory, reporting and company administration', 'Mobile-responsive workspace'],
     liveUrl: 'https://quotetion.vercel.app/',
@@ -231,8 +264,11 @@ export const defaultProjects: Project[] = [
     systemLogic: 'The platform organizes public information into candidate, constituency, election, manifesto, civic-education and development-tracking experiences. Search and mobile-first navigation help visitors move between published records, while editorial workflows support structured content presentation and source/context fields.',
     outcome: 'A deployed responsive civic-information website that turns a large set of public records and civic content into a structured, searchable user experience.',
     featured: true,
-    role: 'Web Platform Developer',
+    role: 'Full-Stack Platform Developer',
     status: 'Production / Live',
+    projectType: 'Production',
+    organization: 'Constituency226',
+    contribution: 'Contributed to platform development',
     architecture: ['Public homepage & search', 'Candidate discovery', 'Constituency navigation', 'Election & manifesto pages', 'Civic education content', 'Editorial/admin content workflows'],
     highlights: ['Mobile-first civic information layout', 'Candidate and constituency discovery', 'Election and manifesto content sections', 'Searchable published records', 'Civic education and development-tracker sections', 'Responsive design across public pages'],
     liveUrl: 'https://constituency226.org/',
@@ -247,7 +283,75 @@ export const defaultProjects: Project[] = [
       },
     ],
   },
-
+  {
+    id: 'livestock-collar-tracker',
+    title: 'Livestock Collar Tracker',
+    purpose: 'Solar-assisted GPS and geofencing concept for livestock location monitoring and field alerts',
+    image: '',
+    techStack: ['ESP32', 'GPS', 'GSM', 'Solar Charging', 'Li-ion Battery', 'Geofencing', 'SMS Alerts'],
+    problemSolved: 'Livestock owners need a practical way to monitor animal location and receive alerts when an animal leaves a defined area, especially where continuous internet access is unreliable.',
+    systemLogic: 'The collar combines GPS positioning with an ESP32, local power management and cellular communication. Location data is compared with a defined geofence and an alert can be sent when the animal moves outside the permitted area.',
+    outcome: 'A documented R&D concept and component architecture for a field-ready livestock tracking prototype.',
+    featured: false,
+    role: 'Robotics & IoT Engineer / Technical Project Planner',
+    status: 'Concept / Prototype Planning',
+    projectType: 'Research & Development',
+    organization: 'Independent R&D',
+    contribution: 'Planned and designed by me',
+    architecture: ['GPS positioning', 'ESP32 control', 'Geofence logic', 'GSM alert path', 'Solar + battery power', 'Mobile monitoring concept'],
+    highlights: ['Geofencing', 'SMS alert concept', 'Solar-assisted field power', 'Mobile monitoring path'],
+  },
+  {
+    id: 'zpay',
+    title: 'ZPay Fintech MVP',
+    purpose: 'MVP planning for mobile-money payments, transfers, bills, airtime and QR-based merchant payments',
+    image: '',
+    techStack: ['Next.js', 'React Native', 'REST APIs', 'Authentication', 'Payment Integrations', 'Admin Dashboard'],
+    problemSolved: 'A fintech MVP needs a clear first-release scope that can support common payment actions while keeping future bank and provider integrations modular.',
+    systemLogic: 'The planned system separates consumer payment flows, merchant QR transactions, provider integrations and administrative oversight so the first release can be implemented in controlled phases.',
+    outcome: 'Client-facing MVP scope, feature plan, architecture direction and phased implementation proposal.',
+    featured: false,
+    role: 'Full-Stack Systems Developer / Technical Project Manager',
+    status: 'Client Project / MVP Planning',
+    projectType: 'Client Project',
+    organization: 'Client project',
+    contribution: 'Planned / solution architecture',
+    architecture: ['Consumer app', 'Merchant workflow', 'Payment-provider integrations', 'Admin controls', 'API layer', 'Future bank integrations'],
+  },
+  {
+    id: 'edutrack',
+    title: 'EduTrack',
+    purpose: 'Client education-system planning focused on a structured digital workflow for school or learning operations',
+    image: '',
+    techStack: ['Next.js', 'TypeScript', 'APIs', 'Authentication', 'Admin Dashboard', 'Database Design'],
+    problemSolved: 'The client needs a trustworthy implementation plan that converts education-process requirements into a structured software system.',
+    systemLogic: 'The engagement is being handled as a formal client project, beginning with requirements, scope, architecture, milestones, responsibilities and implementation planning before development.',
+    outcome: 'Project discovery and client-ready implementation planning in progress.',
+    featured: false,
+    role: 'Full-Stack Systems Developer / Technical Project Manager',
+    status: 'Client Project / Planning',
+    projectType: 'Client Project',
+    organization: 'Client project',
+    contribution: 'Planning and solution design',
+    architecture: ['Requirements discovery', 'Role-based workflows', 'Application layer', 'Data model', 'Admin workflow', 'Deployment plan'],
+  },
+  {
+    id: 'robotix-institute-digital-platform',
+    title: 'Robotix Institute Digital Platform Contribution',
+    purpose: 'Ongoing contribution to Robotix Institute website and digital presence alongside engineering and programme work',
+    image: '',
+    techStack: ['Web Development', 'Content Systems', 'Responsive UI', 'Deployment', 'Digital Platform Support'],
+    problemSolved: 'The organisation needs a maintainable digital presence that communicates programmes, technical work and institutional activities clearly.',
+    systemLogic: 'Website and digital-platform improvements are handled as part of broader organisational support, with changes aligned to programme communication and operational needs.',
+    outcome: 'Ongoing contribution to the organisation\'s website and digital-platform improvement work.',
+    featured: false,
+    role: 'Full-Stack Systems Developer',
+    status: 'Ongoing Contribution',
+    projectType: 'Internal Project',
+    organization: 'Robotix Institute',
+    contribution: 'Contributed to',
+    websiteUrl: 'https://robotix-institute-jade.vercel.app/',
+  }
 ]
 
 export const legacyProjectIds = new Set([
@@ -255,6 +359,20 @@ export const legacyProjectIds = new Set([
   'bottle-sorting-system',
   'oil-level-monitoring',
 ])
+
+const legacyFeaturedByProjectId: Record<string, boolean> = {
+  'denuel-one-pro-ai-x': true,
+  'aquawatch-nrw': false,
+}
+
+const legacyRoleByProjectId: Record<string, string> = {
+  'smart-cooking-oil-dispenser': 'Lead Embedded & Full-Stack Engineer',
+  'smart-walking-stick': 'IoT & Assistive Systems Developer',
+  'denuel-dev': 'Founder & Platform Engineer',
+  'aquawatch-nrw': 'IoT Systems Architect',
+  'quotation-platform': 'Full-Stack Developer',
+  'constituency226': 'Web Platform Developer',
+}
 
 export function mergeWithCurrentCatalog(data: unknown): Project[] {
   if (!Array.isArray(data)) return defaultProjects
@@ -267,7 +385,19 @@ export function mergeWithCurrentCatalog(data: unknown): Project[] {
 
   const mergedCatalog = defaultProjects.map(current => {
     const saved = incomingById.get(current.id)
-    return saved ? { ...current, ...saved } : current
+    if (!saved) return current
+
+    const merged = { ...current, ...saved }
+    if (legacyRoleByProjectId[current.id] && saved.role === legacyRoleByProjectId[current.id]) {
+      merged.role = current.role
+    }
+    if (
+      Object.prototype.hasOwnProperty.call(legacyFeaturedByProjectId, current.id) &&
+      saved.featured === legacyFeaturedByProjectId[current.id]
+    ) {
+      merged.featured = current.featured
+    }
+    return merged
   })
 
   const catalogIds = new Set(defaultProjects.map(project => project.id))

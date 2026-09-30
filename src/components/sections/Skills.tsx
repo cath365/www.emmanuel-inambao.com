@@ -17,16 +17,20 @@ const SkillGlobe = dynamic(() => import('@/components/ui/SkillGlobe'), {
 import { 
   Cpu, 
   Code, 
-  Shield, 
+  ClipboardCheck,
   Cog,
-  Wifi
+  Wifi,
+  Smartphone,
+  GraduationCap
 } from 'lucide-react'
 
 const iconMap = {
   hardware: Cpu,
   software: Code,
   iot: Wifi,
-  security: Shield,
+  mobile: Smartphone,
+  'project-management': ClipboardCheck,
+  stem: GraduationCap,
   default: Cog,
 }
 
@@ -75,17 +79,10 @@ function OscilloscopeIcon() {
 }
 
 // Skill badge component
-function SkillBadge({ name, level }: { name: string; level: number }) {
+function SkillBadge({ name }: { name: string; level: number }) {
   return (
-    <div className="group relative">
-      <div className="flex items-center justify-between p-3 bg-white/65 dark:bg-dark-800/50 rounded-sm border border-[#DDD7CC] dark:border-dark-700 hover:border-[#AAB6C2] dark:hover:border-primary-500/50 transition-all duration-300">
-        <span className="text-[#39495A] dark:text-dark-200 text-sm font-medium">{name}</span>
-        <span className="text-[#526E8A] dark:text-primary-400 text-xs font-mono">{level}%</span>
-      </div>
-      {/* Skill level bar */}
-      <div className="absolute bottom-0 left-0 h-0.5 bg-[#526E8A] dark:bg-gradient-to-r dark:from-primary-500 dark:to-accent-500 rounded-b-lg transition-all duration-500 group-hover:h-1" 
-           style={{ width: `${level}%` }} 
-      />
+    <div className="rounded-sm border border-[#DDD7CC] bg-white/65 p-3 text-sm font-medium text-[#39495A] transition hover:border-[#AAB6C2] dark:border-dark-700 dark:bg-dark-800/50 dark:text-dark-200 dark:hover:border-primary-500/50">
+      {name}
     </div>
   )
 }
@@ -164,7 +161,7 @@ export default function Skills() {
             {t('skills.heading')}
           </h2>
           <p className="section-subheading mx-auto mt-4">
-            {t('skills.subtitle')}
+            Capabilities grouped by the engineering work they support, rather than unsupported percentage ratings.
           </p>
         </motion.div>
 

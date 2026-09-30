@@ -32,6 +32,15 @@ function localDraft(project: Project): CaseStudy {
     status: project.status || 'Portfolio Project',
     timeline: 'Timeline not documented in the portfolio',
     role: project.role || 'Engineering role documented in project record',
+    projectType: project.projectType,
+    organization: project.organization,
+    contribution: project.contribution,
+    context: project.problemSolved,
+    requirements: [],
+    planning: [],
+    testing: [],
+    outcome: project.outcome,
+    futureImprovements: [],
     challenge: challenge.length ? challenge.slice(0, 5) : ['Engineering challenge documented in the project record.'],
     solution: unique([...solution, ...highlights]).slice(0, 6),
     results: [
@@ -95,6 +104,15 @@ function normalizeStudy(input: any, project: Project, fallback: CaseStudy): Case
     status: safeString(input?.status, fallback.status),
     timeline: safeString(input?.timeline, fallback.timeline),
     role: safeString(input?.role, fallback.role),
+    projectType: safeString(input?.projectType, fallback.projectType || ''),
+    organization: safeString(input?.organization, fallback.organization || ''),
+    contribution: safeString(input?.contribution, fallback.contribution || ''),
+    context: safeString(input?.context, fallback.context || ''),
+    requirements: safeStrings(input?.requirements, fallback.requirements || []),
+    planning: safeStrings(input?.planning, fallback.planning || []),
+    testing: safeStrings(input?.testing, fallback.testing || []),
+    outcome: safeString(input?.outcome, fallback.outcome || project.outcome || ''),
+    futureImprovements: safeStrings(input?.futureImprovements, fallback.futureImprovements || []),
     challenge: safeStrings(input?.challenge, fallback.challenge),
     solution: safeStrings(input?.solution, fallback.solution),
     results: results.length ? results : fallback.results,
@@ -115,11 +133,13 @@ async function generateWithGroq(project: Project, fallback: CaseStudy) {
 Use ONLY the supplied project record. Do not invent clients, dates, metrics, certifications, results, deployment status, commercial impact or technical details. If something is not documented, say "Not documented" or keep the wording generic. Distinguish prototype, active development and production accurately.
 
 Return ONLY a valid JSON object with these keys:
-title, subtitle, overview, status, timeline, role, challenge, solution, results, technologies, architecture.
+title, subtitle, overview, status, timeline, role, projectType, organization, contribution, context, requirements, planning, challenge, solution, testing, outcome, futureImprovements, results, technologies, architecture.
 
-challenge and solution are arrays of short strings.
+Use projectType, organization and contribution from the project record when present. Do not upgrade "contributed to" into "led" or "built".
+requirements, planning, challenge, solution, testing and futureImprovements are arrays of short strings. Only populate requirements, planning, testing or futureImprovements when they can be directly supported by the supplied project record; otherwise return an empty array.
 results is an array of up to 4 objects with value, label, description. Values must be descriptive when no verified metric exists; never fabricate numbers.
 technologies and architecture are arrays of strings.
+Do not turn a concept, R&D project or prototype into a production claim. Do not infer confidential client identities.
 Write clear professional English suitable for an international engineering portfolio.`,
       },
       {
