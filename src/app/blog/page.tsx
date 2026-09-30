@@ -28,7 +28,7 @@ const blogPosts = [
     id: '2',
     slug: 'smart-irrigation-system',
     title: 'Building a Smart Irrigation System for African Farms',
-    excerpt: 'A design note on planning an offline-capable irrigation prototype using sensing, control logic and field-friendly connectivity.'
+    excerpt: 'A design note on planning an offline-capable irrigation prototype using sensing, control logic and field-friendly connectivity.',
     coverImage: '/images/blog/irrigation.jpg',
     category: 'Projects',
     author: 'Emmanuel Inambao',
@@ -40,7 +40,7 @@ const blogPosts = [
     id: '3',
     slug: 'pcb-design-best-practices',
     title: 'PCB Design Best Practices for Embedded Systems',
-    excerpt: 'A practical checklist of grounding, trace routing, component placement and design-review considerations for embedded boards.'
+    excerpt: 'A practical checklist of grounding, trace routing, component placement and design-review considerations for embedded boards.',
     coverImage: '/images/blog/pcb-design.jpg',
     category: 'Hardware',
     author: 'Emmanuel Inambao',
