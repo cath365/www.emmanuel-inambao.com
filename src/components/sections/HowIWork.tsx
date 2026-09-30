@@ -2,7 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Search, CheckCircle2, Calendar, PenTool, Wrench, FlaskConical, Rocket, RefreshCw } from 'lucide-react'
+import { Search, CheckCircle2, Calendar, PenTool, Wrench, Rocket, RefreshCw } from 'lucide-react'
 
 const steps = [
   { number: '01', title: 'Discover', description: 'Understand the problem, users, operating environment and constraints before deciding what to build.', icon: Search },
@@ -10,7 +10,7 @@ const steps = [
   { number: '03', title: 'Plan', description: 'Determine architecture, components, resources, budget, timeline, milestones, dependencies and risks.', icon: Calendar },
   { number: '04', title: 'Design', description: 'Design the electronics, firmware, software, APIs, interfaces and system architecture required for the solution.', icon: PenTool },
   { number: '05', title: 'Build', description: 'Develop the hardware and software, integrate the parts and keep implementation aligned with the agreed scope.', icon: Wrench },
-  { number: '06', title: 'Test', description: 'Validate functionality, reliability, usability and hardware/software integration against the project requirements.', icon: FlaskConical },
+  { number: '06', title: 'Test', description: 'Validate functionality, reliability, usability and hardware/software integration against the project requirements.', icon: CheckCircle2 },
   { number: '07', title: 'Deploy', description: 'Move the solution into its real operating environment with documentation, configuration and handover planning.', icon: Rocket },
   { number: '08', title: 'Improve', description: 'Use feedback and test evidence to fix weaknesses, reduce risk and plan the next iteration.', icon: RefreshCw },
 ]
