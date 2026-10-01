@@ -10,7 +10,7 @@ const nextConfig = {
   eslint: {
     // ESLint is run separately in CI; skip during production build to avoid
     // ajv/node_modules resolution issues on some Node versions.
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   images: {
     domains: ['localhost', 'res.cloudinary.com'],
