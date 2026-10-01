@@ -113,7 +113,7 @@ const defaultSkillCategories: SkillCategory[] = [
   {
     id: 'project-management',
     title: 'System Design & Project Delivery',
-    description: 'Requirements, scope, architecture, planning, coordination, testing and delivery'
+    description: 'Requirements, scope, architecture, planning, coordination, testing and delivery',
     color: 'from-amber-500 to-orange-500',
     skills: [
       { name: 'Requirements & Scope', level: 85 },
