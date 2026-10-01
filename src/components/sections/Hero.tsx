@@ -119,14 +119,19 @@ export default function Hero() {
               </span>
             </motion.div>
 
-            <motion.p
+            <motion.div
               initial="hidden"
               animate="visible"
               variants={itemVariants}
-              className="mt-5 max-w-3xl text-sm leading-7 text-[#566273] dark:text-dark-400 sm:text-base"
+              className="mt-5 max-w-4xl"
             >
-              {profile.bio}
-            </motion.p>
+              <p className="text-xl font-semibold leading-tight text-[#10243E] dark:text-white sm:text-2xl">
+                Building technology for real-world problems.
+              </p>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-[#566273] dark:text-dark-400 sm:text-base">
+                {profile.bio}
+              </p>
+            </motion.div>
 
             <motion.div
               initial="hidden"
