@@ -1849,12 +1849,21 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Project Type</label>
               <input
-                type="text"
+                list="project-type-options"
                 value={formData.projectType || ''}
                 onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="R&D / Client Project / Prototype / Production"
+                placeholder="Research & Development"
               />
+              <datalist id="project-type-options">
+                <option value="Research & Development" />
+                <option value="Client Project" />
+                <option value="Production" />
+                <option value="Prototype" />
+                <option value="Internal Project" />
+                <option value="Educational Project" />
+                <option value="Concept" />
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Organisation / Context</label>
@@ -1869,12 +1878,23 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Status</label>
               <input
-                type="text"
+                list="project-status-options"
                 value={formData.status || ''}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="Production / Development / Prototype / Concept"
+                placeholder="Prototype"
               />
+              <datalist id="project-status-options">
+                <option value="Concept" />
+                <option value="Research" />
+                <option value="Research & Development" />
+                <option value="Prototype" />
+                <option value="Pilot" />
+                <option value="Active Development" />
+                <option value="Deployed" />
+                <option value="Client Project" />
+                <option value="Completed" />
+              </datalist>
             </div>
           </div>
 
