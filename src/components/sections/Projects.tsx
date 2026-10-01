@@ -27,10 +27,10 @@ export default function Projects() {
           className="mb-14 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end"
         >
           <div>
-            <span className="text-sm font-medium uppercase tracking-[0.2em] text-[#526E8A] dark:text-primary-500">01 — Selected Work</span>
-            <h2 id="projects-heading" className="section-heading mt-2">Selected systems across robotics, IoT, software and client delivery.</h2>
+            <span className="text-sm font-medium uppercase tracking-[0.2em] text-[#526E8A] dark:text-primary-500">02 — Featured Solutions</span>
+            <h2 id="projects-heading" className="section-heading mt-2">Real-world problems translated into practical systems, prototypes and deployed products.</h2>
             <p className="section-subheading mt-4">
-              Projects are presented with their actual role, type, organisation context and status so production systems, client work, R&D and prototypes are not blurred together.
+              Each featured project starts with the problem, who it affects, the solution approach, my role, available evidence and the current stage of development.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -79,7 +79,7 @@ export default function Projects() {
                     {project.title}
                   </h4>
                   <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#667384] dark:text-dark-400">
-                    {project.purpose}
+                    {project.problemTagline || project.purpose}
                   </p>
                   <span className="mt-4 inline-block text-sm font-semibold text-[#526E8A] dark:text-primary-400">
                     View project →
