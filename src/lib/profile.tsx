@@ -27,7 +27,7 @@ const defaultProfile: Profile = {
   name: 'Emmanuel Inambao',
   title: 'Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager',
   subtitle: 'Planning, designing, building and delivering practical technology systems',
-  bio: 'I work across robotics, IoT, embedded systems, software engineering and technical project delivery. I take projects from problem definition and requirements through architecture, planning, prototyping, development, testing, deployment and improvement. At Robotix Institute, my work includes engineering, R&D, technical project coordination and project-based STEM programme planning.',
+  bio: 'I design and build practical technology solutions for real-world problems using software, embedded systems, sensors, automation and AI. My work spans water monitoring, accessibility, education, agriculture, civic technology and business operations, taking projects from problem definition and system design through prototyping, testing, deployment and improvement.',
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
   phone: '+260 973 914 432',
@@ -69,8 +69,10 @@ function normalizeProfileData(data: Partial<Profile> | null | undefined): Profil
     merged.subtitle = defaultProfile.subtitle
   }
   if (
-    String(data?.bio || '').trim() ===
-    'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.'
+    [
+      'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.',
+      'I work across robotics, IoT, embedded systems, software engineering and technical project delivery. I take projects from problem definition and requirements through architecture, planning, prototyping, development, testing, deployment and improvement. At Robotix Institute, my work includes engineering, R&D, technical project coordination and project-based STEM programme planning.',
+    ].includes(String(data?.bio || '').trim())
   ) {
     merged.bio = defaultProfile.bio
   }
