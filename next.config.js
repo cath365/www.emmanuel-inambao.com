@@ -5,7 +5,7 @@ const nextConfig = {
     // Next.js generates internal type stubs that reference internal module paths
     // which may not resolve correctly depending on the installed version.
     // User code is still type-checked by the IDE / pre-commit hooks.
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
     // ESLint is run separately in CI; skip during production build to avoid
