@@ -677,11 +677,23 @@ export default function AdminDashboard() {
                               <h3 className="text-lg font-semibold text-white truncate">
                                 {project.title || 'Untitled Project'}
                               </h3>
-                              {project.featured && (
-                                <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded mt-1">
-                                  Featured
-                                </span>
-                              )}
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {project.featured && (
+                                  <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded">
+                                    Featured
+                                  </span>
+                                )}
+                                {project.domain && (
+                                  <span className="inline-block px-2 py-1 bg-primary-500/10 text-primary-300 text-xs rounded">
+                                    {project.domain}
+                                  </span>
+                                )}
+                                {project.status && (
+                                  <span className="inline-block px-2 py-1 bg-dark-700 text-dark-300 text-xs rounded">
+                                    {project.status}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Actions */}
@@ -706,9 +718,18 @@ export default function AdminDashboard() {
                             </div>
                           </div>
 
-                          <p className="text-dark-400 text-sm mt-3 line-clamp-2">
-                            {project.purpose || 'No description'}
+                          <p className="text-white text-sm font-medium mt-3 line-clamp-2">
+                            {project.problemTagline || project.problemSolved || 'Problem statement not yet documented'}
                           </p>
+                          <p className="text-dark-400 text-sm mt-2 line-clamp-2">
+                            {project.solutionSummary || project.purpose || 'Solution summary not yet documented'}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-dark-500">
+                            {project.role && <span>Role: {project.role}</span>}
+                            {project.evidence && project.evidence.length > 0 && <span>{project.evidence.length} evidence item{project.evidence.length === 1 ? '' : 's'}</span>}
+                            {project.expectedImpact && <span>Expected impact documented</span>}
+                            {project.measuredImpact && <span className="text-green-400">Measured impact documented</span>}
+                          </div>
 
                           {/* Technologies */}
                           <div className="flex flex-wrap gap-2 mt-3">
