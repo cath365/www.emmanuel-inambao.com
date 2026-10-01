@@ -296,6 +296,17 @@ export default function AdminDashboard() {
       systemLogic: '',
       outcome: '',
       featured: false,
+      problemTagline: '',
+      domain: '',
+      targetUsers: '',
+      whyItMatters: '',
+      solutionSummary: '',
+      roleAreas: [],
+      measuredImpact: '',
+      expectedImpact: '',
+      constraints: [],
+      nextMilestone: '',
+      evidence: [],
       githubUrl: '',
       liveUrl: '',
       appStoreUrl: '',
@@ -1639,6 +1650,32 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     })
   }
 
+  const addEvidence = () => {
+    setFormData({
+      ...formData,
+      evidence: [
+        ...(formData.evidence || []),
+        { label: '', type: 'Other', description: '', url: '' },
+      ],
+    })
+  }
+
+  const updateEvidence = (index: number, patch: Partial<NonNullable<Project['evidence']>[number]>) => {
+    setFormData({
+      ...formData,
+      evidence: (formData.evidence || []).map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item
+      ),
+    })
+  }
+
+  const removeEvidence = (index: number) => {
+    setFormData({
+      ...formData,
+      evidence: (formData.evidence || []).filter((_, itemIndex) => itemIndex !== index),
+    })
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1751,6 +1788,54 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Problem-focused headline
+              </label>
+              <input
+                type="text"
+                value={formData.problemTagline || ''}
+                onChange={(e) => setFormData({ ...formData, problemTagline: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="e.g. Identifying abnormal water behaviour before losses become harder to trace"
+              />
+              <p className="mt-2 text-xs text-dark-500">Used as the main project-card headline. Keep it about the problem or outcome, not the technology.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Problem Domain</label>
+              <input
+                list="project-domain-options"
+                value={formData.domain || ''}
+                onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="Water & Climate"
+              />
+              <datalist id="project-domain-options">
+                <option value="Water & Climate" />
+                <option value="Accessibility" />
+                <option value="Education" />
+                <option value="Agriculture" />
+                <option value="Civic Technology" />
+                <option value="Business Systems" />
+                <option value="Business Systems & Automation" />
+                <option value="Robotics & Automation" />
+                <option value="Health Technology" />
+                <option value="Developer Infrastructure" />
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Who is affected / target users</label>
+              <input
+                type="text"
+                value={formData.targetUsers || ''}
+                onChange={(e) => setFormData({ ...formData, targetUsers: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="Who experiences the problem?"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Professional Role</label>
               <input
@@ -1807,6 +1892,21 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             </p>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">My Role Areas</label>
+            <textarea
+              value={(formData.roleAreas || []).join('\n')}
+              onChange={(e) => setFormData({
+                ...formData,
+                roleAreas: e.target.value.split('\n').map(item => item.trim()).filter(Boolean)
+              })}
+              rows={5}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder={"Problem analysis\nSystem architecture\nEmbedded firmware\nTesting"}
+            />
+            <p className="mt-2 text-xs text-dark-500">One verified responsibility per line. Do not claim responsibilities that were handled by other team members.</p>
+          </div>
+
           {/* Problem Solved */}
           <div>
             <label className="block text-sm font-medium text-dark-300 mb-2">
@@ -1819,6 +1919,28 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
               rows={3}
               className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
               placeholder="Describe the problem this project solves"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Why the Problem Matters</label>
+            <textarea
+              value={formData.whyItMatters || ''}
+              onChange={(e) => setFormData({ ...formData, whyItMatters: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder="Explain the operational, human or business consequence without inventing impact numbers."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Solution Summary</label>
+            <textarea
+              value={formData.solutionSummary || ''}
+              onChange={(e) => setFormData({ ...formData, solutionSummary: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder="What was built or proposed to address the problem?"
             />
           </div>
 
@@ -1849,6 +1971,55 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
               rows={2}
               className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
               placeholder="Results and achievements"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Measured Impact</label>
+              <textarea
+                value={formData.measuredImpact || ''}
+                onChange={(e) => setFormData({ ...formData, measuredImpact: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+                placeholder="Only verified outcomes or measurements. Leave blank if not measured."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Expected / Potential Impact</label>
+              <textarea
+                value={formData.expectedImpact || ''}
+                onChange={(e) => setFormData({ ...formData, expectedImpact: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+                placeholder="What the system is designed to improve, without presenting it as already achieved."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Challenges / Constraints</label>
+            <textarea
+              value={(formData.constraints || []).join('\n')}
+              onChange={(e) => setFormData({
+                ...formData,
+                constraints: e.target.value.split('\n').map(item => item.trim()).filter(Boolean)
+              })}
+              rows={4}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder={"Connectivity limitations\nSensor calibration\nPower constraints"}
+            />
+            <p className="mt-2 text-xs text-dark-500">One real constraint per line.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Next Milestone</label>
+            <textarea
+              value={formData.nextMilestone || ''}
+              onChange={(e) => setFormData({ ...formData, nextMilestone: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder="What must happen next before the project can progress?"
             />
           </div>
 
@@ -1906,6 +2077,70 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-sm font-medium text-dark-300">Project Evidence</h4>
+                <p className="mt-1 text-xs text-dark-500">Add only evidence that exists: prototype, photo, video, live app, repository, document, testing, deployment or event participation.</p>
+              </div>
+              <button type="button" onClick={addEvidence} className="px-3 py-2 bg-dark-700 hover:bg-dark-600 text-white rounded-lg text-sm transition-colors">
+                <Plus className="w-4 h-4 inline mr-1" /> Add evidence
+              </button>
+            </div>
+
+            {(formData.evidence || []).map((item, index) => (
+              <div key={index} className="rounded-xl border border-dark-700 bg-dark-900/60 p-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-dark-400 mb-1">Evidence label</label>
+                    <input
+                      value={item.label}
+                      onChange={(e) => updateEvidence(index, { label: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                      placeholder="e.g. Working prototype"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-dark-400 mb-1">Type</label>
+                    <select
+                      value={item.type}
+                      onChange={(e) => updateEvidence(index, { type: e.target.value as NonNullable<Project['evidence']>[number]['type'] })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white focus:outline-none focus:border-primary-500"
+                    >
+                      {['Prototype', 'Photo', 'Video', 'Live application', 'Repository', 'Document', 'Testing', 'Deployment', 'Event', 'Other'].map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-dark-400 mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      value={item.description || ''}
+                      onChange={(e) => updateEvidence(index, { description: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 resize-none"
+                      placeholder="What does this evidence prove about the project?"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-dark-400 mb-1">URL (optional)</label>
+                    <input
+                      value={item.url || ''}
+                      onChange={(e) => updateEvidence(index, { url: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                      placeholder="https://... or /internal-page"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button type="button" onClick={() => removeEvidence(index)} className="text-sm text-red-400 hover:text-red-300">
+                    Remove evidence
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Links Section */}
