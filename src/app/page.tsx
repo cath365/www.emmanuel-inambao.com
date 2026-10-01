@@ -1,5 +1,6 @@
 import Hero from '@/components/sections/Hero'
 import About from '@/components/sections/About'
+import ProblemDomains from '@/components/sections/ProblemDomains'
 import Skills from '@/components/sections/Skills'
 import Projects from '@/components/sections/Projects'
 import Experience from '@/components/sections/Experience'
@@ -23,12 +24,13 @@ export default function Home() {
     <>
       <SectionViewTracker />
       <Hero />
+      <ProblemDomains />
       <Projects />
+      <HowIWork />
       <About />
       <ClientLogos />
       <Experience />
       <Skills />
-      <HowIWork />
       <Education />
       <Services />
       <GitHubContributions username="cath365" />
