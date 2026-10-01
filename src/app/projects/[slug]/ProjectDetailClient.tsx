@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, ArrowUpRight, CheckCircle2, ExternalLink, Github, Globe, Network, Users, Wrench } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ExternalLink, Github, Globe, Network, Users, Wrench } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
 import EngineeringProjectDeepDive from '@/components/projects/EngineeringProjectDeepDive'
 import { engineeringProjectDetails } from '@/lib/project-engineering-details'
