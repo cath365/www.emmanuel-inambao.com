@@ -534,7 +534,9 @@ export const legacyProjectIds = new Set([
 ])
 
 const legacyFeaturedByProjectId: Record<string, boolean> = {
+  'smart-cooking-oil-dispenser': true,
   'denuel-one-pro-ai-x': true,
+  'the-spot-app': true,
   'aquawatch-nrw': false,
 }
 
