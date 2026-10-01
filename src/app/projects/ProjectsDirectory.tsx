@@ -14,16 +14,16 @@ export default function ProjectsDirectory() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex flex-wrap gap-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-dark-500">
-                <span>{project.projectType || 'Engineering project'}</span>
-                {project.organization && <span>· {project.organization}</span>}
+                <span>{project.domain || project.projectType || 'Engineering project'}</span>
+                {project.status && <span>· {project.status}</span>}
               </div>
-              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-400">Role: {project.role || 'Role to confirm'}</p>
-              <h2 className="mt-2 text-2xl font-bold text-white">{project.title}</h2>
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-accent-400">{project.title}</p>
+              <h2 className="mt-2 text-2xl font-bold leading-tight text-white">{project.problemTagline || project.problemSolved}</h2>
             </div>
             <ArrowUpRight className="h-5 w-5 shrink-0 text-dark-500 transition group-hover:text-primary-400" />
           </div>
 
-          <p className="mt-4 text-sm leading-relaxed text-dark-400">{project.purpose}</p>
+          <p className="mt-4 line-clamp-4 text-sm leading-relaxed text-dark-400">{project.solutionSummary || project.purpose}</p>
 
           <div className="mt-5 flex flex-wrap gap-2">
             {project.techStack.slice(0, 5).map(tech => <span key={tech} className="tech-badge text-xs">{tech}</span>)}
@@ -31,7 +31,7 @@ export default function ProjectsDirectory() {
 
           <div className="mt-auto pt-7">
             <div className="mb-3 space-y-1 text-xs text-dark-500">
-              {project.status && <p>Status: {project.status}</p>}
+              {project.role && <p>Role: {project.role}</p>}
               {project.contribution && <p>Contribution: {project.contribution}</p>}
             </div>
             <div className="flex flex-wrap items-center gap-4">
