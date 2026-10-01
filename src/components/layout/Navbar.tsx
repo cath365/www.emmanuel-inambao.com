@@ -9,9 +9,9 @@ import { LanguageSwitcher, useLanguage } from '@/lib/i18n'
 
 // Navigation links configuration
 const navLinks: Array<{ href: string; labelKey?: string; label?: string }> = [
-  { href: '/#about', labelKey: 'nav.about' },
-  { href: '/#skills', labelKey: 'nav.skills' },
+  { href: '/#problems', label: 'Problems' },
   { href: '/#projects', labelKey: 'nav.projects' },
+  { href: '/#about', labelKey: 'nav.about' },
   { href: '/hire', label: 'Hire / Work With Me' },
   { href: '/capabilities', label: 'Capabilities' },
   { href: '/start-project', label: 'Start a Project' },
