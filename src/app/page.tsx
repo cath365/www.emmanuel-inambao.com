@@ -3,6 +3,7 @@ import About from '@/components/sections/About'
 import ProblemDomains from '@/components/sections/ProblemDomains'
 import Skills from '@/components/sections/Skills'
 import Projects from '@/components/sections/Projects'
+import ProjectEvidenceHighlights from '@/components/sections/ProjectEvidenceHighlights'
 import Experience from '@/components/sections/Experience'
 import Services from '@/components/sections/Services'
 import Certifications from '@/components/sections/Certifications'
@@ -26,6 +27,7 @@ export default function Home() {
       <Hero />
       <ProblemDomains />
       <Projects />
+      <ProjectEvidenceHighlights />
       <HowIWork />
       <About />
       <ClientLogos />
