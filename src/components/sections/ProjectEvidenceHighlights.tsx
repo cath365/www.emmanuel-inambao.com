@@ -27,14 +27,28 @@ export default function ProjectEvidenceHighlights() {
   const evidenceItems = useMemo(
     () =>
       projects
-        .flatMap(project =>
-          (project.evidence || []).map(item => ({
+        .flatMap(project => {
+          const structuredEvidence = (project.evidence || []).map(item => ({
             ...item,
             projectId: project.id,
             projectTitle: project.title,
             domain: project.domain,
           }))
-        )
+
+          const mediaEvidence = (project.media || [])
+            .filter(item => item.src && (item.caption || item.alt))
+            .map(item => ({
+              label: item.caption || item.alt,
+              type: 'Photo' as const,
+              description: item.caption || undefined,
+              url: '/projects/' + project.id,
+              projectId: project.id,
+              projectTitle: project.title,
+              domain: project.domain,
+            }))
+
+          return [...structuredEvidence, ...mediaEvidence]
+        })
         .filter(item => item.label)
         .slice(0, 6),
     [projects]
