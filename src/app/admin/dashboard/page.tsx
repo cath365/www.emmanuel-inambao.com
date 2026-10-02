@@ -1090,6 +1090,27 @@ interface ProfileEditorProps {
 const COVER_WIDTH = 1400
 const COVER_HEIGHT = 400
 
+async function verifyPublishedImage(url: string, label: string) {
+  await new Promise<void>((resolve, reject) => {
+    const image = new window.Image()
+    const timeout = window.setTimeout(() => {
+      image.src = ''
+      reject(new Error(`${label} uploaded, but its public URL did not become available in time.`))
+    }, 10000)
+
+    image.onload = () => {
+      window.clearTimeout(timeout)
+      resolve()
+    }
+    image.onerror = () => {
+      window.clearTimeout(timeout)
+      reject(new Error(`${label} uploaded, but the public image URL could not be loaded. Please retry the upload.`))
+    }
+    image.referrerPolicy = 'no-referrer'
+    image.src = url
+  })
+}
+
 async function normalizeCoverBanner(file: File): Promise<{ file: File; previewUrl: string }> {
   if (!file.type.startsWith('image/')) {
     throw new Error('Please select an image file.')
@@ -1196,6 +1217,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
+        await verifyPublishedImage(data.url, 'Profile picture')
         const updated = { ...formData, image: data.url }
         await onSave(updated)
         setFormData(updated)
@@ -1232,6 +1254,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
+        await verifyPublishedImage(data.url, 'Cover banner')
         const updated = { ...formData, coverImage: data.url }
         await onSave(updated)
         setFormData(updated)
@@ -1324,6 +1347,11 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
                   </div>
                 )}
               </div>
+              {profileImageFailed && formData.image && (
+                <p className="absolute left-1/2 top-full mt-2 w-56 -translate-x-1/2 text-center text-xs text-amber-400">
+                  Stored profile image could not be loaded. Re-upload it to repair the public URL.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -1369,8 +1397,12 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
                 sizes="(max-width: 1024px) 100vw, 900px"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950 flex items-center justify-center">
-                <p className="text-dark-400 text-sm">No cover image — a gradient will be shown</p>
+              <div className="w-full h-full bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950 flex items-center justify-center px-4 text-center">
+                <p className="text-dark-400 text-sm">
+                  {coverImageFailed && formData.coverImage
+                    ? 'Stored cover image could not be loaded — re-upload it to repair the public URL.'
+                    : 'No cover image — a gradient will be shown'}
+                </p>
               </div>
             )}
             {uploadingCover && (
