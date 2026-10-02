@@ -6,13 +6,11 @@ import Link from 'next/link'
 import { ArrowRight, BookOpen } from 'lucide-react'
 import ProjectCard from '@/components/ui/ProjectCard'
 import { useProjects } from '@/lib/projects'
-import { useLanguage } from '@/lib/i18n'
 
 export default function Projects() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { projects } = useProjects()
-  const { t } = useLanguage()
   const featuredProjects = projects.filter(project => project.featured).slice(0, 6)
 
   return (
@@ -46,8 +44,6 @@ export default function Projects() {
             <ProjectCard key={project.id} project={project} index={index} />
           ))}
         </div>
-
-
       </div>
     </section>
   )
