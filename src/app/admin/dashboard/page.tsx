@@ -1768,6 +1768,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                     src={formData.image}
                     alt="Project"
                     fill
+                    unoptimized
                     className="object-cover"
                   />
                 ) : (
