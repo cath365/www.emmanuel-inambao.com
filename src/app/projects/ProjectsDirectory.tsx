@@ -32,14 +32,18 @@ export default function ProjectsDirectory() {
 
       const searchable = [
         project.title,
+        project.domain,
         project.problemTagline,
         project.problemSolved,
+        project.targetUsers,
+        project.whyItMatters,
         project.solutionSummary,
         project.purpose,
         project.role,
         project.status,
         project.projectType,
         project.organization,
+        ...(project.roleAreas || []),
         ...(project.techStack || []),
       ]
         .filter(Boolean)
