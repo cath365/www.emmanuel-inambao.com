@@ -1623,7 +1623,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
 interface ProjectModalProps {
   project: Project
   isNew: boolean
-  onSave: (project: Project) => void
+  onSave: (project: Project) => Promise<void>
   onClose: () => void
 }
 
@@ -1631,6 +1631,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
   const [formData, setFormData] = useState<Project>(project)
   const [techInput, setTechInput] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1663,9 +1664,20 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    if (isSaving || uploading) return
+
+    setIsSaving(true)
+    try {
+      await onSave(formData)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const requestClose = () => {
+    if (!isSaving) onClose()
   }
 
   const addTechnology = () => {
@@ -1717,7 +1729,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1732,8 +1744,11 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             {isNew ? 'Add New Project' : 'Edit Project'}
           </h2>
           <button
-            onClick={onClose}
-            className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
+            type="button"
+            onClick={requestClose}
+            disabled={isSaving}
+            className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Close project editor"
           >
             <X className="w-5 h-5" />
           </button>
@@ -2308,17 +2323,23 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           <div className="flex items-center justify-end gap-4 pt-4 border-t border-dark-700">
             <button
               type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-dark-300 hover:text-white transition-colors"
+              onClick={requestClose}
+              disabled={isSaving}
+              className="px-6 py-2 text-dark-300 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary flex items-center gap-2"
+              disabled={isSaving || uploading}
+              className="btn-primary flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Save className="w-5 h-5" />
-              {isNew ? 'Create Project' : 'Save Changes'}
+              {isSaving ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              {isSaving ? 'Publishing & verifying…' : isNew ? 'Create Project' : 'Save Changes'}
             </button>
           </div>
         </form>
