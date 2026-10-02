@@ -63,7 +63,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A working prototype architecture combining embedded control, offline recovery, operator sales tracking, telemetry, receipts and a web-management path. Field calibration and production hardening remain future work.',
     featured: false,
     role: 'Embedded Systems & Full-Stack Developer',
-    status: 'Prototype / Commercial Development',
+    status: 'Prototype',
     projectType: 'Research & Development',
     organization: 'Independent R&D',
     contribution: 'Built and developed by me',
@@ -94,7 +94,7 @@ export const defaultProjects: Project[] = [
     outcome: 'An active R&D smart-device platform that demonstrates a reusable embedded architecture for connected products rather than a single-purpose microcontroller demo.',
     featured: false,
     role: 'Embedded Systems & Product Developer',
-    status: 'Active R&D / Prototype',
+    status: 'Active Development',
     projectType: 'Research & Development',
     organization: 'Personal R&D',
     contribution: 'Built by me',
@@ -112,7 +112,7 @@ export const defaultProjects: Project[] = [
     outcome: 'An assistive-technology prototype architecture focused on directional guidance and safer navigation rather than simple proximity alerts.',
     featured: true,
     role: 'Robotics & IoT Engineer',
-    status: 'Prototype / Active Development',
+    status: 'Prototype',
     projectType: 'Research & Development',
     organization: 'Robotix Institute',
     contribution: 'Team / R&D contribution',
@@ -143,7 +143,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A production mobile application released on Android and iOS after stabilization, deployment and product improvements.',
     featured: false,
     role: 'Mobile App & Deployment Developer',
-    status: 'Production / Released',
+    status: 'Deployed',
     projectType: 'Client Project',
     organization: 'Client project',
     contribution: 'Contributed to development and deployment',
@@ -182,7 +182,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A deployed marketplace product focused on Zambian agricultural commerce, farmer onboarding and future transaction-based growth.',
     featured: false,
     role: 'Product & Full-Stack Engineer',
-    status: 'Deployed / Growth Stage',
+    status: 'Deployed',
     projectType: 'Production',
     organization: 'Independent product',
     contribution: 'Built and developed by me',
@@ -202,7 +202,7 @@ export const defaultProjects: Project[] = [
     outcome: 'An offline-first industrial prototype with automatic and manual modes, session tracking, accepted/rejected counters, CSV history and local browser control.',
     featured: false,
     role: 'Embedded Systems Engineer',
-    status: 'Working Prototype',
+    status: 'Prototype',
     projectType: 'Prototype',
     organization: 'Independent R&D',
     contribution: 'Built and tested by me',
@@ -222,7 +222,7 @@ export const defaultProjects: Project[] = [
     featured: false,
     role: 'Robotics & Embedded Developer',
     status: 'Prototype',
-    projectType: 'Educational / Prototype',
+    projectType: 'Educational Project',
     organization: 'Independent robotics project',
     contribution: 'Built and tested by me',
     architecture: ['Local Wi-Fi control', 'ESP32 motion controller', 'Dual ultrasonic sensing', 'Servo scanning', 'Motor driver', 'LED/buzzer feedback'],
@@ -239,7 +239,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A field-to-dashboard concept covering sensing, NRW calculation, anomaly analysis, decision support and operational reporting.',
     featured: true,
     role: 'IoT Systems Architect / Technical Project Planner',
-    status: 'Research & Development / Pilot Design',
+    status: 'Research & Development',
     projectType: 'Research & Development',
     organization: 'R&D project',
     contribution: 'Planned and designed by me',
@@ -269,7 +269,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A deployed mobile-responsive CRM and quotation platform that consolidates sales and administrative workflows into a single business workspace.',
     featured: true,
     role: 'Full-Stack Systems Developer',
-    status: 'Production / Deployed',
+    status: 'Deployed',
     projectType: 'Client Project',
     organization: 'Client project',
     contribution: 'Built and deployed by me',
@@ -300,7 +300,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A deployed responsive civic-information website that turns a large set of public records and civic content into a structured, searchable user experience.',
     featured: true,
     role: 'Full-Stack Platform Developer',
-    status: 'Production / Live',
+    status: 'Deployed',
     projectType: 'Production',
     organization: 'Constituency226',
     contribution: 'Contributed to platform development',
@@ -331,7 +331,7 @@ export const defaultProjects: Project[] = [
     outcome: 'A documented R&D concept and component architecture for a field-ready livestock tracking prototype.',
     featured: false,
     role: 'Robotics & IoT Engineer / Technical Project Planner',
-    status: 'Concept / Prototype Planning',
+    status: 'Concept',
     projectType: 'Research & Development',
     organization: 'Independent R&D',
     contribution: 'Planned and designed by me',
@@ -359,7 +359,7 @@ export const defaultProjects: Project[] = [
     outcome: 'Client-facing MVP scope, feature plan, architecture direction and phased implementation proposal.',
     featured: false,
     role: 'Full-Stack Systems Developer / Technical Project Manager',
-    status: 'Client Project / MVP Planning',
+    status: 'Client Project',
     projectType: 'Client Project',
     organization: 'Client project',
     contribution: 'Planned / solution architecture',
@@ -376,7 +376,7 @@ export const defaultProjects: Project[] = [
     outcome: 'Project discovery and client-ready implementation planning in progress.',
     featured: false,
     role: 'Full-Stack Systems Developer / Technical Project Manager',
-    status: 'Client Project / Planning',
+    status: 'Client Project',
     projectType: 'Client Project',
     organization: 'Client project',
     contribution: 'Planning and solution design',
@@ -401,7 +401,7 @@ export const defaultProjects: Project[] = [
     outcome: 'Ongoing contribution to the organisation\'s website and digital-platform improvement work.',
     featured: false,
     role: 'Full-Stack Systems Developer',
-    status: 'Ongoing Contribution',
+    status: 'Active Development',
     projectType: 'Internal Project',
     organization: 'Robotix Institute',
     contribution: 'Contributed to',
@@ -495,6 +495,22 @@ const staleProjectMediaPaths = new Set([
   '/images/projects/smart-irrigation.svg',
 ])
 
+const legacyStatusByProjectId: Record<string, string> = {
+  'smart-cooking-oil-dispenser': 'Prototype / Commercial Development',
+  'denuel-one-pro-ai-x': 'Active R&D / Prototype',
+  'smart-walking-stick': 'Prototype / Active Development',
+  'the-spot-app': 'Production / Released',
+  'kulima-farm-marketplace': 'Deployed / Growth Stage',
+  'industrial-powder-measuring-system': 'Working Prototype',
+  'aquawatch-nrw': 'Research & Development / Pilot Design',
+  'quotation-platform': 'Production / Deployed',
+  'constituency226': 'Production / Live',
+  'livestock-collar-tracker': 'Concept / Prototype Planning',
+  'zpay': 'Client Project / MVP Planning',
+  'edutrack': 'Client Project / Planning',
+  'robotix-institute-digital-platform': 'Ongoing Contribution',
+}
+
 const legacyFeaturedByProjectId: Record<string, boolean> = {
   'smart-cooking-oil-dispenser': true,
   'denuel-one-pro-ai-x': true,
@@ -527,6 +543,9 @@ export function mergeWithCurrentCatalog(data: unknown): Project[] {
     const merged = { ...current, ...saved }
     if (legacyRoleByProjectId[current.id] && saved.role === legacyRoleByProjectId[current.id]) {
       merged.role = current.role
+    }
+    if (legacyStatusByProjectId[current.id] && saved.status === legacyStatusByProjectId[current.id]) {
+      merged.status = current.status
     }
     if (
       Object.prototype.hasOwnProperty.call(legacyFeaturedByProjectId, current.id) &&
