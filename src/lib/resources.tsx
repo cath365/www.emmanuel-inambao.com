@@ -31,6 +31,25 @@ const AUDIO_STORAGE_KEY = 'portfolio_audio_intro'
 
 const defaultResources: Resource[] = []
 
+const legacyPlaceholderResourceTitles = new Set([
+  'IoT Project Starter Guide',
+  'PCB Design Checklist',
+  'ESP32 Project Template',
+])
+
+function normalizeResources(data: unknown): Resource[] {
+  if (!Array.isArray(data)) return defaultResources
+
+  return data.filter((item): item is Resource => {
+    if (!item || typeof item !== 'object') return false
+    const candidate = item as Partial<Resource>
+    const legacyPlaceholder =
+      Boolean(candidate.title && legacyPlaceholderResourceTitles.has(candidate.title)) &&
+      candidate.fileUrl === '#coming-soon'
+    return !legacyPlaceholder
+  })
+}
+
 function saveResourcesToServer(data: Resource[]) {
   void persistPortfolioData('resources', data).catch(error => console.error('Failed to save resources:', error))
 }
@@ -49,11 +68,7 @@ export function ResourcesProvider({ children }: { children: ReactNode }) {
       fetch('/api/portfolio-data?key=resources', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
       fetch('/api/portfolio-data?key=audio', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
     ]).then(([resourcesData, audioData]) => {
-      if (Array.isArray(resourcesData) && resourcesData.length > 0) {
-        setResources(resourcesData)
-      } else {
-        setResources(defaultResources)
-      }
+      setResources(normalizeResources(resourcesData))
 
       if (typeof audioData === 'string' && audioData) {
         setAudioIntroUrlState(audioData)
