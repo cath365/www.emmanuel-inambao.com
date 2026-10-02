@@ -56,7 +56,7 @@ export default function Gallery() {
     <section
       id="gallery"
       ref={ref}
-      className="py-20 lg:py-32 bg-dark-900/50"
+      className="border-y border-[#DED8CE] bg-[#F7F5EF] py-20 dark:border-dark-800/60 dark:bg-dark-950 lg:py-28"
       aria-labelledby="gallery-heading"
     >
       <div className="section-container">
@@ -67,16 +67,14 @@ export default function Gallery() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="text-primary-500 font-medium text-sm uppercase tracking-wider">
-            Gallery
+          <span className="text-sm font-semibold uppercase tracking-[0.18em] text-[#526E8A] dark:text-primary-400">
+            Project media & evidence
           </span>
           <h2 id="gallery-heading" className="section-heading mt-2">
-            My Work in{' '}
-            <span className="gradient-text">Action</span>
+            Prototypes, interfaces and technical work in context.
           </h2>
           <p className="section-subheading mx-auto mt-4">
-            Photos and videos from projects, workshops, and events - 
-            showcasing engineering in the real world.
+            Only uploaded portfolio media is shown here. Photos and videos can be linked to a specific project from the Admin dashboard so visitors can connect the evidence to the system it supports.
           </p>
         </motion.div>
 
@@ -97,8 +95,8 @@ export default function Gallery() {
               aria-selected={activeCategory === category.id}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 activeCategory === category.id
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-dark-800 text-dark-400 hover:text-white hover:bg-dark-700'
+                  ? 'border-[#526E8A] bg-[#10243E] text-white dark:border-primary-500 dark:bg-primary-600'
+                  : 'border-[#D8D2C8] bg-white/60 text-[#667384] hover:border-[#AAB6C2] hover:text-[#10243E] dark:border-dark-700 dark:bg-dark-900/60 dark:text-dark-400 dark:hover:border-dark-600 dark:hover:text-white'
               }`}
             >
               {category.label}
@@ -115,7 +113,7 @@ export default function Gallery() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
               onClick={() => setSelectedItem(item)}
-              className="group relative aspect-square bg-dark-800 border border-dark-700 rounded-xl overflow-hidden hover:border-primary-500/50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="group relative aspect-square overflow-hidden rounded-xl border border-[#D8D2C8] bg-white/60 transition-all duration-300 hover:border-[#AAB6C2] focus:outline-none focus:ring-2 focus:ring-[#526E8A] dark:border-dark-700 dark:bg-dark-900 dark:hover:border-primary-500/50 dark:focus:ring-primary-500"
               aria-label={`View ${item.title}`}
             >
               {/* Media */}
@@ -175,8 +173,8 @@ export default function Gallery() {
         {/* Empty state */}
         {sortedItems.length === 0 && (
           <div className="text-center py-12">
-            <ImageIcon className="w-12 h-12 text-dark-600 mx-auto mb-4" />
-            <p className="text-dark-400">No items found in this category.</p>
+            <ImageIcon className="mx-auto mb-4 h-12 w-12 text-[#9AA3AA] dark:text-dark-600" />
+            <p className="text-[#667384] dark:text-dark-400">No evidence has been added to this category yet.</p>
           </div>
         )}
       </div>
