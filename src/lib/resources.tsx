@@ -29,41 +29,7 @@ const ResourcesContext = createContext<ResourcesContextType | null>(null)
 const STORAGE_KEY = 'portfolio_resources'
 const AUDIO_STORAGE_KEY = 'portfolio_audio_intro'
 
-const defaultResources: Resource[] = [
-  {
-    id: '1',
-    title: 'IoT Project Starter Guide',
-    description: 'Complete guide to starting your first IoT project, from hardware selection to cloud deployment.',
-    type: 'guide',
-    fileUrl: '#coming-soon',
-    fileSize: '2.4 MB',
-    downloads: 0,
-    icon: '📘',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'PCB Design Checklist',
-    description: 'Essential checklist for PCB design review before manufacturing. Avoid common mistakes.',
-    type: 'checklist',
-    fileUrl: '#coming-soon',
-    fileSize: '850 KB',
-    downloads: 0,
-    icon: '✅',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    title: 'ESP32 Project Template',
-    description: 'Ready-to-use ESP32 project template with WiFi, MQTT, and OTA updates pre-configured.',
-    type: 'template',
-    fileUrl: '#coming-soon',
-    fileSize: '1.2 MB',
-    downloads: 0,
-    icon: '📦',
-    createdAt: new Date().toISOString(),
-  },
-]
+const defaultResources: Resource[] = []
 
 function saveResourcesToServer(data: Resource[]) {
   void persistPortfolioData('resources', data).catch(error => console.error('Failed to save resources:', error))
