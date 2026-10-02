@@ -11,7 +11,12 @@ export default function Projects() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { projects } = useProjects()
-  const featuredProjects = projects.filter(project => project.featured).slice(0, 6)
+  const explicitlyFeatured = projects.filter(project => project.featured)
+  const featuredProjects = (
+    explicitlyFeatured.length > 0
+      ? explicitlyFeatured
+      : projects.filter(project => project.problemTagline || project.problemSolved)
+  ).slice(0, 6)
 
   return (
     <section id="projects" ref={ref} className="bg-[#F1EEE7] dark:bg-dark-900/45 py-20 lg:py-28 border-y border-[#DED8CE] dark:border-dark-800/50" aria-labelledby="projects-heading">
