@@ -5,6 +5,7 @@ import { motion, useInView } from 'framer-motion'
 import { ArrowRight, ExternalLink, FileText, Image as ImageIcon, MonitorPlay, PackageCheck } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import { useProjects } from '@/lib/projects'
+import { useGallery } from '@/lib/gallery'
 
 const evidenceIcons = {
   Prototype: PackageCheck,
@@ -23,35 +24,53 @@ export default function ProjectEvidenceHighlights() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const { projects } = useProjects()
+  const { items: galleryItems } = useGallery()
 
   const evidenceItems = useMemo(
-    () =>
-      projects
-        .flatMap(project => {
-          const structuredEvidence = (project.evidence || []).map(item => ({
-            ...item,
+    () => {
+      const projectEvidence = projects.flatMap(project => {
+        const structuredEvidence = (project.evidence || []).map(item => ({
+          ...item,
+          projectId: project.id,
+          projectTitle: project.title,
+          domain: project.domain,
+        }))
+
+        const mediaEvidence = (project.media || [])
+          .filter(item => item.src && (item.caption || item.alt))
+          .map(item => ({
+            label: item.caption || item.alt,
+            type: 'Photo' as const,
+            description: item.caption || undefined,
+            url: '/projects/' + project.id,
             projectId: project.id,
             projectTitle: project.title,
             domain: project.domain,
           }))
 
-          const mediaEvidence = (project.media || [])
-            .filter(item => item.src && (item.caption || item.alt))
-            .map(item => ({
-              label: item.caption || item.alt,
-              type: 'Photo' as const,
-              description: item.caption || undefined,
-              url: '/projects/' + project.id,
-              projectId: project.id,
-              projectTitle: project.title,
-              domain: project.domain,
-            }))
+        return [...structuredEvidence, ...mediaEvidence]
+      })
 
-          return [...structuredEvidence, ...mediaEvidence]
+      const linkedGalleryEvidence = galleryItems
+        .filter(item => item.projectId)
+        .map(item => {
+          const project = projects.find(project => project.id === item.projectId)
+          return {
+            label: item.title,
+            type: item.type === 'video' ? ('Video' as const) : ('Photo' as const),
+            description: item.description || undefined,
+            url: '/projects/' + item.projectId,
+            projectId: item.projectId as string,
+            projectTitle: project?.title || 'Project evidence',
+            domain: project?.domain,
+          }
         })
+
+      return [...projectEvidence, ...linkedGalleryEvidence]
         .filter(item => item.label)
-        .slice(0, 6),
-    [projects]
+        .slice(0, 6)
+    },
+    [projects, galleryItems]
   )
 
   if (evidenceItems.length === 0) return null
