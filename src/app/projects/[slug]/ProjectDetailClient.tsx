@@ -4,11 +4,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, ArrowUpRight, ExternalLink, Github, Globe, Network, Users, Wrench } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
+import { useGallery } from '@/lib/gallery'
 import EngineeringProjectDeepDive from '@/components/projects/EngineeringProjectDeepDive'
 import { engineeringProjectDetails } from '@/lib/project-engineering-details'
 
 export default function ProjectDetailClient({ slug }: { slug: string }) {
   const { projects } = useProjects()
+  const { items: galleryItems } = useGallery()
   const project = projects.find(item => item.id === slug)
   const engineeringDetail = engineeringProjectDetails[slug]
 
@@ -30,6 +32,10 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
   const solution = project.solutionSummary || project.purpose
   const evidence = project.evidence || []
   const supportingMedia = project.media?.filter(item => item.src !== project.image) || []
+  const linkedGalleryMedia = galleryItems.filter(item => item.projectId === project.id)
+  const evidenceCount = evidence.length + supportingMedia.length + linkedGalleryMedia.length + (
+    project.media?.[0]?.caption && project.media[0].src === project.image ? 1 : 0
+  )
 
   return (
     <main className="min-h-screen bg-dark-950 pb-20 pt-24">
@@ -135,7 +141,7 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           </div>
           <div className="rounded-xl border border-dark-800 bg-dark-900/45 p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dark-500">Evidence attached</p>
-            <p className="mt-2 text-sm font-semibold text-white">{evidence.length + supportingMedia.length} item{evidence.length + supportingMedia.length === 1 ? '' : 's'}</p>
+            <p className="mt-2 text-sm font-semibold text-white">{evidenceCount} item{evidenceCount === 1 ? '' : 's'}</p>
           </div>
         </section>
 
@@ -213,7 +219,7 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           </section>
         ) : null}
 
-        {(evidence.length > 0 || supportingMedia.length > 0) && (
+        {(evidence.length > 0 || supportingMedia.length > 0 || linkedGalleryMedia.length > 0) && (
           <section className="mt-6 rounded-2xl border border-dark-800 bg-dark-900/55 p-6 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-400">Project evidence</p>
             <h2 className="mt-2 text-2xl font-bold text-white">What can be verified today</h2>
@@ -271,6 +277,37 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
                       />
                     </div>
                     {item.caption && <figcaption className="p-4 text-sm leading-relaxed text-dark-400">{item.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            )}
+
+            {linkedGalleryMedia.length > 0 && (
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {linkedGalleryMedia.map(item => (
+                  <figure key={item.id} className="overflow-hidden rounded-xl border border-dark-800 bg-dark-950/70">
+                    <div className="relative aspect-video bg-dark-950">
+                      {item.type === 'video' ? (
+                        <video
+                          src={item.url}
+                          className="h-full w-full object-cover"
+                          controls
+                          preload="metadata"
+                        />
+                      ) : (
+                        <Image
+                          src={item.url}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                        />
+                      )}
+                    </div>
+                    <figcaption className="p-4">
+                      <p className="text-sm font-semibold text-white">{item.title}</p>
+                      {item.description && <p className="mt-1 text-sm leading-relaxed text-dark-400">{item.description}</p>}
+                    </figcaption>
                   </figure>
                 ))}
               </div>
