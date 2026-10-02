@@ -35,7 +35,6 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               src={project.image}
               alt={project.media?.[0]?.alt || project.title}
               fill
-              unoptimized
               className={project.media?.[0]?.fit === 'contain' ? 'object-contain' : 'object-cover transition-transform duration-500 group-hover:scale-[1.01]'}
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
