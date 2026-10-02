@@ -154,13 +154,13 @@ export default function Contact() {
           {/* Section header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
             <span className="text-[#526E8A] dark:text-primary-500 font-medium text-sm uppercase tracking-[0.18em]">
-              08 — Contact
+              Work with me
             </span>
             <h2 id="contact-heading" className="section-heading mt-2">
-              {t('contact.subtitle')}
+              Start with the problem, users and operating constraints.
             </h2>
             <p className="section-subheading mx-auto mt-4">
-              {t('contact.description')}
+              If you are hiring, planning a system, exploring an IoT or robotics project, or looking for R&amp;D/STEM support, share what needs to change and what a successful outcome should look like.
             </p>
           </motion.div>
 
@@ -248,7 +248,7 @@ export default function Contact() {
               <div className="card">
                 <div className="flex items-center gap-3 mb-6">
                   <MessageSquare className="w-5 h-5 text-[#526E8A] dark:text-primary-400" aria-hidden="true" />
-                  <h3 className="text-xl font-semibold text-[#10243E] dark:text-white">Send a Message</h3>
+                  <h3 className="text-xl font-semibold text-[#10243E] dark:text-white">Describe the problem</h3>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -346,7 +346,7 @@ export default function Contact() {
                       required
                       rows={5}
                       className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white placeholder-[#9A9FA4] dark:placeholder-dark-500 focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors resize-none"
-                      placeholder="Tell me about your project or inquiry..."
+                      placeholder="What problem are you trying to solve? Who is affected, what happens today, and what outcome do you need?"
                     />
                   </div>
 
