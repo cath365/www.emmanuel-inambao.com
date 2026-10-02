@@ -10,13 +10,11 @@ import { LanguageSwitcher, useLanguage } from '@/lib/i18n'
 // Navigation links configuration
 const navLinks: Array<{ href: string; labelKey?: string; label?: string }> = [
   { href: '/#problems', label: 'Problems' },
-  { href: '/#projects', labelKey: 'nav.projects' },
-  { href: '/#about', labelKey: 'nav.about' },
-  { href: '/hire', label: 'Hire / Work With Me' },
-  { href: '/capabilities', label: 'Capabilities' },
-  { href: '/start-project', label: 'Start a Project' },
+  { href: '/#projects', label: 'Solutions' },
+  { href: '/#evidence', label: 'Evidence' },
+  { href: '/#process', label: 'Process' },
+  { href: '/#experience', label: 'Experience' },
   { href: '/case-studies', labelKey: 'nav.caseStudies' },
-  { href: '/blog', labelKey: 'nav.blog' },
 ]
 
 export default function Navbar() {
@@ -60,7 +58,7 @@ export default function Navbar() {
             aria-label="Emmanuel Inambao - Home"
           >
             <Cpu className="w-5 h-5 text-[#526E8A] dark:text-primary-400" aria-hidden="true" />
-            <span className="hidden sm:inline">E.Inambao</span>
+            <span className="hidden sm:inline">Emmanuel Inambao</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -88,8 +86,8 @@ export default function Navbar() {
 
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="/#contact" className="btn-primary text-sm rounded-md">
-              {t('hero.cta.contact')}
+            <Link href="/start-project" className="btn-primary text-sm rounded-md">
+              Start a project
             </Link>
           </div>
 
@@ -144,13 +142,22 @@ export default function Navbar() {
                   transition={{ delay: navLinks.length * 0.05 }}
                   className="pt-2"
                 >
-                  <Link
-                    href="/#contact"
-                    onClick={handleLinkClick}
-                    className="btn-primary w-full text-center"
-                  >
-                    {t('hero.cta.contact')}
-                  </Link>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <Link
+                      href="/start-project"
+                      onClick={handleLinkClick}
+                      className="btn-primary w-full text-center"
+                    >
+                      Start a project
+                    </Link>
+                    <Link
+                      href="/#contact"
+                      onClick={handleLinkClick}
+                      className="btn-secondary w-full text-center"
+                    >
+                      Contact
+                    </Link>
+                  </div>
                 </motion.div>
               </div>
             </motion.div>
