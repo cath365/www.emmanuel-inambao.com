@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import { ArrowRight, Download, MapPin, Cpu, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -12,6 +13,16 @@ import StatsCounter from '@/components/ui/StatsCounter'
 export default function Hero() {
   const { profile } = useProfile()
   const { t } = useLanguage()
+  const [coverImageFailed, setCoverImageFailed] = useState(false)
+  const [profileImageFailed, setProfileImageFailed] = useState(false)
+
+  useEffect(() => {
+    setCoverImageFailed(false)
+  }, [profile.coverImage])
+
+  useEffect(() => {
+    setProfileImageFailed(false)
+  }, [profile.image])
 
   const itemVariants = {
     hidden: { opacity: 0, y: 16 },
@@ -32,11 +43,13 @@ export default function Hero() {
         <div className="mx-auto max-w-[1180px] overflow-hidden rounded-xl border border-[#D9D2C4] bg-[#FCFBF7] shadow-[0_18px_45px_rgba(16,36,62,0.08)] dark:border-dark-700/80 dark:bg-dark-900 dark:shadow-xl dark:shadow-black/10">
           {/* LinkedIn-style cover. The foreground image uses contain so text/logos are never cropped. */}
           <div className="relative aspect-[7/2] w-full overflow-hidden bg-[#DCE4E9] dark:bg-dark-800">
-            {profile.coverImage ? (
+            {profile.coverImage && !coverImageFailed ? (
               <Image
                 src={profile.coverImage}
                 alt="Emmanuel Inambao portfolio cover"
                 fill
+                unoptimized
+                onError={() => setCoverImageFailed(true)}
                 className="object-cover object-center"
                 sizes="(max-width: 1200px) 100vw, 1180px"
                 priority
@@ -62,13 +75,15 @@ export default function Hero() {
               className="absolute left-5 -top-12 sm:left-7 sm:-top-14 md:left-9 md:-top-16"
             >
               <div className="h-24 w-24 overflow-hidden rounded-full border-4 border-[#FCFBF7] bg-[#E9E6DF] shadow-lg dark:border-dark-900 dark:bg-dark-800 sm:h-28 sm:w-28 md:h-32 md:w-32">
-                {profile.image ? (
+                {profile.image && !profileImageFailed ? (
                   <Image
                     src={profile.image}
                     alt={profile.name}
                     width={160}
                     height={160}
                     sizes="(max-width: 640px) 96px, (max-width: 768px) 112px, 128px"
+                    unoptimized
+                    onError={() => setProfileImageFailed(true)}
                     className="h-full w-full object-cover"
                     priority
                   />
@@ -119,14 +134,19 @@ export default function Hero() {
               </span>
             </motion.div>
 
-            <motion.p
+            <motion.div
               initial="hidden"
               animate="visible"
               variants={itemVariants}
-              className="mt-5 max-w-3xl text-sm leading-7 text-[#566273] dark:text-dark-400 sm:text-base"
+              className="mt-5 max-w-4xl"
             >
-              {profile.bio}
-            </motion.p>
+              <p className="text-xl font-semibold leading-tight text-[#10243E] dark:text-white sm:text-2xl">
+                Building technology for real-world problems.
+              </p>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-[#566273] dark:text-dark-400 sm:text-base">
+                {profile.bio}
+              </p>
+            </motion.div>
 
             <motion.div
               initial="hidden"

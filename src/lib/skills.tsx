@@ -83,9 +83,37 @@ const defaultSkillCategories: SkillCategory[] = [
     ],
   },
   {
+    id: 'ai-data',
+    title: 'AI & Data',
+    description: 'Anomaly detection, AI-assisted workflows and data-driven system behaviour where the project problem justifies it',
+    color: 'from-slate-500 to-blue-500',
+    skills: [
+      { name: 'Anomaly Detection', level: 80 },
+      { name: 'AI-Assisted Workflows', level: 80 },
+      { name: 'Time-Series Analysis', level: 75 },
+      { name: 'Rule-Based Decision Logic', level: 85 },
+      { name: 'Model/API Integration', level: 80 },
+      { name: 'Data Validation & Experimentation', level: 80 },
+    ],
+  },
+  {
+    id: 'cloud',
+    title: 'Cloud & Deployment',
+    description: 'Production hosting, storage, APIs and deployment workflows that keep software systems usable beyond local development',
+    color: 'from-sky-500 to-indigo-500',
+    skills: [
+      { name: 'Vercel', level: 85 },
+      { name: 'Cloud Storage', level: 80 },
+      { name: 'API Integrations', level: 85 },
+      { name: 'Production Deployment', level: 85 },
+      { name: 'Environment Configuration', level: 80 },
+      { name: 'Git / GitHub Workflows', level: 85 },
+    ],
+  },
+  {
     id: 'project-management',
-    title: 'Technical Project Management',
-    description: 'Requirements, planning, architecture, coordination, testing and delivery',
+    title: 'System Design & Project Delivery',
+    description: 'Requirements, scope, architecture, planning, coordination, testing and delivery',
     color: 'from-amber-500 to-orange-500',
     skills: [
       { name: 'Requirements & Scope', level: 85 },
@@ -138,7 +166,20 @@ function normalizeSkillData(data: unknown): SkillCategory[] {
     categories.some(item => item.id === 'hardware' && item.title === 'Hardware & Embedded') &&
     categories.some(item => item.id === 'software' && item.title === 'Software & Web')
 
-  return looksLikeLegacyDefaults ? defaultSkillCategories : categories
+  if (looksLikeLegacyDefaults) return defaultSkillCategories
+
+  const migrated = categories.map(category =>
+    category.id === 'project-management' && category.title === 'Technical Project Management'
+      ? { ...category, title: 'System Design & Project Delivery', description: 'Requirements, scope, architecture, planning, coordination, testing and delivery' }
+      : category
+  )
+
+  const existingIds = new Set(migrated.map(category => category.id))
+  const missingProblemFocusedCategories = defaultSkillCategories.filter(category =>
+    ['ai-data', 'cloud'].includes(category.id) && !existingIds.has(category.id)
+  )
+
+  return [...migrated, ...missingProblemFocusedCategories]
 }
 
 function saveToServer(data: SkillCategory[]) {

@@ -267,22 +267,36 @@ export default function AdminDashboard() {
     router.push('/admin/login')
   }
 
-  const handleSaveProject = (project: Project) => {
-    if (isCreating) {
-      addProject(project)
-      setNotification({ type: 'success', message: 'Project created successfully!' })
-    } else {
-      updateProject(project.id, project)
-      setNotification({ type: 'success', message: 'Project updated successfully!' })
+  const handleSaveProject = async (project: Project) => {
+    try {
+      if (isCreating) {
+        await addProject(project)
+        setNotification({ type: 'success', message: 'Project created and verified in portfolio storage.' })
+      } else {
+        await updateProject(project.id, project)
+        setNotification({ type: 'success', message: 'Project updated and verified in portfolio storage.' })
+      }
+      setEditingProject(null)
+      setIsCreating(false)
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'The project could not be saved. Your editor is still open.',
+      })
     }
-    setEditingProject(null)
-    setIsCreating(false)
   }
 
-  const handleDeleteProject = (id: string) => {
-    deleteProject(id)
-    setDeleteConfirm(null)
-    setNotification({ type: 'success', message: 'Project deleted successfully!' })
+  const handleDeleteProject = async (id: string) => {
+    try {
+      await deleteProject(id)
+      setDeleteConfirm(null)
+      setNotification({ type: 'success', message: 'Project deleted and verified in portfolio storage.' })
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'The project could not be deleted.',
+      })
+    }
   }
 
   const handleCreateNew = () => {
@@ -296,6 +310,17 @@ export default function AdminDashboard() {
       systemLogic: '',
       outcome: '',
       featured: false,
+      problemTagline: '',
+      domain: '',
+      targetUsers: '',
+      whyItMatters: '',
+      solutionSummary: '',
+      roleAreas: [],
+      measuredImpact: '',
+      expectedImpact: '',
+      constraints: [],
+      nextMilestone: '',
+      evidence: [],
       githubUrl: '',
       liveUrl: '',
       appStoreUrl: '',
@@ -666,11 +691,23 @@ export default function AdminDashboard() {
                               <h3 className="text-lg font-semibold text-white truncate">
                                 {project.title || 'Untitled Project'}
                               </h3>
-                              {project.featured && (
-                                <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded mt-1">
-                                  Featured
-                                </span>
-                              )}
+                              <div className="mt-1 flex flex-wrap gap-2">
+                                {project.featured && (
+                                  <span className="inline-block px-2 py-1 bg-accent-500/20 text-accent-400 text-xs rounded">
+                                    Featured
+                                  </span>
+                                )}
+                                {project.domain && (
+                                  <span className="inline-block px-2 py-1 bg-primary-500/10 text-primary-300 text-xs rounded">
+                                    {project.domain}
+                                  </span>
+                                )}
+                                {project.status && (
+                                  <span className="inline-block px-2 py-1 bg-dark-700 text-dark-300 text-xs rounded">
+                                    {project.status}
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             {/* Actions */}
@@ -695,9 +732,18 @@ export default function AdminDashboard() {
                             </div>
                           </div>
 
-                          <p className="text-dark-400 text-sm mt-3 line-clamp-2">
-                            {project.purpose || 'No description'}
+                          <p className="text-white text-sm font-medium mt-3 line-clamp-2">
+                            {project.problemTagline || project.problemSolved || 'Problem statement not yet documented'}
                           </p>
+                          <p className="text-dark-400 text-sm mt-2 line-clamp-2">
+                            {project.solutionSummary || project.purpose || 'Solution summary not yet documented'}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-dark-500">
+                            {project.role && <span>Role: {project.role}</span>}
+                            {project.evidence && project.evidence.length > 0 && <span>{project.evidence.length} evidence item{project.evidence.length === 1 ? '' : 's'}</span>}
+                            {project.expectedImpact && <span>Expected impact documented</span>}
+                            {project.measuredImpact && <span className="text-green-400">Measured impact documented</span>}
+                          </div>
 
                           {/* Technologies */}
                           <div className="flex flex-wrap gap-2 mt-3">
@@ -869,9 +915,15 @@ export default function AdminDashboard() {
               {/* Profile Tab */}
               <ProfileEditor
                 profile={profile}
-                onSave={(updates) => {
-                  updateProfile(updates)
-                  setNotification({ type: 'success', message: 'Profile updated successfully!' })
+                onSave={async (updates) => {
+                  try {
+                    await updateProfile(updates)
+                    setNotification({ type: 'success', message: 'Profile, photo and banner settings were published and verified.' })
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Profile could not be published.'
+                    setNotification({ type: 'error', message })
+                    throw error
+                  }
                 }}
               />
             </motion.div>
@@ -1032,11 +1084,32 @@ export default function AdminDashboard() {
 // Profile Editor Component
 interface ProfileEditorProps {
   profile: Profile
-  onSave: (updates: Partial<Profile>) => void
+  onSave: (updates: Partial<Profile>) => Promise<void>
 }
 
 const COVER_WIDTH = 1400
 const COVER_HEIGHT = 400
+
+async function verifyPublishedImage(url: string, label: string) {
+  await new Promise<void>((resolve, reject) => {
+    const image = new window.Image()
+    const timeout = window.setTimeout(() => {
+      image.src = ''
+      reject(new Error(`${label} uploaded, but its public URL did not become available in time.`))
+    }, 10000)
+
+    image.onload = () => {
+      window.clearTimeout(timeout)
+      resolve()
+    }
+    image.onerror = () => {
+      window.clearTimeout(timeout)
+      reject(new Error(`${label} uploaded, but the public image URL could not be loaded. Please retry the upload.`))
+    }
+    image.referrerPolicy = 'no-referrer'
+    image.src = url
+  })
+}
 
 async function normalizeCoverBanner(file: File): Promise<{ file: File; previewUrl: string }> {
   if (!file.type.startsWith('image/')) {
@@ -1108,12 +1181,17 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
   const [uploadingCover, setUploadingCover] = useState(false)
   const [coverPreviewUrl, setCoverPreviewUrl] = useState('')
   const [uploadingCV, setUploadingCV] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileImageFailed, setProfileImageFailed] = useState(false)
+  const [coverImageFailed, setCoverImageFailed] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const cvInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setFormData(profile)
+    setProfileImageFailed(false)
+    setCoverImageFailed(false)
   }, [profile])
 
   useEffect(() => {
@@ -1139,9 +1217,11 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
+        await verifyPublishedImage(data.url, 'Profile picture')
         const updated = { ...formData, image: data.url }
+        await onSave(updated)
         setFormData(updated)
-        onSave(updated)
+        setProfileImageFailed(false)
       } else {
         alert(data.error || 'Upload failed')
       }
@@ -1174,9 +1254,11 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       })
       const data = await res.json()
       if (data.success) {
+        await verifyPublishedImage(data.url, 'Cover banner')
         const updated = { ...formData, coverImage: data.url }
+        await onSave(updated)
         setFormData(updated)
-        onSave(updated)
+        setCoverImageFailed(false)
         URL.revokeObjectURL(normalized.previewUrl)
         setCoverPreviewUrl('')
       } else {
@@ -1209,8 +1291,8 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, cv: data.url }
+        await onSave(updated)
         setFormData(updated)
-        onSave(updated)
       } else {
         alert(data.error || 'CV upload failed')
       }
@@ -1222,9 +1304,14 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    setSavingProfile(true)
+    try {
+      await onSave(formData)
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
   return (
@@ -1244,12 +1331,14 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-full overflow-hidden bg-dark-700 border-4 border-dark-600">
-                {formData.image ? (
+                {formData.image && !profileImageFailed ? (
                   <Image
                     src={formData.image}
                     alt="Profile"
                     width={128}
                     height={128}
+                    unoptimized
+                    onError={() => setProfileImageFailed(true)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -1258,6 +1347,11 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
                   </div>
                 )}
               </div>
+              {profileImageFailed && formData.image && (
+                <p className="absolute left-1/2 top-full mt-2 w-56 -translate-x-1/2 text-center text-xs text-amber-400">
+                  Stored profile image could not be loaded. Re-upload it to repair the public URL.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -1290,18 +1384,25 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
         <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Cover Banner</h2>
           <div className="relative aspect-[7/2] w-full overflow-hidden rounded-xl bg-dark-700 border border-dark-600 mb-4">
-            {coverPreviewUrl || formData.coverImage ? (
+            {(coverPreviewUrl || formData.coverImage) && !(coverImageFailed && !coverPreviewUrl) ? (
               <Image
                 src={coverPreviewUrl || formData.coverImage || ''}
                 alt="Cover banner preview"
                 fill
-                unoptimized={Boolean(coverPreviewUrl)}
+                unoptimized
+                onError={() => {
+                  if (!coverPreviewUrl) setCoverImageFailed(true)
+                }}
                 className="object-cover object-center"
                 sizes="(max-width: 1024px) 100vw, 900px"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950 flex items-center justify-center">
-                <p className="text-dark-400 text-sm">No cover image — a gradient will be shown</p>
+              <div className="w-full h-full bg-gradient-to-br from-primary-700 via-primary-900 to-dark-950 flex items-center justify-center px-4 text-center">
+                <p className="text-dark-400 text-sm">
+                  {coverImageFailed && formData.coverImage
+                    ? 'Stored cover image could not be loaded — re-upload it to repair the public URL.'
+                    : 'No cover image — a gradient will be shown'}
+                </p>
               </div>
             )}
             {uploadingCover && (
@@ -1563,9 +1664,17 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <button type="submit" className="btn-primary flex items-center gap-2">
-            <Save className="w-5 h-5" />
-            Save Profile
+          <button
+            type="submit"
+            disabled={savingProfile || uploading || uploadingCover || uploadingCV}
+            className="btn-primary flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingProfile ? (
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {savingProfile ? 'Publishing & verifying…' : 'Save Profile'}
           </button>
         </div>
       </form>
@@ -1577,7 +1686,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
 interface ProjectModalProps {
   project: Project
   isNew: boolean
-  onSave: (project: Project) => void
+  onSave: (project: Project) => Promise<void>
   onClose: () => void
 }
 
@@ -1585,6 +1694,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
   const [formData, setFormData] = useState<Project>(project)
   const [techInput, setTechInput] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1617,9 +1727,20 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    if (isSaving || uploading) return
+
+    setIsSaving(true)
+    try {
+      await onSave(formData)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const requestClose = () => {
+    if (!isSaving) onClose()
   }
 
   const addTechnology = () => {
@@ -1639,13 +1760,39 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     })
   }
 
+  const addEvidence = () => {
+    setFormData({
+      ...formData,
+      evidence: [
+        ...(formData.evidence || []),
+        { label: '', type: 'Other', description: '', url: '' },
+      ],
+    })
+  }
+
+  const updateEvidence = (index: number, patch: Partial<NonNullable<Project['evidence']>[number]>) => {
+    setFormData({
+      ...formData,
+      evidence: (formData.evidence || []).map((item, itemIndex) =>
+        itemIndex === index ? { ...item, ...patch } : item
+      ),
+    })
+  }
+
+  const removeEvidence = (index: number) => {
+    setFormData({
+      ...formData,
+      evidence: (formData.evidence || []).filter((_, itemIndex) => itemIndex !== index),
+    })
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={requestClose}
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1660,8 +1807,11 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             {isNew ? 'Add New Project' : 'Edit Project'}
           </h2>
           <button
-            onClick={onClose}
-            className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors"
+            type="button"
+            onClick={requestClose}
+            disabled={isSaving}
+            className="p-2 text-dark-400 hover:text-white hover:bg-dark-700 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            aria-label="Close project editor"
           >
             <X className="w-5 h-5" />
           </button>
@@ -1681,7 +1831,9 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                     src={formData.image}
                     alt="Project"
                     fill
+                    unoptimized={formData.image.startsWith('blob:') || formData.image.startsWith('data:')}
                     className="object-cover"
+                    sizes="128px"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-500">
@@ -1751,6 +1903,54 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-dark-300 mb-2">
+                Problem-focused headline
+              </label>
+              <input
+                type="text"
+                value={formData.problemTagline || ''}
+                onChange={(e) => setFormData({ ...formData, problemTagline: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="e.g. Identifying abnormal water behaviour before losses become harder to trace"
+              />
+              <p className="mt-2 text-xs text-dark-500">Used as the main project-card headline. Keep it about the problem or outcome, not the technology.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Problem Domain</label>
+              <input
+                list="project-domain-options"
+                value={formData.domain || ''}
+                onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="Water & Climate"
+              />
+              <datalist id="project-domain-options">
+                <option value="Water & Climate" />
+                <option value="Accessibility" />
+                <option value="Education" />
+                <option value="Agriculture" />
+                <option value="Civic Technology" />
+                <option value="Business Systems" />
+                <option value="Business Systems & Automation" />
+                <option value="Robotics & Automation" />
+                <option value="Health Technology" />
+                <option value="Developer Infrastructure" />
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Who is affected / target users</label>
+              <input
+                type="text"
+                value={formData.targetUsers || ''}
+                onChange={(e) => setFormData({ ...formData, targetUsers: e.target.value })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="Who experiences the problem?"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Professional Role</label>
               <input
@@ -1764,12 +1964,21 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Project Type</label>
               <input
-                type="text"
+                list="project-type-options"
                 value={formData.projectType || ''}
                 onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="R&D / Client Project / Prototype / Production"
+                placeholder="Research & Development"
               />
+              <datalist id="project-type-options">
+                <option value="Research & Development" />
+                <option value="Client Project" />
+                <option value="Production" />
+                <option value="Prototype" />
+                <option value="Internal Project" />
+                <option value="Educational Project" />
+                <option value="Concept" />
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Organisation / Context</label>
@@ -1784,12 +1993,23 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Status</label>
               <input
-                type="text"
+                list="project-status-options"
                 value={formData.status || ''}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
-                placeholder="Production / Development / Prototype / Concept"
+                placeholder="Prototype"
               />
+              <datalist id="project-status-options">
+                <option value="Concept" />
+                <option value="Research" />
+                <option value="Research & Development" />
+                <option value="Prototype" />
+                <option value="Pilot" />
+                <option value="Active Development" />
+                <option value="Deployed" />
+                <option value="Client Project" />
+                <option value="Completed" />
+              </datalist>
             </div>
           </div>
 
@@ -1807,6 +2027,21 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             </p>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">My Role Areas</label>
+            <textarea
+              value={(formData.roleAreas || []).join('\n')}
+              onChange={(e) => setFormData({
+                ...formData,
+                roleAreas: e.target.value.split('\n').map(item => item.trim()).filter(Boolean)
+              })}
+              rows={5}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder={"Problem analysis\nSystem architecture\nEmbedded firmware\nTesting"}
+            />
+            <p className="mt-2 text-xs text-dark-500">One verified responsibility per line. Do not claim responsibilities that were handled by other team members.</p>
+          </div>
+
           {/* Problem Solved */}
           <div>
             <label className="block text-sm font-medium text-dark-300 mb-2">
@@ -1819,6 +2054,28 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
               rows={3}
               className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
               placeholder="Describe the problem this project solves"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Why the Problem Matters</label>
+            <textarea
+              value={formData.whyItMatters || ''}
+              onChange={(e) => setFormData({ ...formData, whyItMatters: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder="Explain the operational, human or business consequence without inventing impact numbers."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Solution Summary</label>
+            <textarea
+              value={formData.solutionSummary || ''}
+              onChange={(e) => setFormData({ ...formData, solutionSummary: e.target.value })}
+              rows={3}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder="What was built or proposed to address the problem?"
             />
           </div>
 
@@ -1849,6 +2106,55 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
               rows={2}
               className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
               placeholder="Results and achievements"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Measured Impact</label>
+              <textarea
+                value={formData.measuredImpact || ''}
+                onChange={(e) => setFormData({ ...formData, measuredImpact: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+                placeholder="Only verified outcomes or measurements. Leave blank if not measured."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">Expected / Potential Impact</label>
+              <textarea
+                value={formData.expectedImpact || ''}
+                onChange={(e) => setFormData({ ...formData, expectedImpact: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+                placeholder="What the system is designed to improve, without presenting it as already achieved."
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Challenges / Constraints</label>
+            <textarea
+              value={(formData.constraints || []).join('\n')}
+              onChange={(e) => setFormData({
+                ...formData,
+                constraints: e.target.value.split('\n').map(item => item.trim()).filter(Boolean)
+              })}
+              rows={4}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder={"Connectivity limitations\nSensor calibration\nPower constraints"}
+            />
+            <p className="mt-2 text-xs text-dark-500">One real constraint per line.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark-300 mb-2">Next Milestone</label>
+            <textarea
+              value={formData.nextMilestone || ''}
+              onChange={(e) => setFormData({ ...formData, nextMilestone: e.target.value })}
+              rows={2}
+              className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors resize-none"
+              placeholder="What must happen next before the project can progress?"
             />
           </div>
 
@@ -1906,6 +2212,71 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-sm font-medium text-dark-300">Project Evidence</h4>
+                <p className="mt-1 text-xs text-dark-500">Add only evidence that exists: prototype, live app, repository, document, testing, deployment or event participation.</p>
+                <p className="mt-1 text-xs text-primary-400/90">For photo or video evidence, upload it in Gallery &amp; Media and choose this project under “Related Project”. It will appear automatically on the project page and evidence section.</p>
+              </div>
+              <button type="button" onClick={addEvidence} className="px-3 py-2 bg-dark-700 hover:bg-dark-600 text-white rounded-lg text-sm transition-colors">
+                <Plus className="w-4 h-4 inline mr-1" /> Add evidence
+              </button>
+            </div>
+
+            {(formData.evidence || []).map((item, index) => (
+              <div key={index} className="rounded-xl border border-dark-700 bg-dark-900/60 p-4">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-dark-400 mb-1">Evidence label</label>
+                    <input
+                      value={item.label}
+                      onChange={(e) => updateEvidence(index, { label: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                      placeholder="e.g. Working prototype"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-dark-400 mb-1">Type</label>
+                    <select
+                      value={item.type}
+                      onChange={(e) => updateEvidence(index, { type: e.target.value as NonNullable<Project['evidence']>[number]['type'] })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white focus:outline-none focus:border-primary-500"
+                    >
+                      {['Prototype', 'Photo', 'Video', 'Live application', 'Repository', 'Document', 'Testing', 'Deployment', 'Event', 'Other'].map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-dark-400 mb-1">Description</label>
+                    <textarea
+                      rows={2}
+                      value={item.description || ''}
+                      onChange={(e) => updateEvidence(index, { description: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 resize-none"
+                      placeholder="What does this evidence prove about the project?"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-dark-400 mb-1">URL (optional)</label>
+                    <input
+                      value={item.url || ''}
+                      onChange={(e) => updateEvidence(index, { url: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-dark-950 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                      placeholder="https://... or /internal-page"
+                    />
+                  </div>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button type="button" onClick={() => removeEvidence(index)} className="text-sm text-red-400 hover:text-red-300">
+                    Remove evidence
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Links Section */}
@@ -2015,20 +2386,26 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t border-dark-700">
+          <div className="sticky bottom-0 z-10 -mx-6 mt-8 flex items-center justify-end gap-4 border-t border-dark-700 bg-dark-800/95 px-6 py-4 backdrop-blur">
             <button
               type="button"
-              onClick={onClose}
-              className="px-6 py-2 text-dark-300 hover:text-white transition-colors"
+              onClick={requestClose}
+              disabled={isSaving}
+              className="px-6 py-2 text-dark-300 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary flex items-center gap-2"
+              disabled={isSaving || uploading}
+              className="btn-primary flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Save className="w-5 h-5" />
-              {isNew ? 'Create Project' : 'Save Changes'}
+              {isSaving ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              {isSaving ? 'Publishing & verifying…' : isNew ? 'Create Project' : 'Save Changes'}
             </button>
           </div>
         </form>

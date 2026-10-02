@@ -20,40 +20,46 @@ function unique(items: string[]) {
 }
 
 function localDraft(project: Project): CaseStudy {
-  const challenge = sentences(project.problemSolved)
-  const solution = sentences(project.systemLogic)
-  const highlights = project.highlights || []
+  const challenge = unique([
+    ...sentences(project.problemSolved),
+    ...(project.constraints || []),
+  ])
+  const solution = unique([
+    ...sentences(project.solutionSummary || project.systemLogic),
+    ...sentences(project.systemLogic),
+    ...(project.highlights || []),
+  ])
 
   return {
     slug: project.id,
     title: project.title,
-    subtitle: project.purpose,
-    overview: [project.problemSolved, project.systemLogic, project.outcome].filter(Boolean).join(' '),
+    subtitle: project.problemTagline || project.purpose,
+    overview: [project.problemSolved, project.targetUsers, project.solutionSummary || project.purpose, project.outcome].filter(Boolean).join(' '),
     status: project.status || 'Portfolio Project',
     timeline: 'Timeline not documented in the portfolio',
     role: project.role || 'Engineering role documented in project record',
     projectType: project.projectType,
     organization: project.organization,
     contribution: project.contribution,
-    context: project.problemSolved,
+    context: [project.targetUsers ? `Target users: ${project.targetUsers}` : '', project.whyItMatters || ''].filter(Boolean).join(' '),
     requirements: [],
-    planning: [],
+    planning: project.nextMilestone ? [`Next milestone: ${project.nextMilestone}`] : [],
     testing: [],
     outcome: project.outcome,
-    futureImprovements: [],
-    challenge: challenge.length ? challenge.slice(0, 5) : ['Engineering challenge documented in the project record.'],
-    solution: unique([...solution, ...highlights]).slice(0, 6),
+    futureImprovements: project.nextMilestone ? [project.nextMilestone] : [],
+    challenge: challenge.length ? challenge.slice(0, 6) : ['Engineering challenge documented in the project record.'],
+    solution: solution.slice(0, 6),
     results: [
       {
         value: project.status || 'Documented',
-        label: 'Project status',
-        description: project.outcome || 'Outcome is documented in the project record.',
+        label: 'Current status',
+        description: project.outcome || 'Current project status is documented in the project record.',
       },
-      ...highlights.slice(0, 3).map((highlight, index) => ({
-        value: 'Documented',
-        label: `Project highlight ${index + 1}`,
-        description: highlight,
-      })),
+      ...(project.measuredImpact ? [{
+        value: 'Measured',
+        label: 'Verified impact',
+        description: project.measuredImpact,
+      }] : []),
     ].slice(0, 4),
     technologies: project.techStack || [],
     architecture: project.architecture?.length
@@ -136,8 +142,10 @@ Return ONLY a valid JSON object with these keys:
 title, subtitle, overview, status, timeline, role, projectType, organization, contribution, context, requirements, planning, challenge, solution, testing, outcome, futureImprovements, results, technologies, architecture.
 
 Use projectType, organization and contribution from the project record when present. Do not upgrade "contributed to" into "led" or "built".
-requirements, planning, challenge, solution, testing and futureImprovements are arrays of short strings. Only populate requirements, planning, testing or futureImprovements when they can be directly supported by the supplied project record; otherwise return an empty array.
-results is an array of up to 4 objects with value, label, description. Values must be descriptive when no verified metric exists; never fabricate numbers.
+Use problemTagline, targetUsers, whyItMatters, solutionSummary, roleAreas, constraints, nextMilestone and evidence when they are present in the project record. They are grounding fields, not permission to invent missing details.
+requirements, planning, challenge, solution, testing and futureImprovements are arrays of short strings. Only populate them when they can be directly supported by the supplied project record; otherwise return an empty array.
+results is an array of up to 4 objects with value, label, description. Treat measuredImpact as achieved only when that exact field contains evidence. expectedImpact is future/potential impact and MUST NOT be rewritten as an achieved result or numerical claim.
+Evidence items prove only what their labels/descriptions/links support. A prototype photo does not prove deployment, adoption, accuracy, safety or commercial impact.
 technologies and architecture are arrays of strings.
 Do not turn a concept, R&D project or prototype into a production claim. Do not infer confidential client identities.
 Write clear professional English suitable for an international engineering portfolio.`,

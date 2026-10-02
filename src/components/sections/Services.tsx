@@ -7,7 +7,6 @@ import {
   CheckCircle2, LucideIcon
 } from 'lucide-react'
 import { useServices } from '@/lib/services'
-import { useLanguage } from '@/lib/i18n'
 import Image from 'next/image'
 
 const iconMap: Record<string, LucideIcon> = {
@@ -27,7 +26,6 @@ const iconMap: Record<string, LucideIcon> = {
 
 export default function Services() {
   const { services } = useServices()
-  const { t } = useLanguage()
 
   if (services.length === 0) {
     return null
@@ -47,13 +45,13 @@ export default function Services() {
           className="text-center mb-16"
         >
           <p className="mb-3 text-sm font-medium uppercase tracking-[0.18em] text-[#526E8A] dark:text-primary-400">
-            04 — Services
+            Ways I can help
           </p>
           <h2 className="text-3xl sm:text-4xl font-display font-medium text-[#10243E] dark:text-white mb-4">
-            {t('services.title')}
+            Turn a technical problem into a system that can be built and tested.
           </h2>
           <p className="text-[#667384] dark:text-dark-300 max-w-2xl mx-auto">
-            {t('services.subtitle')}
+            Engagements can start with requirements and architecture, a prototype, a full software system, an IoT/robotics build, or technical project planning. The technology is selected after the problem and operating constraints are understood.
           </p>
         </motion.div>
 

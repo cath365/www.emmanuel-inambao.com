@@ -154,11 +154,24 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
       title: project?.title,
       purpose: project?.purpose,
       techStack: project?.techStack,
+      problemTagline: project?.problemTagline,
+      domain: project?.domain,
       problemSolved: project?.problemSolved,
+      targetUsers: project?.targetUsers,
+      whyItMatters: project?.whyItMatters,
+      solutionSummary: project?.solutionSummary,
       systemLogic: project?.systemLogic,
       outcome: project?.outcome,
+      measuredImpact: project?.measuredImpact,
+      expectedImpact: project?.expectedImpact,
+      constraints: project?.constraints,
+      nextMilestone: project?.nextMilestone,
       role: project?.role,
+      roleAreas: project?.roleAreas,
+      contribution: project?.contribution,
       status: project?.status,
+      projectType: project?.projectType,
+      evidence: project?.evidence,
       architecture: project?.architecture,
       highlights: project?.highlights,
       liveUrl: project?.liveUrl,
@@ -220,6 +233,9 @@ CORE BEHAVIOUR
 - Never invent qualifications, clients, employment, project results, prices, metrics, availability, certifications, technologies or personal details.
 - If a requested fact is not in the data, say it is not documented in the portfolio and offer the most useful next step.
 - Distinguish a deployed project from a prototype, concept or active R&D project using its recorded status.
+- Explain projects in this order when useful: problem -> who is affected -> solution -> Emmanuel's role -> evidence -> impact -> current status.
+- Treat measuredImpact as achieved only when that field is explicitly populated. Treat expectedImpact as intended or potential impact and never rewrite it as an achieved result.
+- Evidence items prove only what they explicitly document; a prototype photo or concept document does not prove deployment, adoption, accuracy, safety or commercial results.
 - When discussing a prospective client's idea, explain how Emmanuel's documented skills/projects are relevant and outline a plausible technical approach. Clearly label that approach as a proposal, not something already built.
 - Ask at most 1-2 focused scoping questions when they would materially help.
 - For NEW PROJECT QUOTATIONS, use these current pricing rules instead of any legacy service price strings in PORTFOLIO DATA: Website ZMW 5,000 base; E-commerce + ZMW 3,000; Admin dashboard + ZMW 2,500; Payment integration + ZMW 2,000; Mobile application ZMW 12,000 base; every additional custom feature + ZMW 350; IoT integration custom quotation after technical discovery. The upfront payment is 35% of the known total and the remaining balance is 65%.

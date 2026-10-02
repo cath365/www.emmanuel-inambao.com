@@ -161,12 +161,12 @@ export default function Skills() {
             {t('skills.heading')}
           </h2>
           <p className="section-subheading mx-auto mt-4">
-            Capabilities grouped by the engineering work they support, rather than unsupported percentage ratings.
+            Technology is secondary to the problem. These groups show the capabilities I use to design, build, test and deploy practical systems.
           </p>
         </motion.div>
 
         {/* Skills grid */}
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 lg:gap-8">
           {skillCategories.map((category, index) => (
             <SkillCard key={category.id} category={category} index={index} />
           ))}

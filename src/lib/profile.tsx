@@ -27,11 +27,11 @@ const defaultProfile: Profile = {
   name: 'Emmanuel Inambao',
   title: 'Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager',
   subtitle: 'Planning, designing, building and delivering practical technology systems',
-  bio: 'I work across robotics, IoT, embedded systems, software engineering and technical project delivery. I take projects from problem definition and requirements through architecture, planning, prototyping, development, testing, deployment and improvement. At Robotix Institute, my work includes engineering, R&D, technical project coordination and project-based STEM programme planning.',
+  bio: 'I design and build practical technology solutions for real-world problems using software, embedded systems, sensors, automation and AI. My work spans water monitoring, accessibility, education, agriculture, civic technology and business operations, taking projects from problem definition and system design through prototyping, testing, deployment and improvement.',
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
   phone: '+260 973 914 432',
-  image: '/images/profile/profile.jpg',
+  image: '',
   coverImage: '',
   cv: '',
   status: 'Available for Engineering Projects',
@@ -45,7 +45,7 @@ const defaultProfile: Profile = {
 
 interface ProfileContextType {
   profile: Profile
-  updateProfile: (profile: Partial<Profile>) => void
+  updateProfile: (profile: Partial<Profile>) => Promise<void>
   isLoading: boolean
 }
 
@@ -69,21 +69,23 @@ function normalizeProfileData(data: Partial<Profile> | null | undefined): Profil
     merged.subtitle = defaultProfile.subtitle
   }
   if (
-    String(data?.bio || '').trim() ===
-    'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.'
+    [
+      'I build complete technology systems across embedded electronics, firmware, APIs, mobile and web applications, and cloud infrastructure. My work focuses on practical AI, IoT and robotics solutions designed for real-world conditions, including unreliable connectivity and constrained hardware.',
+      'I work across robotics, IoT, embedded systems, software engineering and technical project delivery. I take projects from problem definition and requirements through architecture, planning, prototyping, development, testing, deployment and improvement. At Robotix Institute, my work includes engineering, R&D, technical project coordination and project-based STEM programme planning.',
+    ].includes(String(data?.bio || '').trim())
   ) {
     merged.bio = defaultProfile.bio
   }
   if (String(data?.cv || '').trim() === '/cv/emmanuel-inambao-cv.pdf') {
     merged.cv = ''
   }
+  if (String(data?.image || '').trim() === '/images/profile/profile.jpg') {
+    merged.image = ''
+  }
 
   return merged
 }
 
-function saveToServer(data: Profile) {
-  void persistPortfolioData('profile', data).catch(error => console.error('Failed to save profile:', error))
-}
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile>(defaultProfile)
@@ -136,12 +138,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [profile, isLoading])
 
-  const updateProfile = (updates: Partial<Profile>) => {
-    setProfile(prev => {
-      const updated = { ...prev, ...updates }
-      saveToServer(updated)
-      return updated
-    })
+  const updateProfile = async (updates: Partial<Profile>) => {
+    const updated = { ...profile, ...updates }
+    await persistPortfolioData('profile', updated)
+    setProfile(updated)
   }
 
   return (

@@ -20,23 +20,26 @@ export default function DownloadableResources() {
     ? resources 
     : resources.filter(r => r.type === filter)
 
+  if (resources.length === 0) return null
+
   const handleDownload = async (resource: Resource) => {
     if (resource.fileUrl === '#coming-soon' || !resource.fileUrl || resource.fileUrl.startsWith('#')) {
       return
     }
 
     setDownloadingId(resource.id)
-    
-    // Simulate download delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setDownloadingId(null)
-    
-    // Create download link
-    const link = document.createElement('a')
-    link.href = resource.fileUrl
-    link.download = resource.title
-    link.click()
+
+    try {
+      const link = document.createElement('a')
+      link.href = resource.fileUrl
+      link.download = resource.title
+      link.rel = 'noopener'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    } finally {
+      setDownloadingId(null)
+    }
   }
 
   return (
@@ -49,10 +52,10 @@ export default function DownloadableResources() {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Free Resources
+            Engineering Resources
           </h2>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Download free guides, templates, and checklists to help with your engineering projects.
+            Practical guides, templates or documents that I have actually published and made available through the portfolio.
           </p>
         </motion.div>
 
@@ -101,10 +104,7 @@ export default function DownloadableResources() {
                     {resource.description}
                   </p>
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 dark:text-gray-500">
-                      {resource.downloads.toLocaleString()} downloads
-                    </span>
+                  <div className="flex items-center justify-end">
                     <motion.button
                       onClick={() => handleDownload(resource)}
                       disabled={downloadingId === resource.id || resource.fileUrl === '#coming-soon' || !resource.fileUrl || resource.fileUrl.startsWith('#')}
