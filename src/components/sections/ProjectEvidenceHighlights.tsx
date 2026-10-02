@@ -7,6 +7,19 @@ import { useMemo, useRef } from 'react'
 import { useProjects } from '@/lib/projects'
 import { useGallery } from '@/lib/gallery'
 
+const evidencePriority = {
+  'Live application': 0,
+  Deployment: 1,
+  Prototype: 2,
+  Video: 3,
+  Photo: 4,
+  Testing: 5,
+  Repository: 6,
+  Document: 7,
+  Event: 8,
+  Other: 9,
+} as const
+
 const evidenceIcons = {
   Prototype: PackageCheck,
   Photo: ImageIcon,
@@ -66,8 +79,22 @@ export default function ProjectEvidenceHighlights() {
           }
         })
 
-      return [...projectEvidence, ...linkedGalleryEvidence]
+      const featuredIds = new Set(projects.filter(project => project.featured).map(project => project.id))
+      const ranked = [...projectEvidence, ...linkedGalleryEvidence]
         .filter(item => item.label)
+        .sort((a, b) => {
+          const featuredDifference = Number(featuredIds.has(b.projectId)) - Number(featuredIds.has(a.projectId))
+          if (featuredDifference !== 0) return featuredDifference
+          return evidencePriority[a.type] - evidencePriority[b.type]
+        })
+
+      const seenProjects = new Set<string>()
+      return ranked
+        .filter(item => {
+          if (seenProjects.has(item.projectId)) return false
+          seenProjects.add(item.projectId)
+          return true
+        })
         .slice(0, 6)
     },
     [projects, galleryItems]
