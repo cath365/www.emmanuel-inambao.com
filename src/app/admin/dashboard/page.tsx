@@ -2154,7 +2154,8 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h4 className="text-sm font-medium text-dark-300">Project Evidence</h4>
-                <p className="mt-1 text-xs text-dark-500">Add only evidence that exists: prototype, photo, video, live app, repository, document, testing, deployment or event participation.</p>
+                <p className="mt-1 text-xs text-dark-500">Add only evidence that exists: prototype, live app, repository, document, testing, deployment or event participation.</p>
+                <p className="mt-1 text-xs text-primary-400/90">For photo or video evidence, upload it in Gallery &amp; Media and choose this project under “Related Project”. It will appear automatically on the project page and evidence section.</p>
               </div>
               <button type="button" onClick={addEvidence} className="px-3 py-2 bg-dark-700 hover:bg-dark-600 text-white rounded-lg text-sm transition-colors">
                 <Plus className="w-4 h-4 inline mr-1" /> Add evidence
