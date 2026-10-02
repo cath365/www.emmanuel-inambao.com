@@ -31,7 +31,7 @@ const defaultProfile: Profile = {
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
   phone: '+260 973 914 432',
-  image: '/images/profile/profile.jpg',
+  image: '',
   coverImage: '',
   cv: '',
   status: 'Available for Engineering Projects',
@@ -45,7 +45,7 @@ const defaultProfile: Profile = {
 
 interface ProfileContextType {
   profile: Profile
-  updateProfile: (profile: Partial<Profile>) => void
+  updateProfile: (profile: Partial<Profile>) => Promise<void>
   isLoading: boolean
 }
 
@@ -79,13 +79,13 @@ function normalizeProfileData(data: Partial<Profile> | null | undefined): Profil
   if (String(data?.cv || '').trim() === '/cv/emmanuel-inambao-cv.pdf') {
     merged.cv = ''
   }
+  if (String(data?.image || '').trim() === '/images/profile/profile.jpg') {
+    merged.image = ''
+  }
 
   return merged
 }
 
-function saveToServer(data: Profile) {
-  void persistPortfolioData('profile', data).catch(error => console.error('Failed to save profile:', error))
-}
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile>(defaultProfile)
@@ -138,12 +138,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [profile, isLoading])
 
-  const updateProfile = (updates: Partial<Profile>) => {
-    setProfile(prev => {
-      const updated = { ...prev, ...updates }
-      saveToServer(updated)
-      return updated
-    })
+  const updateProfile = async (updates: Partial<Profile>) => {
+    const updated = { ...profile, ...updates }
+    await persistPortfolioData('profile', updated)
+    setProfile(updated)
   }
 
   return (
