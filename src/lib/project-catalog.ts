@@ -56,7 +56,7 @@ export const defaultProjects: Project[] = [
     id: 'smart-cooking-oil-dispenser',
     title: 'Smart Cooking Oil Dispenser',
     purpose: 'Automated pay-by-amount or pay-by-volume dispensing with operator accountability and cloud telemetry',
-    image: '/images/projects/cooking-oil-prototype.webp',
+    image: '',
     techStack: ['ESP32 WROOM-32D', 'Flow Sensor', 'SIM800', '4×4 Keypad', 'I2C LCD', 'Next.js', 'REST API', 'NVS'],
     problemSolved: 'Small and medium cooking-oil retailers need accurate dispensing, clear operator accountability, and reliable sales records even when internet connectivity is unstable.',
     systemLogic: 'An operator signs in with a PIN, selects an amount or target volume, and the ESP32 converts the request into a dispensing target. Flow pulses are measured continuously, the pump stops automatically at the target, and sales data is queued locally when offline before syncing to the web platform.',
@@ -81,15 +81,6 @@ export const defaultProjects: Project[] = [
     ],
     architecture: ['Operator keypad + LCD', 'ESP32 control layer', 'Flow sensor + pump driver', 'Offline NVS queue', 'REST telemetry API', 'Owner dashboard'],
     highlights: ['Automatic target cut-off', 'Operator PIN verification', 'Offline-first operation', 'Sales and telemetry records'],
-    media: [
-      {
-        src: '/images/projects/cooking-oil-prototype.webp',
-        alt: 'Internal prototype of the Smart Cooking Oil Dispenser showing the embedded controller, LCD, GSM module and pump-control hardware',
-        caption: 'Internal hardware prototype used to validate the embedded dispensing architecture and device integration.',
-        type: 'photo',
-        fit: 'cover',
-      },
-    ],
   },
   {
     id: 'denuel-one-pro-ai-x',
@@ -114,7 +105,7 @@ export const defaultProjects: Project[] = [
     id: 'smart-walking-stick',
     title: 'AI Smart Walking Stick',
     purpose: 'AI-assisted navigation system for visually impaired users using a camera-equipped stick, sensors, smartphone AI and headset guidance',
-    image: '/images/projects/walking-stick-sensor-prototype.webp',
+    image: '',
     techStack: ['ESP32', 'Camera', 'Ultrasonic Sensors', 'Wi-Fi/BLE', 'Mobile App', 'On-device AI', 'Cloud AI', 'Wireless Headset'],
     problemSolved: 'A basic obstacle alarm only tells a visually impaired user that something is nearby. Safer mobility requires understanding the scene, selecting a safer direction and delivering guidance without requiring the user to hold a phone visibly.',
     systemLogic: 'The stick captures sensor data and selected image frames, then sends them to the paired smartphone over local Wi-Fi or Bluetooth. The phone performs fast on-device detection and can use cloud AI for deeper scene analysis before returning spoken navigation guidance through a wireless headset.',
@@ -139,22 +130,13 @@ export const defaultProjects: Project[] = [
     ],
     architecture: ['Camera + obstacle sensors on stick', 'ESP32 local communications', 'Phone app as compute bridge', 'On-device AI detection', 'Cloud AI scene analysis', 'Wireless headset guidance'],
     highlights: ['Camera remains on the stick', 'Phone acts as the compute bridge', 'Fast local detection path', 'Cloud-assisted scene reasoning'],
-    media: [
-      {
-        src: '/images/projects/walking-stick-sensor-prototype.webp',
-        alt: 'HC-SR04 ultrasonic sensor mounted on a prototype assembly for obstacle-detection testing',
-        caption: 'Obstacle-detection sensor prototype detail used for ultrasonic ranging tests in the assistive-device development work.',
-        type: 'photo',
-        fit: 'cover',
-      },
-    ],
   },
   {
     id: 'the-spot-app',
     domain: 'Health Technology',
     title: 'The Spot App',
     purpose: 'Production women’s-health mobile application for cycle education, tracking, phase information and administrative communication',
-    image: '/images/projects/the-spot-hero.webp',
+    image: '',
     techStack: ['React Native', 'Expo', 'Android', 'iOS', 'Google Play', 'App Store', 'Mobile UX', 'Admin Dashboard'],
     problemSolved: 'The product needed a more reliable mobile experience, clearer cycle-tracking information and a stable path to production distribution on both major mobile platforms.',
     systemLogic: 'The application combines cycle tracking and prediction, menstrual-phase education and user-facing content with an administrative communication layer. Deployment work includes production build stabilization and release workflows for Android and iOS.',
@@ -167,15 +149,6 @@ export const defaultProjects: Project[] = [
     contribution: 'Contributed to development and deployment',
     architecture: ['Mobile application', 'Cycle tracking + prediction', 'Educational content layer', 'Admin communication workflow', 'Android release pipeline', 'iOS release pipeline'],
     highlights: ['Android production release', 'iOS production release', 'Cycle-tracking improvements', 'Admin communication workflow'],
-    media: [
-      {
-        src: '/images/projects/the-spot-hero.webp',
-        alt: 'The Spot App mobile screens showing the home, health library and period-tracking interfaces',
-        caption: 'Production mobile interface showing the home, health-library and cycle-tracking flows.',
-        type: 'screenshot',
-        fit: 'cover',
-      },
-    ],
   },
   {
     id: 'denuel-dev',
@@ -289,7 +262,7 @@ export const defaultProjects: Project[] = [
     id: 'quotation-platform',
     title: 'Astro City CRM — Quotation & Operations Platform',
     purpose: 'End-to-end business operations platform for customer management, quotations, orders, payments, receipts, reporting and administrative workflows',
-    image: '/images/projects/quotation-platform-hero.webp',
+    image: '',
     techStack: ['Next.js', 'React', 'TypeScript', 'Dashboard UI', 'Business Workflows', 'Reporting', 'Responsive Web App', 'Vercel'],
     problemSolved: 'Growing businesses lose visibility when quotations, customer records, payments, receipts, orders and follow-ups are spread across manual documents and disconnected tools.',
     systemLogic: 'The platform brings customer onboarding, products and services, quotations, discount requests, orders, invoices, receipts, payments, reporting, inventory and administration into one workspace. The dashboard surfaces revenue, outstanding balances, active orders, recent activity and sales-pipeline information, while the navigation organizes day-to-day operational workflows.',
@@ -316,21 +289,12 @@ export const defaultProjects: Project[] = [
     highlights: ['Business dashboard with financial and operational summaries', 'Quotation and customer workflows', 'Payments, receipts and invoice modules', 'Sales pipeline and activity history', 'Inventory, reporting and company administration', 'Mobile-responsive workspace'],
     liveUrl: 'https://quotetion.vercel.app/',
     websiteUrl: 'https://quotetion.vercel.app/store/denuel-2',
-    media: [
-      {
-        src: '/images/projects/quotation-platform-hero.webp',
-        alt: 'Astro City CRM screens showing the login experience, business dashboard and quotation activity workspace',
-        caption: 'Real production screens from the Astro City CRM quotation and business-operations platform.',
-        type: 'screenshot',
-        fit: 'cover',
-      },
-    ],
   },
   {
     id: 'constituency226',
     title: 'Constituency226 Civic Information Platform',
     purpose: 'Mobile-first civic information platform for candidate discovery, constituency information, election pages, manifesto profiles and civic education',
-    image: '/images/projects/constituency226-hero.webp',
+    image: '',
     techStack: ['Next.js', 'React', 'TypeScript', 'Responsive UI', 'Content Management', 'Search', 'Editorial Workflows', 'Vercel'],
     problemSolved: 'Public civic information can be fragmented across different sources and difficult to navigate on mobile devices. The platform needed a clear structure for discovering candidates, constituencies, election information, civic guides and related public records.',
     systemLogic: 'The platform organizes public information into candidate, constituency, election, manifesto, civic-education and development-tracking experiences. Search and mobile-first navigation help visitors move between published records, while editorial workflows support structured content presentation and source/context fields.',
@@ -357,15 +321,6 @@ export const defaultProjects: Project[] = [
     highlights: ['Mobile-first civic information layout', 'Candidate and constituency discovery', 'Election and manifesto content sections', 'Searchable published records', 'Civic education and development-tracker sections', 'Responsive design across public pages'],
     liveUrl: 'https://constituency226.org/',
     websiteUrl: 'https://constituency226.org/',
-    media: [
-      {
-        src: '/images/projects/constituency226-hero.webp',
-        alt: 'Constituency226 mobile screens showing the civic homepage, candidate discovery and manifesto information sections',
-        caption: 'Real mobile screens from Constituency226 showing civic discovery, candidate information and public-information interfaces.',
-        type: 'screenshot',
-        fit: 'cover',
-      },
-    ],
   },
   {
     id: 'livestock-collar-tracker',
@@ -469,14 +424,14 @@ export const defaultProjects: Project[] = [
     id: 'smart-irrigation-rd',
     title: 'Smart Irrigation R&D',
     purpose: 'Offline-capable irrigation control concept using field sensing, local automation and practical connectivity for agricultural environments',
-    image: '/images/projects/smart-irrigation.svg',
+    image: '',
     techStack: ['ESP32', 'Soil Moisture', 'Flow Monitoring', 'Tank Level', 'Pump/Valve Control', 'IoT Dashboard', 'Offline Logic'],
     problemSolved: 'Irrigation water can be wasted when watering decisions are made without reliable information about soil conditions, flow, available water and whether pumps or valves are operating as expected.',
     systemLogic: 'The concept combines soil-moisture, flow and tank-level sensing with an ESP32 control layer. Local rules can operate pumps or valves without cloud connectivity, while connected telemetry and a dashboard provide monitoring when a network is available.',
     outcome: 'A documented engineering design direction for an offline-capable smart-irrigation prototype. It is not presented as a deployed agricultural product.',
     featured: true,
     role: 'Robotics & IoT Engineer / Technical Project Planner',
-    status: 'Concept / Prototype Development',
+    status: 'Concept',
     projectType: 'Research & Development',
     organization: 'Independent R&D',
     contribution: 'Planned and designed by me',
@@ -506,7 +461,7 @@ export const defaultProjects: Project[] = [
     outcome: 'Ongoing project-based STEM programme work through Robotix Institute, with specific programme names, dates and learner numbers kept separate unless verified.',
     featured: true,
     role: 'Robotics & IoT Engineer | Technical Project Manager',
-    status: 'Ongoing Educational Project Work',
+    status: 'Active Development',
     projectType: 'Educational Project',
     organization: 'Robotix Institute',
     contribution: 'Project planning and technical programme support',
@@ -531,6 +486,15 @@ export const legacyProjectIds = new Set([
   'smart-irrigation',
   'bottle-sorting-system',
   'oil-level-monitoring',
+])
+
+const staleProjectMediaPaths = new Set([
+  '/images/projects/cooking-oil-prototype.webp',
+  '/images/projects/walking-stick-sensor-prototype.webp',
+  '/images/projects/the-spot-hero.webp',
+  '/images/projects/quotation-platform-hero.webp',
+  '/images/projects/constituency226-hero.webp',
+  '/images/projects/smart-irrigation.svg',
 ])
 
 const legacyFeaturedByProjectId: Record<string, boolean> = {
@@ -571,6 +535,13 @@ export function mergeWithCurrentCatalog(data: unknown): Project[] {
       saved.featured === legacyFeaturedByProjectId[current.id]
     ) {
       merged.featured = current.featured
+    }
+    if (saved.image && staleProjectMediaPaths.has(saved.image)) {
+      merged.image = current.image
+    }
+    if (Array.isArray(saved.media)) {
+      const validMedia = saved.media.filter(item => item?.src && !staleProjectMediaPaths.has(item.src))
+      merged.media = validMedia.length ? validMedia : current.media
     }
     return merged
   })
