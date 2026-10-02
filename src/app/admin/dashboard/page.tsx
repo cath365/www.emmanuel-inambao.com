@@ -2321,7 +2321,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t border-dark-700">
+          <div className="sticky bottom-0 z-10 -mx-6 mt-8 flex items-center justify-end gap-4 border-t border-dark-700 bg-dark-800/95 px-6 py-4 backdrop-blur">
             <button
               type="button"
               onClick={requestClose}
