@@ -120,6 +120,25 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
           </div>
         )}
 
+        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Project at a glance">
+          <div className="rounded-xl border border-dark-800 bg-dark-900/45 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dark-500">Stage</p>
+            <p className="mt-2 text-sm font-semibold text-white">{project.status || 'Status to confirm'}</p>
+          </div>
+          <div className="rounded-xl border border-dark-800 bg-dark-900/45 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dark-500">Domain</p>
+            <p className="mt-2 text-sm font-semibold text-white">{project.domain || project.projectType || 'Engineering'}</p>
+          </div>
+          <div className="rounded-xl border border-dark-800 bg-dark-900/45 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dark-500">Contribution</p>
+            <p className="mt-2 text-sm font-semibold text-white">{project.contribution || project.role || 'Role documented below'}</p>
+          </div>
+          <div className="rounded-xl border border-dark-800 bg-dark-900/45 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-dark-500">Evidence attached</p>
+            <p className="mt-2 text-sm font-semibold text-white">{evidence.length + supportingMedia.length} item{evidence.length + supportingMedia.length === 1 ? '' : 's'}</p>
+          </div>
+        </section>
+
         <section className="mt-10 grid gap-6 lg:grid-cols-3">
           <div className="rounded-2xl border border-dark-800 bg-dark-900/55 p-6 lg:col-span-2 sm:p-8">
             <div className="flex items-center gap-3">
