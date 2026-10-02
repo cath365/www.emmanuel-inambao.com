@@ -214,12 +214,26 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
                       {item.url && <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary-300">Open evidence <ArrowUpRight className="h-3.5 w-3.5" /></span>}
                     </div>
                   )
-                  return item.url ? (
-                    <a key={item.label + index} href={item.url} target={item.url.startsWith('http') ? '_blank' : undefined} rel={item.url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                  if (!item.url) return <div key={item.label + index}>{card}</div>
+
+                  return item.url.startsWith('http') ? (
+                    <a
+                      key={item.label + index}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open external evidence: ${item.label}`}
+                    >
                       {card}
                     </a>
                   ) : (
-                    <div key={item.label + index}>{card}</div>
+                    <Link
+                      key={item.label + index}
+                      href={item.url}
+                      aria-label={`Open portfolio evidence: ${item.label}`}
+                    >
+                      {card}
+                    </Link>
                   )
                 })}
               </div>
@@ -234,6 +248,7 @@ export default function ProjectDetailClient({ slug }: { slug: string }) {
                         src={item.src}
                         alt={item.alt}
                         fill
+                        unoptimized
                         className={item.fit === 'contain' ? 'object-contain' : 'object-cover'}
                         sizes="(max-width: 768px) 100vw, 50vw"
                       />
