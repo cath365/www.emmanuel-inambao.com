@@ -28,6 +28,28 @@ const STORAGE_KEY = 'portfolio_gallery'
 
 const defaultItems: GalleryItem[] = []
 
+const legacyPlaceholderGalleryTitles = new Set([
+  'Smart Agriculture System',
+  'Industrial Robot Arm',
+  'PCB Design Workshop',
+  'Drone Navigation System',
+  'ESP32 Development Board',
+  'Tech Conference Speaker',
+])
+
+function normalizeGalleryData(data: unknown): GalleryItem[] {
+  if (!Array.isArray(data)) return defaultItems
+
+  return data.filter((item): item is GalleryItem => {
+    if (!item || typeof item !== 'object') return false
+    const candidate = item as Partial<GalleryItem>
+    const legacyStockItem =
+      Boolean(candidate.title && legacyPlaceholderGalleryTitles.has(candidate.title)) &&
+      Boolean(candidate.url?.includes('images.unsplash.com'))
+    return !legacyStockItem
+  })
+}
+
 async function saveToServer(data: GalleryItem[]) {
   await persistPortfolioData('gallery', data)
 }
@@ -40,11 +62,7 @@ export function GalleryProvider({ children }: { children: ReactNode }) {
     fetch('/api/portfolio-data?key=gallery', { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setItems(data)
-        } else {
-          setItems(defaultItems)
-        }
+        setItems(normalizeGalleryData(data))
       })
       .catch(() => {
         setItems(defaultItems)
