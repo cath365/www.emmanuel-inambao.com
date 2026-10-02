@@ -2,14 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
-    // Next.js generates internal type stubs that reference internal module paths
-    // which may not resolve correctly depending on the installed version.
-    // User code is still type-checked by the IDE / pre-commit hooks.
+    // Keep production builds strict: type errors must fail the build.
     ignoreBuildErrors: false,
   },
   eslint: {
-    // ESLint is run separately in CI; skip during production build to avoid
-    // ajv/node_modules resolution issues on some Node versions.
+    // Keep lint validation enabled during production builds.
     ignoreDuringBuilds: false,
   },
   images: {
