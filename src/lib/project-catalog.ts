@@ -77,7 +77,7 @@ export const defaultProjects: Project[] = [
     constraints: ['Flow calibration must be validated under real dispensing conditions.', 'Pump, power and enclosure design require field hardening before commercial deployment.'],
     nextMilestone: 'Complete repeatable flow calibration and field-oriented hardware validation.',
     evidence: [
-      { label: 'Embedded dispenser prototype', type: 'Prototype', description: 'Hardware prototype showing the ESP32 controller, display, GSM module and pump-control path.' },
+      { label: 'Engineering case study', type: 'Document', description: 'Documents the embedded architecture, offline workflow, calibration requirements and prototype validation plan.', url: '/case-studies/smart-cooking-oil-dispenser' },
     ],
     architecture: ['Operator keypad + LCD', 'ESP32 control layer', 'Flow sensor + pump driver', 'Offline NVS queue', 'REST telemetry API', 'Owner dashboard'],
     highlights: ['Automatic target cut-off', 'Operator PIN verification', 'Offline-first operation', 'Sales and telemetry records'],
@@ -126,7 +126,7 @@ export const defaultProjects: Project[] = [
     constraints: ['Guidance latency must remain low enough for safe use.', 'Computer-vision and cloud features require careful fallback behaviour when connectivity is weak.', 'Assistive guidance requires validation with users before any safety claims can be made.'],
     nextMilestone: 'Continue prototype integration and validate directional guidance behaviour with controlled obstacle scenarios.',
     evidence: [
-      { label: 'Obstacle-detection sensor prototype', type: 'Prototype', description: 'Ultrasonic ranging hardware used during obstacle-detection development.' },
+      { label: 'Assistive-technology case study', type: 'Document', description: 'Documents the sensing, smartphone-processing and audio-guidance architecture together with current prototype constraints.', url: '/case-studies/smart-walking-stick' },
     ],
     architecture: ['Camera + obstacle sensors on stick', 'ESP32 local communications', 'Phone app as compute bridge', 'On-device AI detection', 'Cloud AI scene analysis', 'Wireless headset guidance'],
     highlights: ['Camera remains on the stick', 'Phone acts as the compute bridge', 'Fast local detection path', 'Cloud-assisted scene reasoning'],
@@ -253,7 +253,7 @@ export const defaultProjects: Project[] = [
     constraints: ['Reliable detection depends on sensor placement, calibration and representative field data.', 'Customer consumption, tank filling, supply interruptions and operational events must be separated from genuine leak behaviour.', 'AI results require field verification before operational use.'],
     nextMilestone: 'Define a pilot section with known inlets/outlets, finalize sensor locations and collect baseline data for field validation.',
     evidence: [
-      { label: 'R&D methodology and sensor architecture', type: 'Document', description: 'Project planning covers flow, pressure and tank-level measurements, pilot-zone definition and anomaly-detection validation.' },
+      { label: 'Water-loss R&D case study', type: 'Document', description: 'Documents the flow/pressure monitoring architecture, pilot-zone planning and anomaly-detection validation approach.', url: '/case-studies/ai-water-leak-detection' },
     ],
     architecture: ['Field sensor nodes', 'DMA ingestion', 'NRW calculation', 'Time-series analytics', 'Decision engine', 'Operations dashboard'],
     highlights: ['DMA-oriented design', 'Field IoT architecture', 'Anomaly prioritisation', 'Operational reporting'],
@@ -282,8 +282,7 @@ export const defaultProjects: Project[] = [
     expectedImpact: 'Designed to reduce duplicated administrative work and give staff a clearer view of customer, quotation, payment and order activity.',
     nextMilestone: 'Continue improving operational reporting and workflow automation based on real administrative use.',
     evidence: [
-      { label: 'Live deployed application', type: 'Live application', description: 'Publicly accessible production deployment.', url: 'https://quotetion.vercel.app/' },
-      { label: 'Production interface screenshots', type: 'Photo', description: 'Screens from the business dashboard and quotation workflow are included in the project media.' },
+      { label: 'Live deployed application', type: 'Live application', description: 'Publicly accessible production deployment of the quotation and operations system.', url: 'https://quotetion.vercel.app/' },
     ],
     architecture: ['Authentication & customer onboarding', 'Customer records', 'Products & services', 'Quotation & order workflows', 'Payments, receipts & invoices', 'Reporting, inventory & administration'],
     highlights: ['Business dashboard with financial and operational summaries', 'Quotation and customer workflows', 'Payments, receipts and invoice modules', 'Sales pipeline and activity history', 'Inventory, reporting and company administration', 'Mobile-responsive workspace'],
@@ -315,7 +314,6 @@ export const defaultProjects: Project[] = [
     nextMilestone: 'Continue improving information structure, source/context presentation and mobile discovery as the public content set grows.',
     evidence: [
       { label: 'Live civic information platform', type: 'Live application', description: 'Public deployment of the Constituency226 website.', url: 'https://constituency226.org/' },
-      { label: 'Mobile interface screenshots', type: 'Photo', description: 'Project media includes real screens from the public civic-information experience.' },
     ],
     architecture: ['Public homepage & search', 'Candidate discovery', 'Constituency navigation', 'Election & manifesto pages', 'Civic education content', 'Editorial/admin content workflows'],
     highlights: ['Mobile-first civic information layout', 'Candidate and constituency discovery', 'Election and manifesto content sections', 'Searchable published records', 'Civic education and development-tracker sections', 'Responsive design across public pages'],
