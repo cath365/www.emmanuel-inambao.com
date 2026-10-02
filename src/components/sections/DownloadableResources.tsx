@@ -28,17 +28,18 @@ export default function DownloadableResources() {
     }
 
     setDownloadingId(resource.id)
-    
-    // Simulate download delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setDownloadingId(null)
-    
-    // Create download link
-    const link = document.createElement('a')
-    link.href = resource.fileUrl
-    link.download = resource.title
-    link.click()
+
+    try {
+      const link = document.createElement('a')
+      link.href = resource.fileUrl
+      link.download = resource.title
+      link.rel = 'noopener'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+    } finally {
+      setDownloadingId(null)
+    }
   }
 
   return (
