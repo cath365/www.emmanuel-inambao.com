@@ -915,9 +915,15 @@ export default function AdminDashboard() {
               {/* Profile Tab */}
               <ProfileEditor
                 profile={profile}
-                onSave={(updates) => {
-                  updateProfile(updates)
-                  setNotification({ type: 'success', message: 'Profile updated successfully!' })
+                onSave={async (updates) => {
+                  try {
+                    await updateProfile(updates)
+                    setNotification({ type: 'success', message: 'Profile, photo and banner settings were published and verified.' })
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Profile could not be published.'
+                    setNotification({ type: 'error', message })
+                    throw error
+                  }
                 }}
               />
             </motion.div>
@@ -1078,7 +1084,7 @@ export default function AdminDashboard() {
 // Profile Editor Component
 interface ProfileEditorProps {
   profile: Profile
-  onSave: (updates: Partial<Profile>) => void
+  onSave: (updates: Partial<Profile>) => Promise<void>
 }
 
 const COVER_WIDTH = 1400
@@ -1154,12 +1160,17 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
   const [uploadingCover, setUploadingCover] = useState(false)
   const [coverPreviewUrl, setCoverPreviewUrl] = useState('')
   const [uploadingCV, setUploadingCV] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileImageFailed, setProfileImageFailed] = useState(false)
+  const [coverImageFailed, setCoverImageFailed] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   const cvInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setFormData(profile)
+    setProfileImageFailed(false)
+    setCoverImageFailed(false)
   }, [profile])
 
   useEffect(() => {
@@ -1186,8 +1197,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, image: data.url }
+        await onSave(updated)
         setFormData(updated)
-        onSave(updated)
+        setProfileImageFailed(false)
       } else {
         alert(data.error || 'Upload failed')
       }
@@ -1221,8 +1233,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, coverImage: data.url }
+        await onSave(updated)
         setFormData(updated)
-        onSave(updated)
+        setCoverImageFailed(false)
         URL.revokeObjectURL(normalized.previewUrl)
         setCoverPreviewUrl('')
       } else {
@@ -1255,8 +1268,8 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, cv: data.url }
+        await onSave(updated)
         setFormData(updated)
-        onSave(updated)
       } else {
         alert(data.error || 'CV upload failed')
       }
@@ -1268,9 +1281,14 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    setSavingProfile(true)
+    try {
+      await onSave(formData)
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
   return (
@@ -1290,12 +1308,14 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-full overflow-hidden bg-dark-700 border-4 border-dark-600">
-                {formData.image ? (
+                {formData.image && !profileImageFailed ? (
                   <Image
                     src={formData.image}
                     alt="Profile"
                     width={128}
                     height={128}
+                    unoptimized
+                    onError={() => setProfileImageFailed(true)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -1336,12 +1356,15 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
         <div className="bg-dark-800/50 border border-dark-700 rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Cover Banner</h2>
           <div className="relative aspect-[7/2] w-full overflow-hidden rounded-xl bg-dark-700 border border-dark-600 mb-4">
-            {coverPreviewUrl || formData.coverImage ? (
+            {(coverPreviewUrl || formData.coverImage) && !(coverImageFailed && !coverPreviewUrl) ? (
               <Image
                 src={coverPreviewUrl || formData.coverImage || ''}
                 alt="Cover banner preview"
                 fill
-                unoptimized={Boolean(coverPreviewUrl)}
+                unoptimized
+                onError={() => {
+                  if (!coverPreviewUrl) setCoverImageFailed(true)
+                }}
                 className="object-cover object-center"
                 sizes="(max-width: 1024px) 100vw, 900px"
               />
@@ -1609,9 +1632,17 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <button type="submit" className="btn-primary flex items-center gap-2">
-            <Save className="w-5 h-5" />
-            Save Profile
+          <button
+            type="submit"
+            disabled={savingProfile || uploading || uploadingCover || uploadingCV}
+            className="btn-primary flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingProfile ? (
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {savingProfile ? 'Publishing & verifying…' : 'Save Profile'}
           </button>
         </div>
       </form>
