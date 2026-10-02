@@ -10,7 +10,9 @@ import {
   Star
 } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useGallery, GalleryItem } from '@/lib/gallery'
+import { useProjects } from '@/lib/projects'
 
 // Gallery categories
 const categories = [
@@ -35,6 +37,9 @@ export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState('all')
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null)
   const { items } = useGallery()
+  const { projects } = useProjects()
+
+  if (items.length === 0) return null
 
   const filteredItems = activeCategory === 'all'
     ? items
@@ -236,6 +241,15 @@ export default function Gallery() {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">{selectedItem.title}</h3>
                 <p className="text-dark-400">{selectedItem.description}</p>
+                {selectedItem.projectId && (
+                  <Link
+                    href={'/projects/' + selectedItem.projectId}
+                    className="mt-4 inline-flex items-center text-sm font-semibold text-primary-400 hover:text-primary-300"
+                    onClick={() => setSelectedItem(null)}
+                  >
+                    View related project: {projects.find(project => project.id === selectedItem.projectId)?.title || 'Project'} →
+                  </Link>
+                )}
               </div>
             </motion.div>
           </motion.div>
