@@ -9,9 +9,15 @@ export default function ProjectsDirectory() {
   const { projects } = useProjects()
   const [query, setQuery] = useState('')
   const [domain, setDomain] = useState('All')
+  const [status, setStatus] = useState('All')
 
   const domains = useMemo(
     () => ['All', ...Array.from(new Set(projects.map(project => project.domain).filter(Boolean) as string[])).sort()],
+    [projects]
+  )
+
+  const statuses = useMemo(
+    () => ['All', ...Array.from(new Set(projects.map(project => project.status).filter(Boolean) as string[])).sort()],
     [projects]
   )
 
@@ -20,7 +26,8 @@ export default function ProjectsDirectory() {
 
     return projects.filter(project => {
       const matchesDomain = domain === 'All' || project.domain === domain
-      if (!matchesDomain) return false
+      const matchesStatus = status === 'All' || project.status === status
+      if (!matchesDomain || !matchesStatus) return false
       if (!normalizedQuery) return true
 
       const searchable = [
@@ -41,11 +48,12 @@ export default function ProjectsDirectory() {
 
       return searchable.includes(normalizedQuery)
     })
-  }, [projects, domain, query])
+  }, [projects, domain, status, query])
 
   const clearFilters = () => {
     setQuery('')
     setDomain('All')
+    setStatus('All')
   }
 
   return (
@@ -83,7 +91,10 @@ export default function ProjectsDirectory() {
           </p>
         </div>
 
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1" aria-label="Filter projects by problem domain">
+        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-end">
+          <div className="min-w-0">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-dark-500">Problem domain</p>
+            <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Filter projects by problem domain">
           {domains.map(item => (
             <button
               key={item}
@@ -99,13 +110,26 @@ export default function ProjectsDirectory() {
               {item}
             </button>
           ))}
+            </div>
+          </div>
+
+          <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-dark-500">
+            Project stage
+            <select
+              value={status}
+              onChange={event => setStatus(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-dark-700 bg-dark-950 px-3 py-2.5 text-sm font-normal normal-case tracking-normal text-white outline-none transition focus:border-primary-500"
+            >
+              {statuses.map(item => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
         </div>
       </section>
 
       {filteredProjects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-dark-700 bg-dark-900/35 px-6 py-14 text-center">
           <h2 className="text-xl font-semibold text-white">No projects match this filter.</h2>
-          <p className="mt-2 text-sm text-dark-400">Try another problem domain or search term.</p>
+          <p className="mt-2 text-sm text-dark-400">Try another problem domain, project stage or search term.</p>
           <button type="button" onClick={clearFilters} className="btn-secondary mt-5">
             Clear filters
           </button>
