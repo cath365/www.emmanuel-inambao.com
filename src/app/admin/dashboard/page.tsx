@@ -1768,8 +1768,9 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                     src={formData.image}
                     alt="Project"
                     fill
-                    unoptimized
+                    unoptimized={formData.image.startsWith('blob:') || formData.image.startsWith('data:')}
                     className="object-cover"
+                    sizes="128px"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-dark-500">
