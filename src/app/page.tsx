@@ -13,7 +13,6 @@ import Gallery from '@/components/sections/Gallery'
 import Contact from '@/components/sections/Contact'
 import Newsletter from '@/components/sections/Newsletter'
 import DownloadableResources from '@/components/sections/DownloadableResources'
-import GitHubContributions from '@/components/sections/GitHubContributions'
 import ClientLogos from '@/components/sections/ClientLogos'
 import HowIWork from '@/components/sections/HowIWork'
 import FAQ from '@/components/sections/FAQ'
@@ -35,7 +34,6 @@ export default function Home() {
       <Skills />
       <Education />
       <Services />
-      <GitHubContributions username="cath365" />
       <Certifications />
       <OpenSource />
       <Testimonials />
