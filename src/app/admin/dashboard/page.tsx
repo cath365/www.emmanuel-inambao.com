@@ -1,5 +1,7 @@
 'use client'
 
+import { uploadPortfolioMedia } from '@/lib/portfolio-upload'
+
 import IntegrationStatus from '@/components/admin/IntegrationStatus'
 
 import { useState, useEffect, useRef } from 'react'
@@ -1132,11 +1134,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     form.append('type', 'profile')
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include', // Ensure cookies are sent
-      })
+      const res = await uploadPortfolioMedia(form)
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, image: data.url }
@@ -1147,7 +1145,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       }
     } catch (err) {
       console.error('Image upload error:', err)
-      alert('Upload failed. Check console for details.')
+      alert(err instanceof Error ? err.message : 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
     }
@@ -1167,11 +1165,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       form.append('file', normalized.file)
       form.append('type', 'cover')
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
+      const res = await uploadPortfolioMedia(form)
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, coverImage: data.url }
@@ -1201,11 +1195,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     form.append('type', 'cv')
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include', // Ensure cookies are sent
-      })
+      const res = await uploadPortfolioMedia(form)
       const data = await res.json()
       if (data.success) {
         const updated = { ...formData, cv: data.url }
@@ -1598,11 +1588,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     form.append('projectId', formData.id)
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
+      const res = await uploadPortfolioMedia(form)
       const data = await res.json()
       if (data.success) {
         setFormData({ ...formData, image: data.url })
@@ -1611,7 +1597,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
       }
     } catch (err) {
       console.error('Project image upload error:', err)
-      alert('Upload failed. Check console for details.')
+      alert(err instanceof Error ? err.message : 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
     }

@@ -1,5 +1,7 @@
 'use client'
 
+import { uploadPortfolioMedia } from '@/lib/portfolio-upload'
+
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -66,11 +68,7 @@ export default function MediaUploader({ onNotify }: Props) {
     formData.append('type', uploadType)
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      })
+      const res = await uploadPortfolioMedia(formData)
       
       const data = await res.json()
       
@@ -93,8 +91,9 @@ export default function MediaUploader({ onNotify }: Props) {
       }
     } catch (err) {
       console.error('Upload error:', err)
-      onNotify('error', 'Upload failed. Please try again.')
+      onNotify('error', err instanceof Error ? err.message : 'Upload failed. Please try again.')
     } finally {
+      clearInterval(progressInterval)
       setUploading(false)
       setUploadProgress(0)
       if (fileRef.current) fileRef.current.value = ''
@@ -160,13 +159,13 @@ export default function MediaUploader({ onNotify }: Props) {
                 </div>
               </div>
               <p className="text-white text-lg mb-2">
-                Click to upload or drag and drop
+                Click to upload
               </p>
               <p className="text-dark-400 text-sm">
                 Images (JPG, PNG, WebP, GIF) • Videos (MP4, WebM, MOV) • Documents (PDF, DOC)
               </p>
               <p className="text-dark-500 text-xs mt-2">
-                Max size: 5MB for images, 100MB for videos, 10MB for documents
+                Max size: 10MB for images, 100MB for videos, 10MB for documents
               </p>
             </>
           )}
@@ -278,8 +277,8 @@ export default function MediaUploader({ onNotify }: Props) {
         <ul className="text-dark-400 text-sm space-y-1">
           <li>• Copy the URL after uploading to use in your content</li>
           <li>• Videos are automatically optimized for web playback</li>
-          <li>• Images are resized to max 1200x1200 for better performance</li>
-          <li>• All uploads are stored securely on Cloudinary</li>
+          <li>• Use JPG, PNG, WebP, GIF or AVIF images up to 10MB</li>
+          <li>• Images are stored on Vercel Blob; other media uses Cloudinary</li>
         </ul>
       </div>
     </div>

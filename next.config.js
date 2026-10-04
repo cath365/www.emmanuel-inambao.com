@@ -19,6 +19,7 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false,
     remotePatterns: [
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com', pathname: '/media/portfolio/**' },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
