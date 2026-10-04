@@ -77,15 +77,17 @@ test('grants use only public credentials, constrain images and prevent overwrite
 
 test('large images use direct Blob uploads; invalid images are rejected before network access', async () => {
   const { File } = require('node:buffer')
+  const previousFetch = global.fetch
+  global.fetch = async () => Response.json({ clientToken: "scoped-test-token" })
   const previousFile = global.File
   global.File = File
   try {
     let calls = 0
     const api = load('src/lib/portfolio-upload.ts', {
-      '@vercel/blob/client': { upload: async (pathname, file, options) => {
+      '@vercel/blob/client': { put: async (pathname, file, options) => {
         calls++
         assert.equal(options.access, 'public')
-        assert.equal(options.handleUploadUrl, '/api/upload/blob')
+        assert.equal(options.token, 'scoped-test-token')
         assert.equal(file.size, 6 * 1024 * 1024)
         return { url: 'https://example.public.blob.vercel-storage.com/' + pathname, pathname }
       } },
@@ -99,5 +101,34 @@ test('large images use direct Blob uploads; invalid images are rejected before n
     form.set('file', new File([new Uint8Array(11 * 1024 * 1024)], 'photo.jpg', { type: 'image/jpeg' }))
     await assert.rejects(api.uploadPortfolioMedia(form), /10 MB/)
     assert.equal(calls, 1)
-  } finally { global.File = previousFile }
+  } finally { global.File = previousFile; global.fetch = previousFetch }
+})
+
+
+test('valid browser host passes proxy origin checking; foreign hosts remain rejected', async () => {
+  const previous = process.env.BLOB_READ_WRITE_TOKEN
+  process.env.BLOB_READ_WRITE_TOKEN = 'configured-test-token'
+  try {
+    const api = route(true, async () => ({ clientToken: 'scoped-test-token' }))
+    const make = origin => new NextRequest('http://internal-proxy:3000/api/upload/blob', {
+      method: 'POST', headers: { host: 'portfolio.example', origin, 'Content-Type': 'application/json' }, body: JSON.stringify(grant),
+    })
+    assert.equal((await api.POST(make('https://portfolio.example'))).status, 200)
+    assert.equal((await api.POST(make('https://attacker.example'))).status, 403)
+  } finally { previous === undefined ? delete process.env.BLOB_READ_WRITE_TOKEN : process.env.BLOB_READ_WRITE_TOKEN = previous }
+})
+
+test('client displays authorization failure and never uploads without a grant', async () => {
+  const { File } = require('node:buffer')
+  const previousFile = global.File, previousFetch = global.fetch
+  global.File = File
+  try {
+    let called = false
+    const api = load('src/lib/portfolio-upload.ts', { '@vercel/blob/client': { put: async () => { called = true } } })
+    global.fetch = async () => Response.json({ error: 'Please log in before uploading.' }, { status: 401 })
+    const form = new FormData()
+    form.set('file', new File(['image'], 'photo.jpg', { type: 'image/jpeg' }))
+    await assert.rejects(api.uploadPortfolioMedia(form), /Please log in before uploading/)
+    assert.equal(called, false)
+  } finally { global.File = previousFile; global.fetch = previousFetch }
 })

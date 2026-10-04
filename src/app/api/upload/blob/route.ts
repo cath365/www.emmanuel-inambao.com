@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
   // Completion callbacks are authenticated by the SDK, not admin cookies.
   if (body.type === 'blob.generate-client-token') {
     if (!(await isAuthenticated())) return NextResponse.json({ error: 'Please log in before uploading.' }, { status: 401, headers })
-    if (request.headers.get('origin') !== new URL(request.url).origin) return NextResponse.json({ error: 'Invalid upload origin.' }, { status: 403, headers })
+    let sameOrigin = false
+    try {
+      const origin = new URL(request.headers.get('origin') || '')
+      // Host is the browser-facing authority; request.url may use an internal proxy origin.
+      const host = request.headers.get('host') || new URL(request.url).host
+      sameOrigin = origin.host === host && ['http:', 'https:'].includes(origin.protocol)
+    } catch {}
+    if (!sameOrigin) return NextResponse.json({ error: 'Invalid upload origin.' }, { status: 403, headers })
     if (!mediaPath.test(body.payload?.pathname || '')) return NextResponse.json({ error: 'Invalid image path.' }, { status: 400, headers })
   }
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
