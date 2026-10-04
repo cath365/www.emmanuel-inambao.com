@@ -1,5 +1,7 @@
 'use client'
 
+import { uploadPortfolioMedia } from '@/lib/portfolio-upload'
+
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -63,10 +65,7 @@ export default function GalleryEditor() {
     formData.append('type', isVideo ? 'video' : 'image')
 
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await uploadPortfolioMedia(formData)
 
       if (!response.ok) {
         const data = await response.json()
