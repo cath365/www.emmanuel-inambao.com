@@ -16,6 +16,7 @@ import { useAuth } from '@/lib/auth'
 import { useProjects, Project } from '@/lib/projects'
 import { useProfile, Profile } from '@/lib/profile'
 import Link from 'next/link'
+import { normalizeWhatsAppNumber } from '@/lib/whatsapp'
 import Image from 'next/image'
 import ExperienceEditor from '@/components/admin/ExperienceEditor'
 import TestimonialEditor from '@/components/admin/TestimonialEditor'
@@ -2050,8 +2051,8 @@ interface ServiceLead {
 }
 
 function leadWhatsAppHref(phone?: string, name?: string) {
-  const digits = String(phone || '').replace(/\D/g, '')
-  if (digits.length < 7) return null
+  const digits = normalizeWhatsAppNumber(phone)
+  if (!digits) return null
 
   return `https://wa.me/${digits}?text=${encodeURIComponent(
     `Hello ${name || 'there'}, this is Emmanuel Inambao. I am following up on your project inquiry.`
