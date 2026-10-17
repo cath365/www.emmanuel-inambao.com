@@ -3,6 +3,7 @@ import { rateLimit, getClientIP } from '@/lib/rate-limit'
 
 import { updatePrivateJson } from '@/lib/blob-json'
 import { submissionResponse } from '@/lib/notifications'
+import { normalizeWhatsAppNumber } from '@/lib/whatsapp'
 
 export const runtime = 'nodejs'
 
@@ -12,6 +13,7 @@ interface StoredLead {
   id: string
   name: string
   email: string
+  phone?: string
   service: string
   details: string
   submittedAt: string
@@ -41,29 +43,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
     }
 
-    const { name, email, subject, message, _honeypot } = body
+    const { name, email, phone, subject, message, _honeypot } = body
 
     if (_honeypot) {
       return NextResponse.json({ success: true, message: 'Message received.' })
     }
 
-    if (typeof name !== 'string' || !name.trim() || typeof email !== 'string' || typeof message !== 'string' || !message.trim() || name.length > 200 || email.length > 254 || message.length > 20000) {
-      return NextResponse.json(
-        { error: 'Name, email, and message are required.' },
-        { status: 400 }
-      )
+    if (
+      typeof name !== 'string' || !name.trim() || name.length > 200 ||
+      typeof message !== 'string' || !message.trim() || message.length > 20000 ||
+      (email != null && typeof email !== 'string') ||
+      (phone != null && typeof phone !== 'string') ||
+      (subject != null && typeof subject !== 'string')
+    ) {
+      return NextResponse.json({ error: 'Name and message are required.' }, { status: 400 })
     }
 
+    const cleanEmail = String(email || '').trim().toLowerCase()
+    const cleanPhone = String(phone || '').trim()
+    const normalizedNumber = cleanPhone ? normalizeWhatsAppNumber(cleanPhone) : null
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+
+    if (cleanEmail.length > 254 || (cleanEmail && !emailRegex.test(cleanEmail))) {
       return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
+    }
+    if (cleanPhone && !normalizedNumber) {
+      return NextResponse.json({ error: 'Please enter a valid WhatsApp number including its country code (e.g. +260...).' }, { status: 400 })
+    }
+    if (!cleanEmail && !normalizedNumber) {
+      return NextResponse.json({ error: 'Provide an email address, a WhatsApp number, or both.' }, { status: 400 })
     }
 
     const submittedAt = new Date().toISOString()
     const lead: StoredLead = {
       id: `contact-${crypto.randomUUID()}`,
       name: String(name).trim(),
-      email: String(email).trim().toLowerCase(),
+      email: cleanEmail,
+      phone: normalizedNumber ? '+' + normalizedNumber : '',
       service: subject ? `Contact Form: ${String(subject)}` : 'Contact Form',
       details: String(message).trim(),
       submittedAt,
@@ -81,7 +97,7 @@ export async function POST(request: NextRequest) {
     return submissionResponse(saved, {
       name: lead.name, email: lead.email,
       subject: lead.service,
-      message: `Name: ${lead.name}\nEmail: ${lead.email}\n\n${lead.details}`,
+      message: `Name: ${lead.name}\nEmail: ${lead.email || 'Not provided'}\nWhatsApp: ${lead.phone || 'Not provided'}\n\n${lead.details}`,
     }, 'Thank you. Your message has been received.')
   } catch (error) {
     console.error('Contact form error:', error)
