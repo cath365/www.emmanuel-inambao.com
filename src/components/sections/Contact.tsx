@@ -68,6 +68,7 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     subject: '',
     message: '',
   })
@@ -83,6 +84,11 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.email.trim() && !formData.phone.trim()) {
+      setFormStatus('error')
+      setErrorMessage('Please provide an email address, a WhatsApp number, or both.')
+      return
+    }
     setFormStatus('loading')
     setErrorMessage('')
     setSuccessMessage('')
@@ -102,7 +108,7 @@ export default function Contact() {
         setSuccessMessage(result.message || 'Message received successfully.')
         setFormStatus('success')
         setTimeout(() => {
-          setFormData({ name: '', email: '', subject: '', message: '' })
+          setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
           setFormStatus('idle')
         }, 3000)
       } else {
@@ -288,7 +294,7 @@ export default function Contact() {
                       htmlFor="email" 
                       className="block text-sm font-medium text-[#465465] dark:text-dark-300 mb-2"
                     >
-                      {t('contact.email')} *
+                      {t('contact.email')}
                     </label>
                     <input
                       type="email"
@@ -296,10 +302,31 @@ export default function Contact() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      required
                       className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white placeholder-[#9A9FA4] dark:placeholder-dark-500 focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors"
                       placeholder="john@example.com"
                     />
+                  </div>
+
+                  {/* WhatsApp contact option */}
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-[#465465] dark:text-dark-300 mb-2">
+                      WhatsApp number
+                    </label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      autoComplete="tel"
+                      inputMode="tel"
+                      maxLength={25}
+                      className="w-full px-4 py-3 bg-white/80 dark:bg-dark-900 border border-[#D4CEC4] dark:border-dark-700 rounded-sm text-[#10243E] dark:text-white placeholder-[#9A9FA4] dark:placeholder-dark-500 focus:outline-none focus:border-[#526E8A] dark:focus:border-primary-500 focus:ring-1 focus:ring-[#526E8A] dark:focus:ring-primary-500 transition-colors"
+                      placeholder="e.g. +260 97 391 4432"
+                    />
+                    <p className="mt-2 text-sm text-[#697483] dark:text-dark-400">
+                      Add an email address, a WhatsApp number, or both. For numbers outside Zambia, include the country code.
+                    </p>
                   </div>
 
                   {/* Subject field */}
