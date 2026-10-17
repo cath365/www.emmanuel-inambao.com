@@ -4,6 +4,7 @@ import { isAuthenticated } from '@/lib/auth-helpers'
 import { readPrivateJson, updatePrivateJson, storageError } from '@/lib/blob-json'
 import { submissionResponse } from '@/lib/notifications'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
+import { normalizeWhatsAppNumber } from '@/lib/whatsapp'
 
 const LEADS_BLOB_PATH = 'data/leads.json'
 
@@ -84,10 +85,10 @@ export async function POST(request: NextRequest) {
 
     const email = String(data.email || '').trim()
     const phone = String(data.phone || '').trim()
-    const phoneDigits = phone.replace(/\D/g, '')
+    const phoneDigits = phone ? normalizeWhatsAppNumber(phone) : null
     const validEmail = !email || /^\S+@\S+\.\S+$/.test(email)
 
-    if (typeof data.name !== 'string' || !data.name.trim() || data.name.length > 200 || typeof data.service !== 'string' || !data.service.trim() || data.service.length > 300 || (data.details != null && typeof data.details !== 'string') || (data.details?.length || 0) > 30000 || email.length > 254 || !validEmail || (!email && phoneDigits.length < 7)) {
+    if (typeof data.name !== 'string' || !data.name.trim() || data.name.length > 200 || typeof data.service !== 'string' || !data.service.trim() || data.service.length > 300 || (data.details != null && typeof data.details !== 'string') || (data.details?.length || 0) > 30000 || email.length > 254 || !validEmail || (!email && !phoneDigits) || (phone && !phoneDigits)) {
       return NextResponse.json(
         { error: 'Name, service, and at least one valid email or WhatsApp number are required' },
         { status: 400 }
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       id: `lead-${crypto.randomUUID()}`,
       name: data.name,
       email,
-      phone,
+      phone: phoneDigits ? '+' + phoneDigits : '',
       service: data.service,
       details: data.details || '',
       submittedAt: new Date().toISOString(),
@@ -121,13 +122,13 @@ export async function POST(request: NextRequest) {
       '',
       `👤 Name: ${data.name}`,
       `📧 Email: ${email || 'Not provided'}`,
-      `📱 WhatsApp: ${phone || 'Not provided'}`,
+      `📱 WhatsApp: ${newLead.phone || 'Not provided'}`,
       `🔧 Service: ${data.service}`,
       `📝 Details: ${data.details || 'Not provided'}`,
       '',
       `📅 Submitted: ${new Date(data.submittedAt || new Date().toISOString()).toLocaleString()}`,
       '',
-      email ? `Reply to ${email} to follow up.` : `Follow up on WhatsApp: ${phone}`,
+      email ? `Reply to ${email} to follow up.` : `Follow up on WhatsApp: ${newLead.phone}`,
     ].join('\n')
 
     return submissionResponse(saved, {
