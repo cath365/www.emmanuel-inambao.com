@@ -236,3 +236,13 @@ test('case-study storage denial is surfaced and never confirms publishing', asyn
   const response = await api.POST(request('portfolio-data', { key: 'caseStudies', data: [] }))
   assert.equal(response.status, 503); assert.equal((await response.json()).error, 'Check public storage')
 })
+
+test('WhatsApp links accept Zambia local and international formats', () => {
+  const { normalizeWhatsAppNumber } = load('src/lib/whatsapp.ts')
+  assert.equal(normalizeWhatsAppNumber('0973914432'), '260973914432')
+  assert.equal(normalizeWhatsAppNumber('+260 973 914 432'), '260973914432')
+  assert.equal(normalizeWhatsAppNumber('973914432'), '260973914432')
+  assert.equal(normalizeWhatsAppNumber('0773914432'), '260773914432')
+  assert.equal(normalizeWhatsAppNumber('079'), null)
+  assert.equal(normalizeWhatsAppNumber('javascript:alert(1)'), null)
+})
