@@ -14,6 +14,7 @@ import DownloadableResources from '@/components/sections/DownloadableResources'
 import GitHubContributions from '@/components/sections/GitHubContributions'
 import ClientLogos from '@/components/sections/ClientLogos'
 import HowIWork from '@/components/sections/HowIWork'
+import EngineeringDirection from '@/components/sections/EngineeringDirection'
 import FAQ from '@/components/sections/FAQ'
 import OpenSource from '@/components/sections/OpenSource'
 import SectionViewTracker from '@/components/ui/SectionViewTracker'
@@ -29,6 +30,7 @@ export default function Home() {
       <Experience />
       <Skills />
       <HowIWork />
+      <EngineeringDirection />
       <Education />
       <Services />
       <GitHubContributions username="cath365" />
