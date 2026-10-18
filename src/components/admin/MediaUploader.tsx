@@ -92,12 +92,13 @@ export default function MediaUploader({ onNotify }: Props) {
           mimeType: file.type, size: file.size, alt: file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' '),
           createdAt: new Date().toISOString(),
         }
-        // Reload the latest published index before adding this asset, so stale admin tabs
-        // are less likely to overwrite images uploaded elsewhere.
-        const latest = await fetchMediaLibrary().catch(() => next)
-        next = [asset, ...latest.filter(item => item.url !== asset.url)]
-        try { await publish(next) }
-        catch {
+        // Never publish a stale index if the latest library cannot be read.
+        // Keep the uploaded URL recoverable if indexing fails after a successful upload.
+        try {
+          const latest = await fetchMediaLibrary()
+          next = [asset, ...latest.filter(item => item.url !== asset.url)]
+          await publish(next)
+        } catch {
           setRecoveryUrl(uploadedUrl)
           throw new Error(`${file.name} uploaded successfully but its library record could not be saved. Keep the recovery URL below and retry when publishing is available.`)
         }
