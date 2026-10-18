@@ -23,6 +23,7 @@ export default function MediaUploader({ onNotify }: Props) {
   const [copied, setCopied] = useState('')
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
+  const [recoveryUrl, setRecoveryUrl] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const load = async () => {
@@ -43,6 +44,7 @@ export default function MediaUploader({ onNotify }: Props) {
     if (!files?.length || busy) return
     setBusy(true)
     let next = [...items]
+    setRecoveryUrl('')
     let uploaded = 0
     try {
       // Sequential writes prevent one upload's index update overwriting another.
@@ -52,6 +54,9 @@ export default function MediaUploader({ onNotify }: Props) {
         const limit = kind === 'video' ? 100 : kind === 'document' ? 50 : 10
         if (!file.size || file.size > limit * 1024 * 1024) {
           throw new Error(`${file.name}: file must be smaller than ${limit}MB.`)
+        }
+        if (kind === 'image' && !['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type)) {
+          throw new Error(`${file.name}: please choose a JPG, PNG, WebP, GIF or AVIF picture.`)
         }
         let uploadedUrl = ''
         if (kind === 'image') {
@@ -80,9 +85,15 @@ export default function MediaUploader({ onNotify }: Props) {
           mimeType: file.type, size: file.size, alt: file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' '),
           createdAt: new Date().toISOString(),
         }
-        next = [asset, ...next]
+        // Reload the latest published index before adding this asset, so stale admin tabs
+        // are less likely to overwrite images uploaded elsewhere.
+        const latest = await fetchMediaLibrary().catch(() => next)
+        next = [asset, ...latest.filter(item => item.url !== asset.url)]
         try { await publish(next) }
-        catch { throw new Error(`${file.name} uploaded, but the library index could not be saved. Copy the URL from the server response if available and check the public Blob configuration.`) }
+        catch {
+          setRecoveryUrl(uploadedUrl)
+          throw new Error(`${file.name} uploaded successfully but its library record could not be saved. Keep the recovery URL below and retry when publishing is available.`)
+        }
         uploaded++
       }
       onNotify('success', `${uploaded} file${uploaded === 1 ? '' : 's'} uploaded and saved to the media library.`)
@@ -127,6 +138,7 @@ export default function MediaUploader({ onNotify }: Props) {
       <input ref={inputRef} type="file" multiple disabled={busy} className="sr-only" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" onChange={e => void uploadFiles(e.target.files)} />
     </label>
     {error && <div role="alert" className="rounded-lg border border-red-700 bg-red-950/40 p-3 text-sm text-red-200">{error}</div>}
+    {recoveryUrl && <div className="rounded-lg border border-amber-700 p-3 text-sm text-amber-200"><p>Upload completed; library publishing failed. Save this image URL so you can attach it later:</p><input aria-label="Recovery image URL" className="mt-2 w-full rounded bg-dark-950 p-2 text-xs" readOnly value={recoveryUrl} onFocus={event => event.currentTarget.select()} /></div>}
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold text-white">Saved files ({items.length})</h2>
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search saved media" aria-label="Search saved media" className="rounded-lg border border-dark-700 bg-dark-900 p-2 text-white" /></div>
     {loading && <p className="text-dark-300">Loading saved media…</p>}
