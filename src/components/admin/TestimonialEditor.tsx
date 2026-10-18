@@ -1,5 +1,6 @@
 'use client'
 
+import MediaLibraryPicker from './MediaLibraryPicker'
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -309,6 +310,7 @@ function TestimonialModal({
                   {uploadingImage ? 'Uploading...' : 'Upload Photo'}
                 </button>
                 <input ref={imageRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                <MediaLibraryPicker onSelect={url => setForm(previous => ({ ...previous, image: url }))} />
               </div>
             </div>
 
