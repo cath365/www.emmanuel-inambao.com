@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { upload as uploadToBlob } from '@vercel/blob/client'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Upload, Video, Image as ImageIcon, File, Trash2, 
@@ -26,6 +27,29 @@ export default function MediaUploader({ onNotify }: Props) {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [storageError, setStorageError] = useState('')
+  useEffect(() => {
+    let active = true
+    fetch('/api/portfolio-data?key=mediaLibrary', { cache: 'no-store', credentials: 'include' })
+      .then(async response => {
+        const data = await response.json().catch(() => null)
+        if (!response.ok) throw new Error(data?.error || 'Media library unavailable.')
+        if (active && Array.isArray(data)) setUploads(data.filter((x: UploadedFile) => x && typeof x.url === 'string' && /^https:\/\//.test(x.url)))
+      })
+      .catch(error => { if (active) setStorageError(error instanceof Error ? error.message : 'Could not load media.') })
+    return () => { active = false }
+  }, [])
+  const saveLibrary = async (next: UploadedFile[]) => {
+    const res = await fetch('/api/portfolio-data', {
+      method: 'POST', credentials: 'include', cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'mediaLibrary', data: next }),
+    })
+    const result = await res.json().catch(() => null)
+    if (!res.ok || result?.success !== true) throw new Error(result?.error || 'Media index could not be saved.')
+    setUploads(next)
+    setStorageError('')
+  }
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`
@@ -40,60 +64,46 @@ export default function MediaUploader({ onNotify }: Props) {
   }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+    const files = Array.from(e.target.files || [])
+    if (!files.length || uploading) return
     setUploading(true)
     setUploadProgress(0)
-
-    // Simulate progress for better UX
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => Math.min(prev + 10, 90))
-    }, 200)
-
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    // Determine upload type based on file
-    let uploadType = 'image'
-    if (file.type.startsWith('video/')) {
-      uploadType = 'video'
-    } else if (file.type.startsWith('audio/')) {
-      uploadType = 'audio'
-    } else if (file.type.includes('pdf') || file.type.includes('document') || file.type.includes('spreadsheet') || file.type.includes('presentation') || file.type.includes('zip')) {
-      uploadType = 'resource'
-    }
-    formData.append('type', uploadType)
-
+    let next = [...uploads]
+    let count = 0
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      })
-      
-      const data = await res.json()
-      
-      clearInterval(progressInterval)
-      setUploadProgress(100)
-
-      if (data.success) {
-        const newUpload: UploadedFile = {
-          id: Date.now().toString(),
-          name: file.name,
-          url: data.url,
-          type: getFileType(file.type),
-          size: formatFileSize(file.size),
-          uploadedAt: new Date()
+      for (const file of files) {
+        const image = file.type.startsWith('image/')
+        if (!file.size || image && (file.size > 10 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type))) {
+          throw new Error(file.name + ': unsupported image type or file exceeds 10 MB.')
         }
-        setUploads(prev => [newUpload, ...prev])
-        onNotify('success', 'File uploaded successfully!')
-      } else {
-        onNotify('error', data.error || 'Upload failed')
+        let url: string
+        if (image) {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-100)
+          const upload = await uploadToBlob('portfolio/images/' + crypto.randomUUID() + '-' + safeName, file, {
+            access: 'public', handleUploadUrl: '/api/upload/blob',
+          })
+          url = upload.url
+        } else {
+          const formData = new FormData()
+          formData.append('file', file)
+          const type = file.type.startsWith('video/') ? 'video' : file.type.startsWith('audio/') ? 'audio' : 'resource'
+          formData.append('type', type)
+          const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
+          const result = await res.json().catch(() => null)
+          if (!res.ok || result?.success !== true || typeof result.url !== 'string') throw new Error(result?.error || 'Upload failed.')
+          url = result.url
+        }
+        next = [{ id: crypto.randomUUID(), name: file.name, url, type: getFileType(file.type), size: formatFileSize(file.size), uploadedAt: new Date() }, ...next]
+        // Save after every successful upload to avoid a partial batch disappearing on error.
+        await saveLibrary(next)
+        count++
+        setUploadProgress(Math.round(count / files.length * 100))
       }
-    } catch (err) {
-      console.error('Upload error:', err)
-      onNotify('error', 'Upload failed. Please try again.')
+      onNotify('success', count + ' file(s) uploaded and saved to the public media library.')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Media upload failed.'
+      setStorageError(message)
+      onNotify('error', message)
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -108,8 +118,12 @@ export default function MediaUploader({ onNotify }: Props) {
     onNotify('success', 'URL copied to clipboard!')
   }
 
-  const removeUpload = (id: string) => {
-    setUploads(prev => prev.filter(u => u.id !== id))
+  const removeUpload = async (id: string) => {
+    if (!window.confirm('Remove this entry from the media library? Published files will remain available.')) return
+    try {
+      await saveLibrary(uploads.filter(u => u.id !== id))
+      onNotify('success', 'Media entry removed; existing published links remain valid.')
+    } catch (error) { onNotify('error', error instanceof Error ? error.message : 'Removal failed.') }
   }
 
   return (
@@ -120,10 +134,11 @@ export default function MediaUploader({ onNotify }: Props) {
             <Upload className="w-6 h-6 text-primary-500" />
             Media Upload
           </h1>
-          <p className="text-dark-400 mt-1">Upload images, videos, and documents</p>
+          <p className="text-dark-400 mt-1">Upload multiple images and files, then reuse their URLs across the portfolio.</p>
         </div>
       </div>
 
+      {storageError && <p role="alert" className="mb-4 rounded-lg border border-red-800 bg-red-950/40 p-3 text-sm text-red-200">{storageError}</p>}
       {/* Upload Zone */}
       <div className="mb-8">
         <div
@@ -160,13 +175,13 @@ export default function MediaUploader({ onNotify }: Props) {
                 </div>
               </div>
               <p className="text-white text-lg mb-2">
-                Click to upload or drag and drop
+                Select one or more files
               </p>
               <p className="text-dark-400 text-sm">
                 Images (JPG, PNG, WebP, GIF) • Videos (MP4, WebM, MOV) • Documents (PDF, DOC)
               </p>
               <p className="text-dark-500 text-xs mt-2">
-                Max size: 5MB for images, 100MB for videos, 10MB for documents
+                Images up to 10 MB. Videos and documents use the existing Cloudinary route and hosting limits.
               </p>
             </>
           )}
@@ -174,7 +189,8 @@ export default function MediaUploader({ onNotify }: Props) {
         <input
           ref={fileRef}
           type="file"
-          accept="image/*,video/*,application/pdf,.doc,.docx"
+          multiple
+          accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/*,audio/*,application/pdf,.doc,.docx"
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -274,12 +290,12 @@ export default function MediaUploader({ onNotify }: Props) {
 
       {/* Instructions */}
       <div className="mt-8 p-4 bg-dark-800/30 border border-dark-700 rounded-xl">
-        <h3 className="text-white font-medium mb-2">💡 Tips</h3>
+        <h3 className="text-white font-medium mb-2">Media library notes</h3>
         <ul className="text-dark-400 text-sm space-y-1">
           <li>• Copy the URL after uploading to use in your content</li>
-          <li>• Videos are automatically optimized for web playback</li>
-          <li>• Images are resized to max 1200x1200 for better performance</li>
-          <li>• All uploads are stored securely on Cloudinary</li>
+          <li>• Public images are stored in Vercel Blob; other files use the existing upload provider.</li>
+          <li>• Removing an entry from this list does not delete the original asset or break published pages.</li>
+          <li>• Reloading this page restores published media entries from the same public data API.</li>
         </ul>
       </div>
     </div>
