@@ -16,6 +16,7 @@ export async function uploadAdminImage(file: File): Promise<string> {
   })
 
   // Publishing the library index is separate from attaching the URL to a page.
+  // Read immediately before publishing; never reuse a stale editor snapshot.
   const existing = await fetchMediaLibrary()
   const asset: MediaAsset = {
     id: crypto.randomUUID(), name: file.name, url: result.url, kind: 'image',
