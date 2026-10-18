@@ -56,3 +56,21 @@ test('published edits invalidate other public tabs without discarding admin draf
   assert.match(sync, /location\.reload\(\)/)
   assert.match(provider, /<PortfolioPublicationSync \/>/)
 })
+
+
+test('media uploads can recover a URL when library publishing fails', () => {
+  const ui = read('src/components/admin/MediaUploader.tsx')
+  assert.match(ui, /setRecoveryUrl\(uploadedUrl\)/)
+  assert.match(ui, /Recovery image URL/)
+  assert.match(ui, /await fetchMediaLibrary\(\)/)
+  assert.match(ui, /image\/avif/)
+})
+
+test('private and public storage health remain separate and admin-only', () => {
+  const health = read('src/app/api/admin/storage-health/route.ts')
+  const storage = read('src/lib/blob-json.ts')
+  assert.match(health, /await isAuthenticated\(\)/)
+  assert.match(health, /PRIVATE_BLOB_READ_WRITE_TOKEN/)
+  assert.match(health, /BLOB_READ_WRITE_TOKEN/)
+  assert.match(storage, /access === 'private' \? 'PRIVATE_BLOB_READ_WRITE_TOKEN' : 'BLOB_READ_WRITE_TOKEN'/)
+})
