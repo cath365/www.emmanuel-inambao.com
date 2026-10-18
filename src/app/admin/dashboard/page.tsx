@@ -24,6 +24,7 @@ import CertificationEditor from '@/components/admin/CertificationEditor'
 import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
 import EngineeringDirectionEditor from '@/components/admin/EngineeringDirectionEditor'
+import MediaLibraryPicker from '@/components/admin/MediaLibraryPicker'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 import SkillsEditor from '@/components/admin/SkillsEditor'
@@ -1336,6 +1337,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
               )}
               Upload Cover
             </button>
+            <MediaLibraryPicker onSelect={url => setFormData(previous => ({ ...previous, coverImage: url }))} />
             {formData.coverImage && (
               <button
                 type="button"
@@ -1718,7 +1720,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                     </>
                   )}
                 </button>
-                <p className="text-dark-500 text-xs mt-1">JPG, PNG, WebP (max 5MB)</p>
+                <div className="mt-2"><MediaLibraryPicker onSelect={url => setFormData(previous => ({ ...previous, image: url }))} /></div>
               </div>
               <input
                 ref={fileInputRef}
