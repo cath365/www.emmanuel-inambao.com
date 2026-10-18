@@ -23,6 +23,7 @@ import TestimonialEditor from '@/components/admin/TestimonialEditor'
 import CertificationEditor from '@/components/admin/CertificationEditor'
 import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
+import EngineeringDirectionEditor from '@/components/admin/EngineeringDirectionEditor'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 import SkillsEditor from '@/components/admin/SkillsEditor'
@@ -30,7 +31,7 @@ import CaseStudyManager from '@/components/admin/CaseStudyManager'
 import MarketPricingManager from '@/components/admin/MarketPricingManager'
 import InstitutionalProgramsEditor from '@/components/admin/InstitutionalProgramsEditor'
 
-type TabType = 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'institutionalPrograms' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'institutionalPrograms' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'engineeringDirection' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -506,6 +507,10 @@ export default function AdminDashboard() {
               <Settings className="w-5 h-5" />
               Services
             </button>
+            <button type="button" onClick={() => setActiveTab('engineeringDirection')}
+              className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${activeTab === 'engineeringDirection' ? 'text-primary-400 border-primary-500 lg:bg-primary-500/10' : 'text-dark-400 border-transparent hover:text-white lg:border-dark-700 lg:bg-dark-900/40'}`}>
+              <GraduationCap className="w-5 h-5" /> 10-Year Direction
+            </button>
             <button
               onClick={() => setActiveTab('media')}
               className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
@@ -930,6 +935,10 @@ export default function AdminDashboard() {
               <ServiceEditor 
                 onNotify={(type, message) => setNotification({ type, message })}
               />
+            </motion.div>
+          ) : activeTab === 'engineeringDirection' ? (
+            <motion.div key="engineeringDirection" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+              <EngineeringDirectionEditor onNotify={(type, message) => setNotification({ type, message })} />
             </motion.div>
           ) : activeTab === 'media' ? (
             <motion.div
