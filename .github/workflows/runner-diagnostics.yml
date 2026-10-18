@@ -1,0 +1,25 @@
+name: Runner Diagnostics
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  runner-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm runner starts
+        run: |
+          echo "GitHub hosted runner started"
+          echo "RUNNER_OS=$RUNNER_OS"
+          node --version
+          npm --version
+      - name: Record evidence
+        run: |
+          mkdir -p runner-health
+          echo "runner initialized successfully" > runner-health/result.txt
+      - name: Upload evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-health-diagnostic
+          path: runner-health/
+          retention-days: 1
