@@ -28,6 +28,7 @@ export default function MediaUploader({ onNotify }: Props) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [storageError, setStorageError] = useState('')
+  const [libraryReady, setLibraryReady] = useState(false)
   useEffect(() => {
     let active = true
     fetch('/api/portfolio-data?key=mediaLibrary', { cache: 'no-store', credentials: 'include' })
@@ -37,6 +38,7 @@ export default function MediaUploader({ onNotify }: Props) {
         if (active && Array.isArray(data)) setUploads(data.filter((x: UploadedFile) => x && typeof x.url === 'string' && /^https:\/\//.test(x.url)))
       })
       .catch(error => { if (active) setStorageError(error instanceof Error ? error.message : 'Could not load media.') })
+      .finally(() => { if (active) setLibraryReady(true) })
     return () => { active = false }
   }, [])
   const saveLibrary = async (next: UploadedFile[]) => {
@@ -65,7 +67,7 @@ export default function MediaUploader({ onNotify }: Props) {
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    if (!files.length || uploading) return
+    if (!files.length || uploading || !libraryReady || storageError) return
     setUploading(true)
     setUploadProgress(0)
     let next = [...uploads]
@@ -139,10 +141,11 @@ export default function MediaUploader({ onNotify }: Props) {
       </div>
 
       {storageError && <p role="alert" className="mb-4 rounded-lg border border-red-800 bg-red-950/40 p-3 text-sm text-red-200">{storageError}</p>}
+      {!libraryReady && <p className="mb-3 text-sm text-dark-300">Loading saved media before allowing changes…</p>}
       {/* Upload Zone */}
       <div className="mb-8">
         <div
-          onClick={() => !uploading && fileRef.current?.click()}
+          onClick={() => !uploading && libraryReady && !storageError && fileRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
             uploading 
               ? 'border-primary-500 bg-primary-500/10' 
