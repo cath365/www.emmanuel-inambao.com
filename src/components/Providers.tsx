@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import { AuthProvider } from '@/lib/auth'
 import { ProjectsProvider } from '@/lib/projects'
 import { ProfileProvider } from '@/lib/profile'
+import { SiteContentProvider } from '@/lib/site-content'
 import { ExperienceProvider } from '@/lib/experience'
 import { TestimonialProvider } from '@/lib/testimonials'
 import { CertificationProvider } from '@/lib/certifications'
@@ -20,6 +21,7 @@ import { LanguageProvider } from '@/lib/i18n'
 import SkipToContent from '@/components/ui/SkipToContent'
 import ScrollProgress from '@/components/ui/ScrollProgress'
 import ServiceWorkerRegistrar from '@/components/ui/ServiceWorkerRegistrar'
+import PortfolioPublicationSync from '@/components/ui/PortfolioPublicationSync'
 
 const AIChatbot = dynamic(() => import('@/components/ui/AIChatbot'), { ssr: false })
 const CookieConsent = dynamic(() => import('@/components/ui/CookieConsent'), { ssr: false })
@@ -37,7 +39,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <LanguageProvider>
         <AuthProvider>
           <ProfileProvider>
-            <ProjectsProvider>
+            <SiteContentProvider>
+              <ProjectsProvider>
               <ExperienceProvider>
                 <TestimonialProvider>
                   <CertificationProvider>
@@ -47,6 +50,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                           <ResourcesProvider>
                           <GalleryProvider>
                             <SkipToContent />
+                            <PortfolioPublicationSync />
                             {!isAdminPage && <ScrollProgress />}
                             {!isAdminPage && <Navbar />}
 
@@ -68,7 +72,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                   </CertificationProvider>
                 </TestimonialProvider>
               </ExperienceProvider>
-            </ProjectsProvider>
+              </ProjectsProvider>
+            </SiteContentProvider>
           </ProfileProvider>
         </AuthProvider>
       </LanguageProvider>

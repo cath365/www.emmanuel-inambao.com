@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Plus, Save, Trash2 } from 'lucide-react'
+import MediaLibraryPicker from './MediaLibraryPicker'
 import {
   type InstitutionalProgram,
   useInstitutionalPrograms,
@@ -177,6 +178,11 @@ export default function InstitutionalProgramsEditor({
                   className="mt-2 w-full resize-none rounded-lg border border-dark-700 bg-dark-950 px-3 py-2.5 text-white outline-none focus:border-primary-500"
                 />
               </label>
+              <div className="space-y-2 md:col-span-2"><p className="text-sm text-dark-300">Programme image</p>
+                <div className="flex flex-wrap items-center gap-3"><MediaLibraryPicker onSelect={url => update(program.id, { image: url })} />
+                  {program.image && <><img src={program.image} alt={program.institution} className="h-16 w-24 rounded object-cover" /><button type="button" className="text-sm text-red-300" onClick={() => update(program.id, { image: '' })}>Remove image</button></>}
+                </div>
+              </div>
               <label className="text-sm text-dark-300 md:col-span-2">
                 Status / evidence note
                 <input

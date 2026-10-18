@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import { useServices, Service } from '@/lib/services'
 import Image from 'next/image'
+import MediaLibraryPicker from './MediaLibraryPicker'
+import { uploadAdminImage } from '@/lib/admin-media-upload'
 
 const iconOptions = [
   { value: 'cpu', label: 'CPU/Hardware', icon: Cpu },
@@ -194,16 +196,15 @@ function ServiceModal({
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'service')
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
-      const data = await res.json()
-      if (data.success) setForm({ ...form, image: data.url })
-      else alert(data.error || 'Upload failed')
-    } catch (err) { console.error('Upload error:', err); alert('Upload failed') }
-    finally { setUploading(false) }
+      const url = await uploadAdminImage(file)
+      setForm(previous => ({ ...previous, image: url }))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Image upload failed.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
   const addFeature = () => {
@@ -267,6 +268,7 @@ function ServiceModal({
                 {uploading ? 'Uploading...' : 'Upload Image'}
               </button>
               <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+              <MediaLibraryPicker onSelect={url => setForm(previous => ({ ...previous, image: url }))} />
             </div>
           </div>
 

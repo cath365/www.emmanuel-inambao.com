@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useGallery, GalleryItem } from '@/lib/gallery'
 import Image from 'next/image'
+import MediaLibraryPicker from './MediaLibraryPicker'
 
 const categoryColors = {
   project: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -409,6 +410,8 @@ export default function GalleryEditor() {
                     className="hidden"
                   />
                 </div>
+
+                <div className="mb-3"><MediaLibraryPicker onSelect={url => setEditingItem(previous => previous ? { ...previous, url, type: 'image' } : previous)} /></div>
 
                 {/* Title */}
                 <div>

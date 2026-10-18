@@ -9,6 +9,8 @@ import {
 import { useTestimonials, Testimonial } from '@/lib/testimonials'
 import Image from 'next/image'
 import { uploadTestimonialMedia } from '@/lib/testimonial-upload'
+import { uploadAdminImage } from '@/lib/admin-media-upload'
+import MediaLibraryPicker from './MediaLibraryPicker'
 
 interface Props {
   onNotify: (type: 'success' | 'error', message: string) => void
@@ -251,7 +253,7 @@ function TestimonialModal({
     const file = event.target.files?.[0]
     if (!file) return
     setUploadingImage(true)
-    try { const image = await uploadTestimonialMedia(file); setForm(previous => ({ ...previous, image })) }
+    try { const image = await uploadAdminImage(file); setForm(previous => ({ ...previous, image })) }
     catch (error) { alert(error instanceof Error ? error.message : 'Photo upload failed.') }
     finally { setUploadingImage(false) }
   }
@@ -309,6 +311,7 @@ function TestimonialModal({
                   {uploadingImage ? 'Uploading...' : 'Upload Photo'}
                 </button>
                 <input ref={imageRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                <MediaLibraryPicker onSelect={url => setForm(previous => ({ ...previous, image: url }))} />
               </div>
             </div>
 
