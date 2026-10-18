@@ -7,7 +7,7 @@ import { readPublicJson, storageError } from '@/lib/blob-json'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing', 'institutionalPrograms']
+const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing', 'institutionalPrograms', 'mediaLibrary', 'engineeringDirection']
 
 function blobPath(key: string) {
   return `data/portfolio/${key}.json`
@@ -70,6 +70,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (process.env.VERCEL_ENV === 'preview' && process.env.ALLOW_PREVIEW_CMS_WRITES !== 'true') {
+    return NextResponse.json({ error: 'Preview publishing is disabled until an isolated preview Blob store is configured.' }, { status: 403 })
   }
   try {
     const { key, data } = await request.json()
