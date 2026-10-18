@@ -29,7 +29,7 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-dark-400 mb-8 text-lg">
-            Oops! The page you're looking for seems to have wandered off into the digital void.
+            Oops! The page you&apos;re looking for seems to have wandered off into the digital void.
           </p>
 
           {/* Action buttons */}
