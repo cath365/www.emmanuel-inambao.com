@@ -24,6 +24,7 @@ export default function MediaUploader({ onNotify }: Props) {
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
   const [recoveryUrl, setRecoveryUrl] = useState('')
+  const [storageStatus, setStorageStatus] = useState<{ publicMedia: string; privateSubmissions: string } | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const load = async () => {
@@ -33,7 +34,13 @@ export default function MediaUploader({ onNotify }: Props) {
     catch (err) { setError(err instanceof Error ? err.message : 'Unable to load the media library.') }
     finally { setLoading(false) }
   }
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void load()
+    void fetch('/api/admin/storage-health', { credentials: 'include', cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(result => { if (result?.publicMedia && result?.privateSubmissions) setStorageStatus(result) })
+      .catch(() => { /* Admin may be on an older deployment. */ })
+  }, [])
 
   const publish = async (next: MediaAsset[]) => {
     await persistPortfolioData('mediaLibrary', next)
@@ -137,6 +144,7 @@ export default function MediaUploader({ onNotify }: Props) {
       <p className="mt-2 text-xs text-dark-400">Images JPG, PNG, WebP, GIF, AVIF • Videos MP4/WebM/MOV • documents PDF/DOCX • Max 10MB image; other files require Cloudinary and may be limited by host request size.</p>
       <input ref={inputRef} type="file" multiple disabled={busy} className="sr-only" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" onChange={e => void uploadFiles(e.target.files)} />
     </label>
+    {storageStatus && <p className="rounded-lg border border-dark-700 p-3 text-sm text-dark-300" aria-live="polite">Public image storage: <strong className={storageStatus.publicMedia === 'connected' ? 'text-green-400' : 'text-amber-300'}>{storageStatus.publicMedia}</strong> · Private enquiry storage: <strong className={storageStatus.privateSubmissions === 'connected' ? 'text-green-400' : 'text-amber-300'}>{storageStatus.privateSubmissions}</strong>. These stores must remain separate.</p>}
     {error && <div role="alert" className="rounded-lg border border-red-700 bg-red-950/40 p-3 text-sm text-red-200">{error}</div>}
     {recoveryUrl && <div className="rounded-lg border border-amber-700 p-3 text-sm text-amber-200"><p>Upload completed; library publishing failed. Save this image URL so you can attach it later:</p><input aria-label="Recovery image URL" className="mt-2 w-full rounded bg-dark-950 p-2 text-xs" readOnly value={recoveryUrl} onFocus={event => event.currentTarget.select()} /></div>}
     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold text-white">Saved files ({items.length})</h2>
