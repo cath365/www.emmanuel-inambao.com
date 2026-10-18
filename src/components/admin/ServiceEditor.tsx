@@ -1,5 +1,6 @@
 'use client'
 
+import MediaLibraryPicker from './MediaLibraryPicker'
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -267,6 +268,7 @@ function ServiceModal({
                 {uploading ? 'Uploading...' : 'Upload Image'}
               </button>
               <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+              <MediaLibraryPicker onSelect={url => setForm(previous => ({ ...previous, image: url }))} />
             </div>
           </div>
 
