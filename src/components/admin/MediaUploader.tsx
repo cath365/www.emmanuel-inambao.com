@@ -5,6 +5,7 @@ import { Check, Copy, ExternalLink, File, Image as ImageIcon, RefreshCw, Upload,
 import { fetchMediaLibrary, type MediaAsset } from '@/lib/media-library'
 import { persistPortfolioData } from '@/lib/portfolio-persistence'
 import { upload as uploadToBlob } from '@vercel/blob/client'
+import { ensurePublicImageUploadReady, safePublicImageName } from '@/lib/public-image-upload'
 
 interface Props { onNotify: (type: 'success' | 'error', message: string) => void }
 
@@ -70,13 +71,18 @@ export default function MediaUploader({ onNotify }: Props) {
           // Direct browser-to-Blob uploads bypass the host's ~4.5MB function-body limit.
           // A server route checks the signed admin session before issuing a token.
           try {
-            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-100)
+            await ensurePublicImageUploadReady()
+            const safeName = safePublicImageName(file.name)
             const result = await uploadToBlob(`portfolio/images/${crypto.randomUUID()}-${safeName}`, file, {
               access: 'public', handleUploadUrl: '/api/upload/blob',
             })
             uploadedUrl = result.url
           } catch (error) {
-            throw new Error(`${file.name}: ${error instanceof Error ? error.message : 'Public Blob upload failed.'}`)
+            const detail = error instanceof Error ? error.message : 'Public Blob upload failed.'
+            const reason = /failed to retrieve the client token/i.test(detail)
+              ? 'Image upload token was rejected. Refresh the dashboard and sign in again. If the issue continues, check /api/upload/blob in Vercel logs.'
+              : detail
+            throw new Error(`${file.name}: ${reason}`)
           }
         } else {
           const form = new FormData()
