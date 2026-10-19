@@ -1,287 +1,185 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  Upload, Video, Image as ImageIcon, File, Trash2, 
-  Copy, Check, ExternalLink, Play
-} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Check, Copy, ExternalLink, File, Image as ImageIcon, RefreshCw, Upload, Video, X } from 'lucide-react'
+import { fetchMediaLibrary, type MediaAsset } from '@/lib/media-library'
+import { persistPortfolioData } from '@/lib/portfolio-persistence'
+import { upload as uploadToBlob } from '@vercel/blob/client'
+import { ensurePublicImageUploadReady, safePublicImageName } from '@/lib/public-image-upload'
 
-interface UploadedFile {
-  id: string
-  name: string
-  url: string
-  type: 'image' | 'video' | 'document'
-  size: string
-  uploadedAt: Date
-}
+interface Props { onNotify: (type: 'success' | 'error', message: string) => void }
 
-interface Props {
-  onNotify: (type: 'success' | 'error', message: string) => void
+function kindOf(file: File): MediaAsset['kind'] {
+  if (file.type.startsWith('image/')) return 'image'
+  if (file.type.startsWith('video/')) return 'video'
+  if (file.type.startsWith('audio/')) return 'audio'
+  return 'document'
 }
 
 export default function MediaUploader({ onNotify }: Props) {
-  const [uploads, setUploads] = useState<UploadedFile[]>([])
-  const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [copiedId, setCopiedId] = useState<string | null>(null)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [items, setItems] = useState<MediaAsset[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [currentFile, setCurrentFile] = useState('')
+  const [copied, setCopied] = useState('')
+  const [search, setSearch] = useState('')
+  const [error, setError] = useState('')
+  const [recoveryUrl, setRecoveryUrl] = useState('')
+  const [storageStatus, setStorageStatus] = useState<{ publicMedia: string; privateSubmissions: string } | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  const load = async () => {
+    setLoading(true)
+    setError('')
+    try { setItems(await fetchMediaLibrary()) }
+    catch (err) { setError(err instanceof Error ? err.message : 'Unable to load the media library.') }
+    finally { setLoading(false) }
+  }
+  useEffect(() => {
+    void load()
+    void fetch('/api/admin/storage-health', { credentials: 'include', cache: 'no-store' })
+      .then(response => response.ok ? response.json() : null)
+      .then(result => { if (result?.publicMedia && result?.privateSubmissions) setStorageStatus(result) })
+      .catch(() => { /* Admin may be on an older deployment. */ })
+  }, [])
+
+  const publish = async (next: MediaAsset[]) => {
+    await persistPortfolioData('mediaLibrary', next)
+    setItems(next)
   }
 
-  const getFileType = (mimeType: string): 'image' | 'video' | 'document' => {
-    if (mimeType.startsWith('image/')) return 'image'
-    if (mimeType.startsWith('video/')) return 'video'
-    return 'document'
-  }
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    setUploadProgress(0)
-
-    // Simulate progress for better UX
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => Math.min(prev + 10, 90))
-    }, 200)
-
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    // Determine upload type based on file
-    let uploadType = 'image'
-    if (file.type.startsWith('video/')) {
-      uploadType = 'video'
-    } else if (file.type.startsWith('audio/')) {
-      uploadType = 'audio'
-    } else if (file.type.includes('pdf') || file.type.includes('document') || file.type.includes('spreadsheet') || file.type.includes('presentation') || file.type.includes('zip')) {
-      uploadType = 'resource'
-    }
-    formData.append('type', uploadType)
-
+  const uploadFiles = async (files: FileList | null) => {
+    if (!files?.length || busy) return
+    setBusy(true)
+    let next = [...items]
+    setRecoveryUrl('')
+    let uploaded = 0
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      })
-      
-      const data = await res.json()
-      
-      clearInterval(progressInterval)
-      setUploadProgress(100)
-
-      if (data.success) {
-        const newUpload: UploadedFile = {
-          id: Date.now().toString(),
-          name: file.name,
-          url: data.url,
-          type: getFileType(file.type),
-          size: formatFileSize(file.size),
-          uploadedAt: new Date()
+      // Sequential writes prevent one upload's index update overwriting another.
+      for (const file of Array.from(files)) {
+        setCurrentFile(file.name)
+        const kind = kindOf(file)
+        const limit = kind === 'video' ? 100 : kind === 'document' ? 50 : 10
+        if (!file.size || file.size > limit * 1024 * 1024) {
+          throw new Error(`${file.name}: file must be smaller than ${limit}MB.`)
         }
-        setUploads(prev => [newUpload, ...prev])
-        onNotify('success', 'File uploaded successfully!')
-      } else {
-        onNotify('error', data.error || 'Upload failed')
+        if (kind === 'image' && !['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type)) {
+          throw new Error(`${file.name}: please choose a JPG, PNG, WebP, GIF or AVIF picture.`)
+        }
+        let uploadedUrl = ''
+        if (kind === 'image') {
+          // Direct browser-to-Blob uploads bypass the host's ~4.5MB function-body limit.
+          // A server route checks the signed admin session before issuing a token.
+          try {
+            await ensurePublicImageUploadReady()
+            const safeName = safePublicImageName(file.name)
+            const result = await uploadToBlob(`portfolio/images/${crypto.randomUUID()}-${safeName}`, file, {
+              access: 'public', handleUploadUrl: '/api/upload/blob',
+            })
+            uploadedUrl = result.url
+          } catch (error) {
+            const detail = error instanceof Error ? error.message : 'Public Blob upload failed.'
+            const reason = /failed to retrieve the client token/i.test(detail)
+              ? 'Image upload token was rejected. Refresh the dashboard and sign in again. If the issue continues, check /api/upload/blob in Vercel logs.'
+              : detail
+            throw new Error(`${file.name}: ${reason}`)
+          }
+        } else {
+          const form = new FormData()
+          form.append('file', file)
+          form.append('type', kind === 'document' ? 'resource' : kind)
+          const response = await fetch('/api/upload', { method: 'POST', body: form, credentials: 'include' })
+          const body = await response.json().catch(() => ({}))
+          if (!response.ok || !body.success || !body.url) throw new Error(`${file.name}: ${body.error || 'upload failed'}`)
+          uploadedUrl = body.url
+        }
+        const asset: MediaAsset = {
+          id: crypto.randomUUID(), name: file.name, url: uploadedUrl, kind,
+          mimeType: file.type, size: file.size, alt: file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' '),
+          createdAt: new Date().toISOString(),
+        }
+        // Never publish a stale index if the latest library cannot be read.
+        // Keep the uploaded URL recoverable if indexing fails after a successful upload.
+        try {
+          const latest = await fetchMediaLibrary()
+          next = [asset, ...latest.filter(item => item.url !== asset.url)]
+          await publish(next)
+        } catch {
+          setRecoveryUrl(uploadedUrl)
+          throw new Error(`${file.name} uploaded successfully but its library record could not be saved. Keep the recovery URL below and retry when publishing is available.`)
+        }
+        uploaded++
       }
+      onNotify('success', `${uploaded} file${uploaded === 1 ? '' : 's'} uploaded and saved to the media library.`)
     } catch (err) {
-      console.error('Upload error:', err)
-      onNotify('error', 'Upload failed. Please try again.')
+      setError(err instanceof Error ? err.message : 'Upload failed.')
+      onNotify('error', err instanceof Error ? err.message : 'Upload failed.')
     } finally {
-      setUploading(false)
-      setUploadProgress(0)
-      if (fileRef.current) fileRef.current.value = ''
+      setBusy(false)
+      setCurrentFile('')
+      if (inputRef.current) inputRef.current.value = ''
     }
   }
 
-  const copyToClipboard = (url: string, id: string) => {
-    navigator.clipboard.writeText(url)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-    onNotify('success', 'URL copied to clipboard!')
+  const updateItem = async (id: string, alt: string) => {
+    try { await publish(items.map(item => item.id === id ? { ...item, alt } : item)); onNotify('success', 'Image description saved.') }
+    catch (err) { onNotify('error', err instanceof Error ? err.message : 'Could not save image description.') }
   }
 
-  const removeUpload = (id: string) => {
-    setUploads(prev => prev.filter(u => u.id !== id))
+  const removeItem = async (item: MediaAsset) => {
+    if (!window.confirm(`Remove “${item.name}” from the media library? This does not delete the original cloud file or remove it from pages where it is used.`)) return
+    try { await publish(items.filter(other => other.id !== item.id)); onNotify('success', 'Removed from the library index (original file preserved).') }
+    catch (err) { onNotify('error', err instanceof Error ? err.message : 'Could not update the library.') }
   }
 
-  return (
-    <div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Upload className="w-6 h-6 text-primary-500" />
-            Media Upload
-          </h1>
-          <p className="text-dark-400 mt-1">Upload images, videos, and documents</p>
+  const copyUrl = async (item: MediaAsset) => {
+    try { await navigator.clipboard.writeText(item.url); setCopied(item.id); onNotify('success', 'Media URL copied.') }
+    catch { onNotify('error', 'Copy failed. Open the file and copy its URL instead.') }
+  }
+
+  const visible = items.filter(item => `${item.name} ${item.alt} ${item.kind}`.toLowerCase().includes(search.toLowerCase()))
+
+  return <section className="space-y-6">
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div><h1 className="flex items-center gap-2 text-2xl font-bold text-white"><Upload className="h-6 w-6 text-primary-500" />Media Library</h1>
+        <p className="mt-1 text-sm text-dark-400">Upload pictures, videos, audio and documents. Files stay in your cloud storage; this list is saved to public portfolio data.</p></div>
+      <button type="button" onClick={() => void load()} disabled={busy || loading} className="btn-secondary inline-flex items-center gap-2"><RefreshCw className="h-4 w-4" /> Refresh</button>
+    </div>
+    <label className={`block cursor-pointer rounded-xl border-2 border-dashed border-primary-500/50 bg-dark-900 p-8 text-center hover:border-primary-400 ${busy ? 'pointer-events-none opacity-60' : ''}`}>
+      <div className="mb-2 flex justify-center gap-4 text-primary-400"><ImageIcon /><Video /><File /></div>
+      <span className="font-medium text-white">{busy ? `Uploading and publishing: ${currentFile}` : 'Choose images or other files (multiple files supported)'}</span>
+      <p className="mt-2 text-xs text-dark-400">Images JPG, PNG, WebP, GIF, AVIF • Videos MP4/WebM/MOV • documents PDF/DOCX • Max 10MB image; other files require Cloudinary and may be limited by host request size.</p>
+      <input ref={inputRef} type="file" multiple disabled={busy} className="sr-only" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4,video/webm,video/quicktime,audio/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" onChange={e => void uploadFiles(e.target.files)} />
+    </label>
+    {storageStatus && <p className="rounded-lg border border-dark-700 p-3 text-sm text-dark-300" aria-live="polite">Public image storage: <strong className={storageStatus.publicMedia === 'connected' ? 'text-green-400' : 'text-amber-300'}>{storageStatus.publicMedia}</strong> · Private enquiry storage: <strong className={storageStatus.privateSubmissions === 'connected' ? 'text-green-400' : 'text-amber-300'}>{storageStatus.privateSubmissions}</strong>. These stores must remain separate.</p>}
+    {error && <div role="alert" className="rounded-lg border border-red-700 bg-red-950/40 p-3 text-sm text-red-200">{error}</div>}
+    {recoveryUrl && <div className="rounded-lg border border-amber-700 p-3 text-sm text-amber-200"><p>Upload completed; library publishing failed. Save this image URL so you can attach it later:</p><input aria-label="Recovery image URL" className="mt-2 w-full rounded bg-dark-950 p-2 text-xs" readOnly value={recoveryUrl} onFocus={event => event.currentTarget.select()} /></div>}
+    <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold text-white">Saved files ({items.length})</h2>
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search saved media" aria-label="Search saved media" className="rounded-lg border border-dark-700 bg-dark-900 p-2 text-white" /></div>
+    {loading && <p className="text-dark-300">Loading saved media…</p>}
+    {!loading && !error && !visible.length && <p className="text-dark-400">No files yet. Upload one above to start your library.</p>}
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {visible.map(item => <article key={item.id} className="min-w-0 overflow-hidden rounded-xl border border-dark-700 bg-dark-800/50">
+        <div className="relative flex aspect-video items-center justify-center bg-dark-950">
+          {item.kind === 'image' ? <img src={item.url} alt={item.alt || item.name} loading="lazy" className="h-full w-full object-contain" />
+            : item.kind === 'video' ? <video src={item.url} controls preload="metadata" className="h-full w-full" />
+            : <File className="h-12 w-12 text-dark-500" />}
+          <span className="absolute left-2 top-2 rounded bg-black/80 px-2 py-1 text-xs capitalize text-white">{item.kind}</span>
         </div>
-      </div>
-
-      {/* Upload Zone */}
-      <div className="mb-8">
-        <div
-          onClick={() => !uploading && fileRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-            uploading 
-              ? 'border-primary-500 bg-primary-500/10' 
-              : 'border-dark-700 hover:border-primary-500 hover:bg-dark-800/50'
-          }`}
-        >
-          {uploading ? (
-            <div className="space-y-4">
-              <div className="w-16 h-16 mx-auto border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-white">Uploading... {uploadProgress}%</p>
-              <div className="w-full max-w-xs mx-auto h-2 bg-dark-700 rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-primary-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="flex justify-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-blue-400" />
-                </div>
-                <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                  <Video className="w-6 h-6 text-purple-400" />
-                </div>
-                <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <File className="w-6 h-6 text-green-400" />
-                </div>
-              </div>
-              <p className="text-white text-lg mb-2">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-dark-400 text-sm">
-                Images (JPG, PNG, WebP, GIF) • Videos (MP4, WebM, MOV) • Documents (PDF, DOC)
-              </p>
-              <p className="text-dark-500 text-xs mt-2">
-                Max size: 5MB for images, 100MB for videos, 10MB for documents
-              </p>
-            </>
-          )}
-        </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,video/*,application/pdf,.doc,.docx"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-      </div>
-
-      {/* Recent Uploads */}
-      {uploads.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Recent Uploads</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {uploads.map((upload) => (
-              <motion.div
-                key={upload.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-dark-800/50 border border-dark-700 rounded-xl overflow-hidden"
-              >
-                {/* Preview */}
-                <div className="aspect-video bg-dark-900 relative">
-                  {upload.type === 'image' && (
-                    <img 
-                      src={upload.url} 
-                      alt={upload.name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                  {upload.type === 'video' && (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <video src={upload.url} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                        <Play className="w-12 h-12 text-white" fill="white" />
-                      </div>
-                    </div>
-                  )}
-                  {upload.type === 'document' && (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <File className="w-16 h-16 text-dark-500" />
-                    </div>
-                  )}
-                  
-                  {/* Type badge */}
-                  <span className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium ${
-                    upload.type === 'image' ? 'bg-blue-500/80 text-white' :
-                    upload.type === 'video' ? 'bg-purple-500/80 text-white' :
-                    'bg-green-500/80 text-white'
-                  }`}>
-                    {upload.type}
-                  </span>
-                </div>
-
-                {/* Info */}
-                <div className="p-4">
-                  <p className="text-white font-medium truncate" title={upload.name}>
-                    {upload.name}
-                  </p>
-                  <p className="text-dark-400 text-sm">{upload.size}</p>
-                  
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-3">
-                    <button
-                      onClick={() => copyToClipboard(upload.url, upload.id)}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-dark-700 hover:bg-dark-600 text-white rounded-lg text-sm"
-                    >
-                      {copiedId === upload.id ? (
-                        <>
-                          <Check className="w-4 h-4 text-green-400" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          Copy URL
-                        </>
-                      )}
-                    </button>
-                    <a
-                      href={upload.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 bg-dark-700 hover:bg-dark-600 text-white rounded-lg"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                    <button
-                      onClick={() => removeUpload(upload.id)}
-                      className="p-2 bg-dark-700 hover:bg-red-600 text-white rounded-lg"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+        <div className="space-y-3 p-4">
+          <p className="truncate font-semibold text-white" title={item.name}>{item.name}</p>
+          <p className="text-xs text-dark-400">{(item.size / 1024 / 1024).toFixed(2)} MB · {new Date(item.createdAt).toLocaleDateString()}</p>
+          {item.kind === 'image' && <label className="block text-xs text-dark-300">Image description (alt text)
+            <input key={`${item.id}-${item.alt}`} defaultValue={item.alt} onBlur={e => { if (e.target.value !== item.alt) void updateItem(item.id, e.target.value) }} className="mt-1 w-full rounded border border-dark-600 bg-dark-950 p-2 text-sm text-white" />
+          </label>}
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => void copyUrl(item)} className="flex flex-1 items-center justify-center gap-2 rounded bg-dark-700 p-2 text-xs text-white hover:bg-dark-600">{copied === item.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}{copied === item.id ? 'Copied' : 'Copy URL'}</button>
+            <a href={item.url} rel="noopener noreferrer" target="_blank" title="Open original file" className="rounded bg-dark-700 p-2 text-white"><ExternalLink className="h-4 w-4" /></a>
+            <button type="button" onClick={() => void removeItem(item)} title="Remove library entry only" aria-label={`Remove ${item.name} from library`} className="rounded bg-dark-700 p-2 text-red-300 hover:bg-red-950"><X className="h-4 w-4" /></button>
           </div>
         </div>
-      )}
-
-      {/* Instructions */}
-      <div className="mt-8 p-4 bg-dark-800/30 border border-dark-700 rounded-xl">
-        <h3 className="text-white font-medium mb-2">💡 Tips</h3>
-        <ul className="text-dark-400 text-sm space-y-1">
-          <li>• Copy the URL after uploading to use in your content</li>
-          <li>• Videos are automatically optimized for web playback</li>
-          <li>• Images are resized to max 1200x1200 for better performance</li>
-          <li>• All uploads are stored securely on Cloudinary</li>
-        </ul>
-      </div>
+      </article>)}
     </div>
-  )
+    <p className="text-xs text-dark-500">For security, removing an entry does not delete the cloud asset or break pages using its URL. Uploaded media is public; never upload private client data here.</p>
+  </section>
 }

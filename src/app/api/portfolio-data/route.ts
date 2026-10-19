@@ -6,8 +6,9 @@ import { readPublicJson, storageError } from '@/lib/blob-json'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
+const MAX_PUBLISHED_JSON_BYTES = 2 * 1024 * 1024
 
-const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing', 'institutionalPrograms']
+const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', 'experiences', 'services', 'gallery', 'resources', 'audio', 'skills', 'caseStudies', 'marketPricing', 'institutionalPrograms', 'mediaLibrary', 'siteContent']
 
 function blobPath(key: string) {
   return `data/portfolio/${key}.json`
@@ -26,6 +27,9 @@ async function writeSection(key: string, data: unknown) {
   }
 
   const payload = JSON.stringify(data)
+  if (Buffer.byteLength(payload, 'utf8') > MAX_PUBLISHED_JSON_BYTES) {
+    throw new Error('Published document is too large (maximum 2MB).')
+  }
   const blob = await put(blobPath(key), payload, {
     access: 'public',
     addRandomSuffix: false,
@@ -68,11 +72,23 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const origin = request.headers.get('origin')
+  if (origin && origin !== request.nextUrl.origin) {
+    return NextResponse.json({ error: 'Invalid request origin.' }, { status: 403 })
+  }
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   try {
-    const { key, data } = await request.json()
+    const declaredLength = Number(request.headers.get('content-length') || '0')
+    if (declaredLength > MAX_PUBLISHED_JSON_BYTES) {
+      return NextResponse.json({ error: 'Published document is too large (maximum 2MB).' }, { status: 413 })
+    }
+    const raw = await request.text()
+    if (Buffer.byteLength(raw, 'utf8') > MAX_PUBLISHED_JSON_BYTES) {
+      return NextResponse.json({ error: 'Published document is too large (maximum 2MB).' }, { status: 413 })
+    }
+    const { key, data } = JSON.parse(raw)
     if (!key || !ALLOWED_KEYS.includes(key)) {
       return NextResponse.json({ error: 'Invalid key' }, { status: 400 })
     }

@@ -23,6 +23,9 @@ import TestimonialEditor from '@/components/admin/TestimonialEditor'
 import CertificationEditor from '@/components/admin/CertificationEditor'
 import ServiceEditor from '@/components/admin/ServiceEditor'
 import MediaUploader from '@/components/admin/MediaUploader'
+import MediaLibraryPicker from '@/components/admin/MediaLibraryPicker'
+import SiteContentEditor from '@/components/admin/SiteContentEditor'
+import { uploadAdminImage } from '@/lib/admin-media-upload'
 import ResourcesEditor from '@/components/admin/ResourcesEditor'
 import GalleryEditor from '@/components/admin/GalleryEditor'
 import SkillsEditor from '@/components/admin/SkillsEditor'
@@ -30,7 +33,7 @@ import CaseStudyManager from '@/components/admin/CaseStudyManager'
 import MarketPricingManager from '@/components/admin/MarketPricingManager'
 import InstitutionalProgramsEditor from '@/components/admin/InstitutionalProgramsEditor'
 
-type TabType = 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'institutionalPrograms' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
+type TabType = 'siteContent' | 'projects' | 'caseStudies' | 'marketPricing' | 'profile' | 'experience' | 'institutionalPrograms' | 'testimonials' | 'certifications' | 'services' | 'skills' | 'media' | 'resources' | 'gallery' | 'leads' | 'bookings' | 'analytics'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -271,10 +274,10 @@ export default function AdminDashboard() {
   const handleSaveProject = (project: Project) => {
     if (isCreating) {
       addProject(project)
-      setNotification({ type: 'success', message: 'Project created successfully!' })
+      // Confirmation is shown after verified cloud publishing completes.
     } else {
       updateProject(project.id, project)
-      setNotification({ type: 'success', message: 'Project updated successfully!' })
+      // Confirmation is shown after verified cloud publishing completes.
     }
     setEditingProject(null)
     setIsCreating(false)
@@ -283,7 +286,7 @@ export default function AdminDashboard() {
   const handleDeleteProject = (id: string) => {
     deleteProject(id)
     setDeleteConfirm(null)
-    setNotification({ type: 'success', message: 'Project deleted successfully!' })
+    // Confirmation is shown after verified cloud publishing completes.
   }
 
   const handleCreateNew = () => {
@@ -371,7 +374,7 @@ export default function AdminDashboard() {
                     ? 'Published'
                     : saveState === 'error'
                       ? 'Save failed'
-                      : 'All changes synced'}
+                      : 'Ready to publish'}
               </div>
               <button
                 type="button"
@@ -407,6 +410,10 @@ export default function AdminDashboard() {
       <div className="bg-dark-900/50 border-b border-dark-700">
         <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 overflow-x-auto pb-px lg:grid lg:grid-cols-5 lg:gap-2 lg:overflow-visible lg:py-3 xl:grid-cols-7 2xl:grid-cols-9">
+            <button type="button" onClick={() => setActiveTab('siteContent')}
+              className={`flex min-h-11 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium lg:rounded-lg lg:border ${activeTab === 'siteContent' ? 'border-primary-500 bg-primary-500/10 text-primary-400' : 'border-transparent text-dark-400 hover:text-white lg:border-dark-700 lg:bg-dark-900/40'}`}>
+              <Edit2 className="h-5 w-5" />Website Text
+            </button>
             <button
               onClick={() => setActiveTab('projects')}
               className={`flex min-h-11 items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap lg:rounded-lg lg:border lg:-mb-0 ${
@@ -606,7 +613,11 @@ export default function AdminDashboard() {
       <main className="mx-auto w-full max-w-[1600px] min-w-0 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <IntegrationStatus />
         <AnimatePresence mode="wait">
-          {activeTab === 'projects' ? (
+          {activeTab === 'siteContent' ? (
+            <motion.div key="siteContent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <SiteContentEditor onNotify={(type, message) => setNotification({ type, message })} />
+            </motion.div>
+          ) : activeTab === 'projects' ? (
             <motion.div
               key="projects"
               initial={{ opacity: 0, x: -20 }}
@@ -872,7 +883,7 @@ export default function AdminDashboard() {
                 profile={profile}
                 onSave={(updates) => {
                   updateProfile(updates)
-                  setNotification({ type: 'success', message: 'Profile updated successfully!' })
+                  // Confirmation is shown after verified cloud publishing completes.
                 }}
               />
             </motion.div>
@@ -1128,27 +1139,14 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     if (!file) return
 
     setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'profile')
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include', // Ensure cookies are sent
-      })
-      const data = await res.json()
-      if (data.success) {
-        const updated = { ...formData, image: data.url }
-        setFormData(updated)
-        onSave(updated)
-      } else {
-        alert(data.error || 'Upload failed')
-      }
+      const url = await uploadAdminImage(file)
+      const updated = { ...formData, image: url }
+      setFormData(updated)
+      onSave(updated)
     } catch (err) {
-      console.error('Image upload error:', err)
-      alert('Upload failed. Check console for details.')
+      console.error('Profile image upload error:', err)
+      alert(err instanceof Error ? err.message : 'Image upload failed.')
     } finally {
       setUploading(false)
     }
@@ -1164,25 +1162,12 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl)
       setCoverPreviewUrl(normalized.previewUrl)
 
-      const form = new FormData()
-      form.append('file', normalized.file)
-      form.append('type', 'cover')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
-      const data = await res.json()
-      if (data.success) {
-        const updated = { ...formData, coverImage: data.url }
-        setFormData(updated)
-        onSave(updated)
-        URL.revokeObjectURL(normalized.previewUrl)
-        setCoverPreviewUrl('')
-      } else {
-        throw new Error(data.error || 'Cover upload failed')
-      }
+      const url = await uploadAdminImage(normalized.file)
+      const updated = { ...formData, coverImage: url }
+      setFormData(updated)
+      onSave(updated)
+      URL.revokeObjectURL(normalized.previewUrl)
+      setCoverPreviewUrl('')
     } catch (err) {
       console.error('Cover upload error:', err)
       alert(err instanceof Error ? err.message : 'Cover upload failed.')
@@ -1280,6 +1265,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
               />
             </div>
             <div className="text-center sm:text-left">
+              <MediaLibraryPicker label="Use existing photo" onSelect={url => setFormData(previous => ({ ...previous, image: url }))} />
               <p className="text-dark-300">Click the camera icon to upload a new photo</p>
               <p className="text-dark-500 text-sm mt-1">Recommended: Square image, at least 256x256px</p>
               <p className="text-dark-500 text-sm">Max file size: 5MB (JPG, PNG, WebP)</p>
@@ -1327,6 +1313,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
               )}
               Upload Cover
             </button>
+            <MediaLibraryPicker label="Use existing cover" onSelect={url => { setCoverPreviewUrl(''); setFormData(previous => ({ ...previous, coverImage: url })) }} />
             {formData.coverImage && (
               <button
                 type="button"
@@ -1593,26 +1580,12 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     if (!file) return
 
     setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'project')
-    form.append('projectId', formData.id)
-
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
-      const data = await res.json()
-      if (data.success) {
-        setFormData({ ...formData, image: data.url })
-      } else {
-        alert(data.error || 'Upload failed')
-      }
+      const url = await uploadAdminImage(file)
+      setFormData(previous => ({ ...previous, image: url }))
     } catch (err) {
       console.error('Project image upload error:', err)
-      alert('Upload failed. Check console for details.')
+      alert(err instanceof Error ? err.message : 'Image upload failed.')
     } finally {
       setUploading(false)
     }
@@ -1709,6 +1682,7 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
                     </>
                   )}
                 </button>
+                <div className="mt-2"><MediaLibraryPicker onSelect={url => setFormData(previous => ({ ...previous, image: url }))} /></div>
                 <p className="text-dark-500 text-xs mt-1">JPG, PNG, WebP (max 5MB)</p>
               </div>
               <input

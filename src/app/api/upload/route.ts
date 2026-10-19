@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import { isAuthenticated } from '@/lib/auth-helpers'
 
 function configureCloudinary(): boolean {
   const cloudinaryUrl = process.env.CLOUDINARY_URL?.trim()
@@ -40,7 +41,6 @@ function configureCloudinary(): boolean {
   })
   return true
 }
-import { isAuthenticated } from '@/lib/auth-helpers'
 
 // Simple rate limiting for uploads
 const uploadAttempts = new Map<string, { count: number; resetTime: number }>()
@@ -71,6 +71,8 @@ function checkRateLimit(ip: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get('origin')
+    if (origin && origin !== request.nextUrl.origin) return NextResponse.json({ error: 'Invalid origin.' }, { status: 403 })
     if (!(await isAuthenticated())) {
       return NextResponse.json(
         { error: 'Unauthorized. Please log in.' },
@@ -121,7 +123,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file type based on upload type
-    const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'image/avif']
+    const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/tiff', 'image/heic', 'image/heif', 'image/avif']
     const videoTypes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska', 'video/3gpp', 'video/x-ms-wmv']
     const audioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/x-m4a', 'audio/aac', 'audio/flac']
     const documentTypes = [
@@ -176,11 +178,14 @@ export async function POST(request: NextRequest) {
     
     // Also check by file extension as fallback (browsers sometimes report wrong MIME)
     const fileName = file.name.toLowerCase()
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.bmp', '.tiff', '.heic', '.heif', '.avif']
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.heic', '.heif', '.avif']
     const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.3gp', '.wmv']
     const hasImageExt = imageExtensions.some(ext => fileName.endsWith(ext))
     const hasVideoExt = videoExtensions.some(ext => fileName.endsWith(ext))
-    const fileTypeValid = validTypes.includes(file.type) || hasImageExt || hasVideoExt
+    const fileTypeValid = validTypes.includes(file.type) ||
+      ((!file.type || file.type === 'application/octet-stream') &&
+        ((hasImageExt && validTypes.some(v => v.startsWith('image/'))) ||
+         (hasVideoExt && validTypes.some(v => v.startsWith('video/')))))
 
     if (!fileTypeValid) {
       if (isCV) {
@@ -202,8 +207,7 @@ export async function POST(request: NextRequest) {
         )
       }
       if (isResource) {
-        // For resources, allow the upload anyway - let Cloudinary handle it
-        console.log('Resource upload - allowing file type:', file.type)
+        return NextResponse.json({ error: 'Unsupported resource type. Upload a PDF, office document, image, video or audio file.' }, { status: 400 })
       } else {
         return NextResponse.json(
           { error: 'Invalid file type. Use JPG, PNG, WebP, or GIF' },
@@ -323,25 +327,15 @@ export async function POST(request: NextRequest) {
     } catch (cloudinaryError: unknown) {
       console.error('Cloudinary upload error:', cloudinaryError)
       
-      // Extract detailed error message from Cloudinary
-      let errorMessage = 'Unknown Cloudinary error'
-      if (cloudinaryError instanceof Error) {
-        errorMessage = cloudinaryError.message
-      } else if (typeof cloudinaryError === 'object' && cloudinaryError !== null) {
-        const err = cloudinaryError as { message?: string; error?: { message?: string } }
-        errorMessage = err.message || err.error?.message || JSON.stringify(cloudinaryError)
-      }
-      
       return NextResponse.json(
-        { error: `Upload to cloud storage failed: ${errorMessage}` },
-        { status: 500 }
+        { error: 'Cloud upload failed. Check storage configuration or try a smaller supported file.' },
+        { status: 502 }
       )
     }
   } catch (error) {
     console.error('Upload error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Failed to upload file: ${errorMessage}` },
+      { error: 'File upload failed. Please check the file and try again.' },
       { status: 500 }
     )
   }

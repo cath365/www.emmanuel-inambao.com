@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import { useExperience, Experience } from '@/lib/experience'
 import Image from 'next/image'
+import MediaLibraryPicker from './MediaLibraryPicker'
+import { uploadAdminImage } from '@/lib/admin-media-upload'
 
 interface Props {
   onNotify: (type: 'success' | 'error', message: string) => void
@@ -185,22 +187,14 @@ function ExperienceModal({
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'experience')
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
-      const data = await res.json()
-      if (data.success) {
-        setForm({ ...form, logo: data.url })
-      } else {
-        alert(data.error || 'Upload failed')
-      }
+      const url = await uploadAdminImage(file)
+      setForm(previous => ({ ...previous, logo: url }))
     } catch (err) {
-      console.error('Upload error:', err)
-      alert('Upload failed')
+      alert(err instanceof Error ? err.message : 'Image upload failed.')
     } finally {
       setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -260,6 +254,7 @@ function ExperienceModal({
                 {uploading ? 'Uploading...' : 'Upload Logo'}
               </button>
               <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+              <MediaLibraryPicker label="Choose logo from library" onSelect={url => setForm(previous => ({ ...previous, logo: url }))} />
             </div>
           </div>
 

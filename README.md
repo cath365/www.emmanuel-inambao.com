@@ -65,6 +65,8 @@ All secrets are server-side only. Never prefix with `NEXT_PUBLIC_` unless you wa
 
 Without `ADMIN_*` or `SESSION_SECRET`, admin login is disabled. Without a contact-form backend, `/api/contact` returns 503. Without Cloudinary, `/api/upload` returns 500. All three are enforced at runtime and logged to the server console in dev.
 
+See [ADMIN-CMS-UPGRADE.md](ADMIN-CMS-UPGRADE.md) for the updated media library, image reuse, homepage content editor and Vercel Blob setup.
+
 ## Admin
 
 Visit `/admin/login`. Session cookies are `httpOnly`, `sameSite=lax`, `secure` in production, and HMAC-signed with `SESSION_SECRET` (tampering = rejection). Rate-limited to 5 login attempts / 15 min per IP.
