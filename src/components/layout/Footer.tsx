@@ -78,18 +78,19 @@ export default function Footer() {
             <h3 className="text-[#10243E] dark:text-white font-semibold mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               {[
-                { key: 'nav.about', href: '/#about' },
-                { key: 'nav.skills', href: '/#skills' },
-                { key: 'nav.projects', href: '/#projects' },
-                { key: 'nav.education', href: '/#education' },
-                { key: 'nav.contact', href: '/#contact' }
+                { label: 'Problems I Work On', href: '/#problems' },
+                { label: 'Featured Solutions', href: '/#projects' },
+                { label: 'Project Evidence', href: '/#evidence' },
+                { label: 'How I Work', href: '/#process' },
+                { label: 'Experience', href: '/#experience' },
+                { label: 'Contact', href: '/#contact' },
               ].map((link) => (
-                <li key={link.key}>
+                <li key={link.href}>
                   <Link
                     href={link.href}
                     className="text-[#667384] dark:text-dark-400 hover:text-[#526E8A] dark:hover:text-primary-400 transition-colors duration-200"
                   >
-                    {t(link.key)}
+                    {link.label}
                   </Link>
                 </li>
               ))}

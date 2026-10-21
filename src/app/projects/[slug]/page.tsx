@@ -16,10 +16,19 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
     }
   }
 
+  const description = [project.problemTagline || project.problemSolved, project.solutionSummary || project.purpose]
+    .filter(Boolean)
+    .join(' ')
+
   return {
-    title: project.title,
-    description: project.purpose,
+    title: project.domain ? `${project.title} — ${project.domain}` : project.title,
+    description,
     alternates: { canonical: '/projects/' + project.id },
+    openGraph: {
+      title: project.title,
+      description,
+      type: 'article',
+    },
   }
 }
 

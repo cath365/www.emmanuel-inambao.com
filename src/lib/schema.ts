@@ -32,6 +32,10 @@ export function generatePersonSchema() {
       'Full-Stack Development',
       'Technical Project Management',
       'Project-Based STEM Programmes',
+      'Water Monitoring Systems',
+      'Assistive Technology',
+      'Agricultural IoT',
+      'Civic Technology',
       'Industrial Automation',
     ],
   }
@@ -43,7 +47,7 @@ export function generateWebsiteSchema() {
     '@type': 'WebSite',
     name: 'Emmanuel Inambao Portfolio',
     url: SITE_URL,
-    description: 'Professional portfolio of Emmanuel Inambao - Robotics & IoT Engineer, Full-Stack Systems Developer and Technical Project Manager',
+    description: 'Professional portfolio of Emmanuel Inambao - solving real-world problems through robotics, IoT, embedded systems, full-stack software and technical project delivery',
     author: {
       '@type': 'Person',
       name: 'Emmanuel Inambao',

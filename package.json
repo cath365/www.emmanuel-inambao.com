@@ -6,6 +6,8 @@
     "node": ">=18.17.0"
   },
   "scripts": {
+    "prebuild": "npm run test:submissions",
+    "typecheck": "tsc --noEmit",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

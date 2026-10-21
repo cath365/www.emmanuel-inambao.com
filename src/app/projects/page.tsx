@@ -5,7 +5,7 @@ import ProjectsDirectory from './ProjectsDirectory'
 
 export const metadata: Metadata = {
   title: 'Engineering Projects',
-  description: 'Explore Emmanuel Inambao’s embedded systems, IoT, robotics and full-stack engineering projects with architecture and implementation details.',
+  description: 'Explore real-world problems Emmanuel Inambao is addressing through robotics, IoT, embedded systems and software, with project roles, evidence, impact and current status.',
 }
 
 export default function ProjectsPage() {
@@ -18,9 +18,9 @@ export default function ProjectsPage() {
 
         <div className="mb-12 max-w-4xl">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-primary-400">Project archive</p>
-          <h1 className="mt-3 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">Engineering work, not just screenshots.</h1>
+          <h1 className="mt-3 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">Problems, solutions, evidence and engineering decisions.</h1>
           <p className="mt-5 max-w-3xl text-lg leading-relaxed text-dark-400">
-            Each project documents the problem, system logic, technology stack, architecture and current delivery status. Public demos are linked where available.
+            Each project explains the real-world problem, who is affected, the solution approach, Emmanuel’s role, available evidence, expected or measured impact and the current development stage.
           </p>
         </div>
 

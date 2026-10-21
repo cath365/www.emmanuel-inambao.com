@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import { put } from '@vercel/blob'
+import { storageToken, storageError } from '@/lib/blob-json'
 
 function configureCloudinary(): boolean {
   const cloudinaryUrl = process.env.CLOUDINARY_URL?.trim()
@@ -84,15 +86,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Too many uploads. Please wait a minute.' },
         { status: 429 }
-      )
-    }
-
-    // Accept either the standard CLOUDINARY_URL or separate Cloudinary credentials.
-    if (!configureCloudinary()) {
-      console.error('Cloudinary not configured for this deployment.')
-      return NextResponse.json(
-        { error: 'Cloudinary upload service is not configured for this deployment.' },
-        { status: 503 }
       )
     }
 
@@ -232,6 +225,48 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Profile and cover images belong to the PUBLIC portfolio Blob store.
+    // Store them there directly so they do not depend on Cloudinary configuration,
+    // and use unique paths so browsers/CDNs never keep showing an overwritten image.
+    if (type === 'profile' || type === 'cover') {
+      try {
+        const extension =
+          type === 'cover'
+            ? 'webp'
+            : (file.name.split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'jpg')
+        const pathname = `media/profile/${type}-${Date.now()}.${extension}`
+        const blob = await put(pathname, file, {
+          access: 'public',
+          token: storageToken('public'),
+          contentType: file.type || (type === 'cover' ? 'image/webp' : 'image/jpeg'),
+          addRandomSuffix: false,
+        })
+
+        return NextResponse.json({
+          success: true,
+          url: blob.url,
+          pathname: blob.pathname,
+          fileName: file.name,
+          storage: 'vercel-blob',
+        })
+      } catch (blobError) {
+        console.error(`Public Blob ${type} upload failed:`, blobError instanceof Error ? blobError.message : blobError)
+        return NextResponse.json(
+          { error: storageError('public') },
+          { status: 503 }
+        )
+      }
+    }
+
+    // Other media keeps the existing Cloudinary path.
+    if (!configureCloudinary()) {
+      console.error('Cloudinary not configured for this deployment.')
+      return NextResponse.json(
+        { error: 'Cloudinary upload service is not configured for this deployment.' },
+        { status: 503 }
+      )
+    }
+
     // Convert file to base64 for Cloudinary upload
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
@@ -244,10 +279,10 @@ export async function POST(request: NextRequest) {
 
     if (type === 'profile') {
       folder = 'portfolio/profile'
-      publicId = 'profile-picture'
+      publicId = `profile-picture-${Date.now()}`
     } else if (type === 'cover') {
       folder = 'portfolio/profile'
-      publicId = 'cover-banner'
+      publicId = `cover-banner-${Date.now()}`
     } else if (type === 'cv') {
       folder = 'portfolio/cv'
       publicId = `cv-${Date.now()}`

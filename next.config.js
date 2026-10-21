@@ -2,26 +2,38 @@
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
-    // Next.js generates internal type stubs that reference internal module paths
-    // which may not resolve correctly depending on the installed version.
-    // User code is still type-checked by the IDE / pre-commit hooks.
-    ignoreBuildErrors: true,
+    // Keep production builds strict: type errors must fail the build.
+    ignoreBuildErrors: false,
   },
   eslint: {
-    // ESLint is run separately in CI; skip during production build to avoid
-    // ajv/node_modules resolution issues on some Node versions.
-    ignoreDuringBuilds: true,
+    // Keep lint validation enabled during production builds.
+    ignoreDuringBuilds: false,
   },
   images: {
-    domains: ['localhost', 'res.cloudinary.com'],
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false,
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.public.blob.vercel-storage.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.blob.vercel-storage.com',
         pathname: '/**',
       },
     ],

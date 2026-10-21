@@ -7,6 +7,7 @@ import {
   Video, Star, ExternalLink, Check, AlertCircle, Play
 } from 'lucide-react'
 import { useGallery, GalleryItem } from '@/lib/gallery'
+import { useProjects } from '@/lib/projects'
 import Image from 'next/image'
 
 const categoryColors = {
@@ -19,11 +20,13 @@ const categoryColors = {
 
 export default function GalleryEditor() {
   const { items, addItem, updateItem, deleteItem } = useGallery()
+  const { projects } = useProjects()
   const [editingItem, setEditingItem] = useState<GalleryItem | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<'all' | GalleryItem['category']>('all')
   
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -35,7 +38,7 @@ export default function GalleryEditor() {
 
   const filteredItems = filter === 'all' ? items : items.filter(item => item.category === filter)
 
-  // Upload file to Cloudinary
+  // Upload media through the portfolio upload API
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !editingItem) return
@@ -99,47 +102,64 @@ export default function GalleryEditor() {
       type: 'image',
       category: 'project',
       featured: false,
+      projectId: '',
       createdAt: '',
     }
     setEditingItem(newItem)
     setIsCreating(true)
   }
 
-  const handleSave = () => {
-    if (!editingItem) return
+  const handleSave = async () => {
+    if (!editingItem || saving) return
 
     if (!editingItem.title || !editingItem.url) {
       showNotification('error', 'Please fill in title and upload a file')
       return
     }
 
-    if (isCreating) {
-      addItem({
-        title: editingItem.title,
-        description: editingItem.description,
-        url: editingItem.url,
-        type: editingItem.type,
-        category: editingItem.category,
-        featured: editingItem.featured,
-      })
-      showNotification('success', 'Gallery item added successfully!')
-    } else {
-      updateItem(editingItem.id, editingItem)
-      showNotification('success', 'Gallery item updated successfully!')
+    setSaving(true)
+    try {
+      if (isCreating) {
+        await addItem({
+          title: editingItem.title,
+          description: editingItem.description,
+          url: editingItem.url,
+          type: editingItem.type,
+          category: editingItem.category,
+          featured: editingItem.featured,
+          projectId: editingItem.projectId || undefined,
+        })
+        showNotification('success', 'Media saved and verified in portfolio storage.')
+      } else {
+        await updateItem(editingItem.id, editingItem)
+        showNotification('success', 'Media changes saved and verified in portfolio storage.')
+      }
+
+      setEditingItem(null)
+      setIsCreating(false)
+    } catch (error) {
+      showNotification('error', error instanceof Error ? error.message : 'Media could not be saved.')
+    } finally {
+      setSaving(false)
     }
-
-    setEditingItem(null)
-    setIsCreating(false)
   }
 
-  const handleDelete = (id: string) => {
-    deleteItem(id)
-    setDeleteConfirm(null)
-    showNotification('success', 'Gallery item deleted successfully!')
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteItem(id)
+      setDeleteConfirm(null)
+      showNotification('success', 'Media deleted and verified in portfolio storage.')
+    } catch (error) {
+      showNotification('error', error instanceof Error ? error.message : 'Media could not be deleted.')
+    }
   }
 
-  const toggleFeatured = (item: GalleryItem) => {
-    updateItem(item.id, { featured: !item.featured })
+  const toggleFeatured = async (item: GalleryItem) => {
+    try {
+      await updateItem(item.id, { featured: !item.featured })
+    } catch (error) {
+      showNotification('error', error instanceof Error ? error.message : 'Featured status could not be saved.')
+    }
   }
 
   return (
@@ -254,6 +274,11 @@ export default function GalleryEditor() {
               </div>
               <h4 className="text-white font-medium truncate">{item.title}</h4>
               <p className="text-dark-400 text-sm line-clamp-2 mt-1">{item.description}</p>
+              {item.projectId && (
+                <p className="mt-2 text-xs font-medium text-primary-400">
+                  Linked to: {projects.find(project => project.id === item.projectId)?.title || item.projectId}
+                </p>
+              )}
               
               {/* Actions */}
               <div className="flex items-center gap-2 mt-4 pt-4 border-t border-dark-700">
@@ -341,6 +366,7 @@ export default function GalleryEditor() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={() => {
+              if (saving) return
               setEditingItem(null)
               setIsCreating(false)
             }}
@@ -358,10 +384,12 @@ export default function GalleryEditor() {
                 </h3>
                 <button
                   onClick={() => {
+                    if (saving) return
                     setEditingItem(null)
                     setIsCreating(false)
                   }}
-                  className="text-dark-400 hover:text-white"
+                  disabled={saving}
+                  className="text-dark-400 hover:text-white disabled:opacity-50"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -453,6 +481,28 @@ export default function GalleryEditor() {
                   </select>
                 </div>
 
+                <div>
+                  <label className="block text-dark-300 text-sm mb-2">Related Project (optional)</label>
+                  <select
+                    value={editingItem.projectId || ''}
+                    onChange={(e) => setEditingItem({
+                      ...editingItem,
+                      projectId: e.target.value || undefined,
+                    })}
+                    className="w-full px-4 py-2 bg-dark-700 border border-dark-600 rounded-lg text-white focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="">Not linked to a project</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.title}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-dark-500">
+                    Linking media lets the portfolio surface it as evidence for that project.
+                  </p>
+                </div>
+
                 {/* Featured */}
                 <div className="flex items-center gap-3">
                   <input
@@ -472,18 +522,20 @@ export default function GalleryEditor() {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={handleSave}
-                  disabled={!editingItem.title || !editingItem.url || uploading}
+                  disabled={!editingItem.title || !editingItem.url || uploading || saving}
                   className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save className="w-4 h-4" />
-                  {isCreating ? 'Add to Gallery' : 'Save Changes'}
+                  {saving ? 'Publishing…' : isCreating ? 'Add to Gallery' : 'Save Changes'}
                 </button>
                 <button
                   onClick={() => {
+                    if (saving) return
                     setEditingItem(null)
                     setIsCreating(false)
                   }}
-                  className="btn-secondary"
+                  disabled={saving}
+                  className="btn-secondary disabled:opacity-50"
                 >
                   Cancel
                 </button>
