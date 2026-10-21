@@ -1,5 +1,7 @@
 'use client'
 
+import { uploadPortfolioMedia } from '@/lib/portfolio-upload'
+
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -189,7 +191,7 @@ function ExperienceModal({
     formData.append('file', file)
     formData.append('type', 'experience')
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
+      const res = await uploadPortfolioMedia(formData)
       const data = await res.json()
       if (data.success) {
         setForm({ ...form, logo: data.url })
