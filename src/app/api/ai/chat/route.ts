@@ -132,6 +132,18 @@ function isRateLimited(id: string) {
   return current.count > RATE_LIMIT
 }
 
+// Groq's free tier allows ~8k tokens per minute, so the prompt carries short summaries;
+// full details live on the project/case-study pages the assistant links to.
+function clip(value: unknown, max: number) {
+  if (typeof value !== 'string') return undefined
+  const text = value.replace(/\s+/g, ' ').trim()
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text || undefined
+}
+
+function clipList(value: unknown, max: number) {
+  return Array.isArray(value) ? value.filter(item => typeof item === 'string').slice(0, max) : undefined
+}
+
 function compactPortfolioContext(sections: Record<string, unknown>) {
   const profile = sections.profile && typeof sections.profile === 'object' ? sections.profile : null
   const projects = Array.isArray(sections.projects) && sections.projects.length > 0
@@ -148,67 +160,59 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
     if (study?.slug) caseStudyMap.set(study.slug, study)
   }
 
+  const p = profile as Record<string, any> | null
   return {
-    profile,
+    profile: p && {
+      name: p.name,
+      title: p.title,
+      location: p.location,
+      email: p.email,
+      phone: p.phone,
+      status: p.status,
+      bio: clip(p.bio, 400),
+      socialLinks: p.socialLinks,
+    },
     projects: projects.map((project: any) => ({
-      id: project?.id,
       page: project?.id ? `/projects/${project.id}` : undefined,
       title: project?.title,
-      purpose: project?.purpose,
-      techStack: project?.techStack,
-      problemSolved: project?.problemSolved,
-      systemLogic: project?.systemLogic,
-      outcome: project?.outcome,
-      role: project?.role,
       status: project?.status,
-      architecture: project?.architecture,
-      highlights: project?.highlights,
-      liveUrl: project?.liveUrl,
-      websiteUrl: project?.websiteUrl,
+      role: clip(project?.role, 80),
+      purpose: clip(project?.purpose, 180),
+      outcome: clip(project?.outcome, 160),
+      techStack: clipList(project?.techStack, 8),
+      liveUrl: project?.liveUrl || project?.websiteUrl,
       appStoreUrl: project?.appStoreUrl,
       playStoreUrl: project?.playStoreUrl,
     })),
     services: services.map((service: any) => ({
       title: service?.title,
-      description: service?.description,
-      features: service?.features,
-      price: service?.price,
+      description: clip(service?.description, 140),
     })),
     skills: skills.map((category: any) => ({
       title: category?.title,
-      description: category?.description,
       skills: Array.isArray(category?.skills)
-        ? category.skills.map((skill: any) => skill?.name).filter(Boolean)
+        ? category.skills.map((skill: any) => skill?.name).filter(Boolean).slice(0, 12)
         : [],
     })),
     experiences: experiences.map((experience: any) => ({
       company: experience?.company,
       position: experience?.position,
-      location: experience?.location,
       startDate: experience?.startDate,
       endDate: experience?.endDate,
       current: experience?.current,
-      description: experience?.description,
+      description: clip(experience?.description, 220),
     })),
     certifications: certifications.map((certification: any) => ({
       name: certification?.name || certification?.title,
       issuer: certification?.issuer,
       date: certification?.date,
-      credentialId: certification?.credentialId,
     })),
     caseStudies: Array.from(caseStudyMap.values()).map((study: any) => ({
-      slug: study?.slug,
       page: study?.slug ? `/case-studies/${study.slug}` : undefined,
       title: study?.title,
-      subtitle: study?.subtitle,
-      overview: study?.overview,
       status: study?.status,
-      role: study?.role,
-      challenge: study?.challenge,
-      solution: study?.solution,
-      results: study?.results,
-      technologies: study?.technologies,
-      architecture: study?.architecture,
+      overview: clip(study?.overview, 200),
+      technologies: clipList(study?.technologies, 8),
     })),
     marketPricing: resolveMarketPricing(sections.marketPricing),
   }
@@ -289,7 +293,15 @@ export async function POST(request: NextRequest) {
     const groq = await createGroqCompletion({
       model: process.env.GROQ_CHAT_MODEL || process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
       messages: [
-        { role: 'system', content: systemPrompt(context) },
+        {
+          role: 'system',
+          content: systemPrompt({
+            ...context,
+            marketPricing: context.marketPricing.enabled
+              ? { updatedAt: context.marketPricing.updatedAt, ranges: marketRangeSummary(context.marketPricing) }
+              : undefined,
+          }),
+        },
         ...messages,
       ],
       maxCompletionTokens: 700,
