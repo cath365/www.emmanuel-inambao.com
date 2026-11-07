@@ -8,7 +8,7 @@ export type { Project } from '@/lib/project-catalog'
 
 interface ProjectsContextType {
   projects: Project[]
-  addProject: (project: Omit<Project, 'id'>) => void
+  addProject: (project: Omit<Project, 'id'>) => Project
   updateProject: (id: string, project: Partial<Project>) => void
   deleteProject: (id: string) => void
   getProject: (id: string) => Project | undefined
@@ -51,6 +51,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       saveToServer(updated)
       return updated
     })
+    return newProject
   }
 
   const updateProject = (id: string, updates: Partial<Project>) => {

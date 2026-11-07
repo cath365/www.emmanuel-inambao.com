@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ExternalLink, RefreshCw, Save, Sparkles, Trash2 } from 'lucide-react'
 import { useProjects } from '@/lib/projects'
 import type { CaseStudy } from '@/lib/case-studies'
+import { generateCaseStudy, publishCaseStudy } from '@/lib/case-study-publishing'
 
 function linesToArray(value: string) {
   return value.split('\n').map(item => item.trim()).filter(Boolean)
@@ -88,35 +89,21 @@ export default function CaseStudyManager() {
       return
     }
 
+    if (!selectedProject) return
+
     setBusy(true)
     setMessage('Generating case study from the current project record…')
     try {
-      const response = await fetch('/api/ai/case-study', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        cache: 'no-store',
-        body: JSON.stringify({
-          projectId: selectedProjectId,
-          project: selectedProject,
-        }),
-      })
-      const payload = await response.json()
-
-      if (!response.ok || !payload?.caseStudy) {
-        setMessage(payload?.error || 'Could not generate the case study.')
-        return
-      }
-
-      setGenerationSource(payload.source === 'groq' ? 'groq' : 'local')
-      setEditor(payload.caseStudy)
+      const { caseStudy, source, warning } = await generateCaseStudy(selectedProject)
+      setGenerationSource(source)
+      setEditor(caseStudy)
       setMessage(
-        payload.source === 'groq'
+        source === 'groq'
           ? 'Groq AI draft generated from the saved project data. Review it before publishing.'
-          : (payload.warning || 'The AI provider was unavailable. A local draft was generated from your project data.')
+          : (warning || 'The AI provider was unavailable. A local draft was generated from your project data.')
       )
-    } catch {
-      setMessage('Could not generate the case study.')
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not generate the case study.')
     } finally {
       setBusy(false)
     }
@@ -145,24 +132,7 @@ export default function CaseStudyManager() {
     setBusy(true)
     setMessage('Publishing case study…')
     try {
-      const currentResponse = await fetch('/api/portfolio-data?key=caseStudies', { cache: 'no-store' })
-      const current = await currentResponse.json()
-      if (!currentResponse.ok) throw new Error(current?.error || 'Unable to read published studies. Your draft is still here.')
-      const next = [...(Array.isArray(current) ? current : []).filter((item: CaseStudy) => item.slug !== study.slug), study]
-      const response = await fetch('/api/portfolio-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        cache: 'no-store',
-        body: JSON.stringify({ key: 'caseStudies', data: next }),
-      })
-
-      const payload = await response.json().catch(() => null)
-      if (!response.ok || payload?.success !== true) {
-        setMessage(payload?.error || 'The case study could not be saved.')
-        return
-      }
-
+      const next = await publishCaseStudy(study)
       setSavedStudies(next)
       setDraft(study)
       setMessage('Case study published. It is now available on the public case-study pages.')
@@ -215,8 +185,8 @@ export default function CaseStudyManager() {
           <h1 className="text-2xl font-bold text-white">AI Case Studies</h1>
         </div>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-dark-400">
-          Generate evidence-based case studies from the same project records used by the public portfolio and AI assistant.
-          Generated text is never published until you review and save it.
+          New projects get a case study written and published automatically. Use this page to regenerate,
+          review or edit any project&apos;s case study.
         </p>
         <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-dark-700 bg-dark-900/60 px-3 py-2 text-xs">
           <span

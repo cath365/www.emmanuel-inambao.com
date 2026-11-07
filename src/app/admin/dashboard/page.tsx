@@ -18,6 +18,7 @@ import { useProfile, Profile } from '@/lib/profile'
 import Link from 'next/link'
 import { normalizeWhatsAppNumber } from '@/lib/whatsapp'
 import { uploadAdminFile } from '@/lib/admin-upload'
+import { autoPublishCaseStudy } from '@/lib/case-study-publishing'
 import Image from 'next/image'
 import ExperienceEditor from '@/components/admin/ExperienceEditor'
 import TestimonialEditor from '@/components/admin/TestimonialEditor'
@@ -271,8 +272,19 @@ export default function AdminDashboard() {
 
   const handleSaveProject = (project: Project) => {
     if (isCreating) {
-      addProject(project)
-      setNotification({ type: 'success', message: 'Project created successfully!' })
+      const created = addProject(project)
+      setNotification({ type: 'success', message: 'Project created. Writing its case study in the background…' })
+      autoPublishCaseStudy(created)
+        .then(({ source }) => setNotification({
+          type: 'success',
+          message: source === 'groq'
+            ? `Case study for "${created.title}" written by AI and published.`
+            : `Case study for "${created.title}" published from your project details (AI was busy). You can regenerate it in Case Studies.`,
+        }))
+        .catch(error => setNotification({
+          type: 'error',
+          message: `Project saved, but its case study could not be published: ${error instanceof Error ? error.message : 'unknown error'}. Generate it from Case Studies.`,
+        }))
     } else {
       updateProject(project.id, project)
       setNotification({ type: 'success', message: 'Project updated successfully!' })
