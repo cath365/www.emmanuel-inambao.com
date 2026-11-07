@@ -17,6 +17,33 @@ interface Message {
   options?: string[]
 }
 
+// Renders the assistant's [label](url) references as links. Only site-relative paths and
+// https URLs become links; everything else stays plain text (no HTML is injected).
+function MessageText({ content }: { content: string }) {
+  const parts: React.ReactNode[] = []
+  const pattern = /\[([^\]\n]{1,120})\]\(((?:\/|https:\/\/)[^\s)]{0,300})\)/g
+  let last = 0
+  let match: RegExpExecArray | null
+  while ((match = pattern.exec(content)) !== null) {
+    if (match.index > last) parts.push(content.slice(last, match.index))
+    const [, label, href] = match
+    const external = href.startsWith('https://')
+    parts.push(
+      <a
+        key={match.index}
+        href={href}
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        className="underline text-blue-600 dark:text-blue-300 hover:text-blue-800"
+      >
+        {label}
+      </a>
+    )
+    last = match.index + match[0].length
+  }
+  if (last < content.length) parts.push(content.slice(last))
+  return <p className="text-sm whitespace-pre-wrap">{parts}</p>
+}
+
 interface BookingState {
   active: boolean
   step: 'name' | 'email' | 'phone' | 'date' | 'time' | 'topic' | 'notification' | 'confirm' | null
@@ -810,7 +837,7 @@ export default function AIChatbot({ floatingVisible = true }: { floatingVisible?
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <MessageText content={message.content} />
                     </div>
 
                     {message.role === 'assistant' && message.options && index === messages.length - 1 && !isTyping && (

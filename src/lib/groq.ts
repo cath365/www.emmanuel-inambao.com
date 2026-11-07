@@ -19,13 +19,25 @@ export type GroqResult =
   | { ok: true; text: string; model: string }
   | { ok: false; reason: 'not_configured' | 'provider_error' | 'empty_response'; status?: number; detail?: string }
 
+const DEFAULT_MODEL = 'openai/gpt-oss-20b'
+
 export async function createGroqCompletion(options: GroqRequestOptions): Promise<GroqResult> {
+  const model = options.model || process.env.GROQ_MODEL || DEFAULT_MODEL
+  const result = await requestCompletion(options, model)
+
+  // Groq retires models; a stale GROQ_MODEL/GROQ_CHAT_MODEL env var must not take the assistant down.
+  if (!result.ok && result.status === 404 && model !== DEFAULT_MODEL && result.detail?.includes('model_not_found')) {
+    console.warn(`Groq model "${model}" is unavailable; falling back to ${DEFAULT_MODEL}. Update the model env var in Vercel.`)
+    return requestCompletion(options, DEFAULT_MODEL)
+  }
+  return result
+}
+
+async function requestCompletion(options: GroqRequestOptions, model: string): Promise<GroqResult> {
   const apiKey = process.env.GROQ_API_KEY?.trim()
   if (!apiKey) {
     return { ok: false, reason: 'not_configured' }
   }
-
-  const model = options.model || process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {

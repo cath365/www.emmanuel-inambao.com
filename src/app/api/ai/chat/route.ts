@@ -152,6 +152,7 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
     profile,
     projects: projects.map((project: any) => ({
       id: project?.id,
+      page: project?.id ? `/projects/${project.id}` : undefined,
       title: project?.title,
       purpose: project?.purpose,
       techStack: project?.techStack,
@@ -197,6 +198,7 @@ function compactPortfolioContext(sections: Record<string, unknown>) {
     })),
     caseStudies: Array.from(caseStudyMap.values()).map((study: any) => ({
       slug: study?.slug,
+      page: study?.slug ? `/case-studies/${study.slug}` : undefined,
       title: study?.title,
       subtitle: study?.subtitle,
       overview: study?.overview,
@@ -221,6 +223,15 @@ CORE BEHAVIOUR
 - Never invent qualifications, clients, employment, project results, prices, metrics, availability, certifications, technologies or personal details.
 - If a requested fact is not in the data, say it is not documented in the portfolio and offer the most useful next step.
 - Distinguish a deployed project from a prototype, concept or active R&D project using its recorded status.
+
+REFERENCES
+- Back every factual claim about Emmanuel's work with a reference the visitor can open, written as a markdown link: [Project title](/projects/<id>) using the record's "page" field, or [Case study title](/case-studies/<slug>).
+- When a project has a liveUrl, websiteUrl, appStoreUrl or playStoreUrl, you may also link it, e.g. [Live site](https://...).
+- Only use links that appear in PORTFOLIO DATA or the site pages /hire, /cv, /projects, /case-studies, /start-project. Never invent a URL.
+- End answers about Emmanuel's work with a short "References:" line listing the links used.
+
+GENERAL QUESTIONS
+- You may briefly answer general engineering or technology questions (e.g. how an ESP32 sensor works) from general knowledge, clearly separate from documented facts about Emmanuel, and do not attach portfolio references to general knowledge. Politely decline unrelated topics and steer back to Emmanuel's work.
 - When discussing a prospective client's idea, explain how Emmanuel's documented skills/projects are relevant and outline a plausible technical approach. Clearly label that approach as a proposal, not something already built.
 - Ask at most 1-2 focused scoping questions when they would materially help.
 - For NEW PROJECT QUOTATIONS, use these current pricing rules instead of any legacy service price strings in PORTFOLIO DATA: Website ZMW 5,000 base; E-commerce + ZMW 3,000; Admin dashboard + ZMW 2,500; Payment integration + ZMW 2,000; Mobile application ZMW 12,000 base; every additional custom feature + ZMW 350; IoT integration custom quotation after technical discovery. The upfront payment is 35% of the known total and the remaining balance is 65%.
