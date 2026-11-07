@@ -1,10 +1,13 @@
 import 'server-only'
 import { get, list, put, BlobPreconditionFailedError } from '@vercel/blob'
 
-// Connecting the public store with the "PUBLIC_BLOB" prefix creates PUBLIC_BLOB_READ_WRITE_TOKEN;
-// it wins over BLOB_READ_WRITE_TOKEN so a stale manually-pasted token can't shadow it.
+// Store-connection tokens win over BLOB_READ_WRITE_TOKEN so a stale manually-pasted token
+// can't shadow them. Production's public store is currently connected with the "BLOD" prefix.
 export function publicBlobToken() {
-  return process.env.PUBLIC_BLOB_READ_WRITE_TOKEN?.trim() || process.env.BLOB_READ_WRITE_TOKEN?.trim() || undefined
+  return process.env.PUBLIC_BLOB_READ_WRITE_TOKEN?.trim()
+    || process.env.BLOD_READ_WRITE_TOKEN?.trim()
+    || process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    || undefined
 }
 
 export function storageToken(access: 'public' | 'private') {
