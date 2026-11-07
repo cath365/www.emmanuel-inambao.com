@@ -21,14 +21,24 @@ export type GroqResult =
 
 const DEFAULT_MODEL = 'openai/gpt-oss-20b'
 
+// Free-tier limits are per minute; when Groq says to retry within a few seconds, wait once and retry.
+async function requestWithRetry(options: GroqRequestOptions, model: string): Promise<GroqResult> {
+  const result = await requestCompletion(options, model)
+  if (result.ok || result.status !== 429) return result
+  const seconds = Number(result.detail?.match(/try again in ([\d.]+)s/)?.[1])
+  if (!Number.isFinite(seconds) || seconds > 8) return result
+  await new Promise(resolve => setTimeout(resolve, Math.ceil(seconds * 1000) + 250))
+  return requestCompletion(options, model)
+}
+
 export async function createGroqCompletion(options: GroqRequestOptions): Promise<GroqResult> {
   const model = options.model || process.env.GROQ_MODEL || DEFAULT_MODEL
-  const result = await requestCompletion(options, model)
+  const result = await requestWithRetry(options, model)
 
   // Groq retires models; a stale GROQ_MODEL/GROQ_CHAT_MODEL env var must not take the assistant down.
   if (!result.ok && result.status === 404 && model !== DEFAULT_MODEL && result.detail?.includes('model_not_found')) {
     console.warn(`Groq model "${model}" is unavailable; falling back to ${DEFAULT_MODEL}. Update the model env var in Vercel.`)
-    return requestCompletion(options, DEFAULT_MODEL)
+    return requestWithRetry(options, DEFAULT_MODEL)
   }
   return result
 }
