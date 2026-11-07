@@ -28,7 +28,7 @@ export default function Testimonials() {
   // Show section even with no testimonials so visitors can submit theirs
   if (allVisible.length === 0) {
     return (
-      <section id="testimonials" className="py-20 bg-dark-950">
+      <section id="testimonials" className="py-20 bg-dark-950 light:bg-[#F7F5EF]">
         <div className="section-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -37,10 +37,10 @@ export default function Testimonials() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white light:text-[#10243E] mb-4">
               Client <span className="text-primary-500">Testimonials</span>
             </h2>
-            <p className="text-dark-300 max-w-2xl mx-auto mb-8">
+            <p className="text-dark-300 light:text-[#566273] max-w-2xl mx-auto mb-8">
               Have you worked with me? Share your experience!
             </p>
             <TestimonialForm />
@@ -51,7 +51,7 @@ export default function Testimonials() {
   }
 
   return (
-    <section id="testimonials" className="py-20 bg-dark-950">
+    <section id="testimonials" className="py-20 bg-dark-950 light:bg-[#F7F5EF]">
       <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -60,10 +60,10 @@ export default function Testimonials() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white light:text-[#10243E] mb-4">
             Client <span className="text-primary-500">Testimonials</span>
           </h2>
-          <p className="text-dark-300 max-w-2xl mx-auto mb-6">
+          <p className="text-dark-300 light:text-[#566273] max-w-2xl mx-auto mb-6">
             What clients and colleagues say about working with me
           </p>
           <TestimonialForm />
@@ -78,7 +78,7 @@ export default function Testimonials() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.5 }}
-              className="bg-dark-800/50 border border-dark-700 rounded-2xl p-4 sm:p-8 md:p-12"
+              className="bg-dark-800/50 border border-dark-700 light:bg-white/70 light:border-[#DDD7CC] rounded-2xl p-4 sm:p-8 md:p-12"
             >
               <div className="flex flex-col md:flex-row gap-4 sm:gap-8 items-center">
                 {/* Video or Image */}
@@ -124,7 +124,7 @@ export default function Testimonials() {
                 {/* Content */}
                 <div className="flex-1">
                   <Quote className="w-10 h-10 text-primary-500/30 mb-4" />
-                  <p className="text-lg md:text-xl text-dark-200 leading-relaxed mb-6">
+                  <p className="text-lg md:text-xl text-dark-200 light:text-[#39495A] leading-relaxed mb-6">
                     {displayTestimonials[currentIndex % displayTestimonials.length].content}
                   </p>
                   
@@ -143,7 +143,7 @@ export default function Testimonials() {
                   </div>
 
                   <div>
-                    <p className="text-white font-semibold text-lg">
+                    <p className="text-white light:text-[#10243E] font-semibold text-lg">
                       {displayTestimonials[currentIndex % displayTestimonials.length].name}
                     </p>
                     <p className="text-primary-400">
@@ -204,7 +204,7 @@ export default function Testimonials() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-dark-800/30 border border-dark-700 rounded-xl p-6 hover:border-primary-500/50 transition-all"
+                className="bg-dark-800/30 border border-dark-700 light:bg-white/70 light:border-[#DDD7CC] rounded-xl p-6 hover:border-primary-500/50 transition-all"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
@@ -218,7 +218,7 @@ export default function Testimonials() {
                     />
                   ))}
                 </div>
-                <p className="text-dark-300 mb-4 line-clamp-4">{testimonial.content}</p>
+                <p className="text-dark-300 light:text-[#566273] mb-4 line-clamp-4">{testimonial.content}</p>
                 <div className="flex items-center gap-3">
                   {testimonial.image ? (
                     <Image
@@ -236,7 +236,7 @@ export default function Testimonials() {
                     </div>
                   )}
                   <div>
-                    <p className="text-white font-medium text-sm">{testimonial.name}</p>
+                    <p className="text-white light:text-[#10243E] font-medium text-sm">{testimonial.name}</p>
                     <p className="text-dark-400 text-xs">{testimonial.position}</p>
                   </div>
                 </div>

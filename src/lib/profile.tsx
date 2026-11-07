@@ -31,7 +31,8 @@ const defaultProfile: Profile = {
   location: 'Lusaka, Zambia',
   email: 'denuelinambao@gmail.com',
   phone: '+260 973 914 432',
-  image: '/images/profile/profile.jpg',
+  // Empty until a photo is uploaded in /admin; components fall back to a monogram.
+  image: '',
   coverImage: '',
   cv: '',
   status: 'Available for Engineering Projects',
@@ -39,7 +40,7 @@ const defaultProfile: Profile = {
     github: 'https://github.com/cath365',
     linkedin: 'https://linkedin.com/in/emmanuelinambao',
     twitter: '',
-    website: 'https://emmanuelinambao.com',
+    website: 'https://emmanuel-inambao-eight.vercel.app',
   },
 }
 
@@ -76,6 +77,10 @@ function normalizeProfileData(data: Partial<Profile> | null | undefined): Profil
   }
   if (String(data?.cv || '').trim() === '/cv/emmanuel-inambao-cv.pdf') {
     merged.cv = ''
+  }
+  // The old default pointed at a file that was never committed to /public.
+  if (String(data?.image || '').trim() === '/images/profile/profile.jpg') {
+    merged.image = ''
   }
 
   return merged

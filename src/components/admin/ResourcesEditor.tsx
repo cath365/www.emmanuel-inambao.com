@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { uploadAdminFile } from '@/lib/admin-upload'
 import { 
   Plus, Edit2, Trash2, Save, X, Upload, FileText, 
   Music, Download, ExternalLink, Check, AlertCircle 
@@ -75,22 +76,9 @@ export default function ResourcesEditor() {
 
     setUploadingAudio(true)
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'audio')
-
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Upload failed')
-      }
-
-      const data = await response.json()
+      const data = await uploadAdminFile(file, 'audio')
+      if (!data.success) throw new Error(data.error || 'Upload failed')
       setAudioIntroUrl(data.url)
       showNotification('success', 'Audio introduction uploaded successfully!')
     } catch (error) {
@@ -114,22 +102,9 @@ export default function ResourcesEditor() {
 
     setUploadingResource(true)
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'resource')
-
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Upload failed')
-      }
-
-      const data = await response.json()
+      const data = await uploadAdminFile(file, 'resource')
+      if (!data.success) throw new Error(data.error || 'Upload failed')
       
       // Format file size
       const fileSizeKB = file.size / 1024

@@ -42,9 +42,15 @@ function recordAttempt(ip: string, success: boolean): void {
 export async function POST(request: NextRequest) {
   try {
     if (!AUTH_CONFIG.adminEmail || !AUTH_CONFIG.adminPassword || !AUTH_CONFIG.sessionSecret) {
-      console.error('Admin authentication is not fully configured.')
+      // Variable names are not secret; naming them tells the owner exactly what to add in Vercel.
+      const missing = [
+        !AUTH_CONFIG.adminEmail && 'ADMIN_EMAIL',
+        !AUTH_CONFIG.adminPassword && 'ADMIN_PASSWORD',
+        !AUTH_CONFIG.sessionSecret && 'SESSION_SECRET',
+      ].filter(Boolean).join(', ')
+      console.error(`Admin authentication is not fully configured. Missing: ${missing}`)
       return NextResponse.json(
-        { error: 'Admin login is not configured on this deployment.' },
+        { error: `Admin login is not configured on this deployment. In Vercel → Settings → Environment Variables, add ${missing} for this environment, then redeploy.` },
         { status: 503 }
       )
     }

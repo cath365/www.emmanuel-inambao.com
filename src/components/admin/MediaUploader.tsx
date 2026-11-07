@@ -6,6 +6,7 @@ import {
   Upload, Video, Image as ImageIcon, File, Trash2, 
   Copy, Check, ExternalLink, Play
 } from 'lucide-react'
+import { uploadAdminFile } from '@/lib/admin-upload'
 
 interface UploadedFile {
   id: string
@@ -51,9 +52,6 @@ export default function MediaUploader({ onNotify }: Props) {
       setUploadProgress(prev => Math.min(prev + 10, 90))
     }, 200)
 
-    const formData = new FormData()
-    formData.append('file', file)
-    
     // Determine upload type based on file
     let uploadType = 'image'
     if (file.type.startsWith('video/')) {
@@ -63,17 +61,10 @@ export default function MediaUploader({ onNotify }: Props) {
     } else if (file.type.includes('pdf') || file.type.includes('document') || file.type.includes('spreadsheet') || file.type.includes('presentation') || file.type.includes('zip')) {
       uploadType = 'resource'
     }
-    formData.append('type', uploadType)
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      })
-      
-      const data = await res.json()
-      
+      const data = await uploadAdminFile(file, uploadType)
+
       clearInterval(progressInterval)
       setUploadProgress(100)
 
@@ -95,6 +86,7 @@ export default function MediaUploader({ onNotify }: Props) {
       console.error('Upload error:', err)
       onNotify('error', 'Upload failed. Please try again.')
     } finally {
+      clearInterval(progressInterval)
       setUploading(false)
       setUploadProgress(0)
       if (fileRef.current) fileRef.current.value = ''

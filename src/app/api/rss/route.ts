@@ -1,35 +1,37 @@
 import { NextResponse } from 'next/server'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuel-inambao-eight.vercel.app'
 
+// Keep slugs and titles in sync with src/app/blog/[slug]/page.tsx. Leave date empty
+// until a post has a real publication date; pubDate is then omitted from the feed.
 const blogPosts = [
   {
-    title: 'Getting Started with ESP32 for Industrial IoT',
-    slug: 'esp32-industrial-iot',
-    description: 'A comprehensive guide to using ESP32 microcontrollers for industrial Internet of Things applications, from sensor integration to cloud connectivity.',
-    date: '2024-12-15',
+    title: 'Getting Started with ESP32 for IoT Projects',
+    slug: 'getting-started-with-esp32',
+    description: 'A comprehensive guide to setting up your first ESP32 project, from hardware selection to your first sensor reading.',
+    date: '',
     category: 'IoT',
   },
   {
-    title: 'Building Smart Irrigation Systems with Arduino',
-    slug: 'smart-irrigation-arduino',
-    description: 'How I designed and built an automated irrigation system using Arduino, soil moisture sensors, and a mobile app for real-time monitoring.',
-    date: '2024-11-28',
-    category: 'Embedded Systems',
+    title: 'Planning a Smart Irrigation Prototype for Field Conditions',
+    slug: 'smart-irrigation-system',
+    description: 'A design note on planning an offline-capable irrigation prototype using sensing, control logic and field-friendly connectivity.',
+    date: '',
+    category: 'Engineering Notes',
   },
   {
-    title: 'PCB Design Best Practices for Beginners',
+    title: 'PCB Design Review Checklist for Embedded Systems',
     slug: 'pcb-design-best-practices',
-    description: 'Essential tips and techniques for designing professional-grade printed circuit boards, from schematic capture to manufacturing.',
-    date: '2024-11-10',
+    description: 'A practical checklist of grounding, trace routing, component placement and design-review considerations for embedded boards.',
+    date: '',
     category: 'Hardware',
   },
   {
-    title: 'Real-Time IoT Dashboards with Next.js and MQTT',
-    slug: 'iot-dashboards-nextjs-mqtt',
-    description: 'Building real-time data visualization dashboards for IoT devices using Next.js, MQTT protocol, and Chart.js.',
-    date: '2024-10-22',
-    category: 'Web Development',
+    title: 'Building Real-Time IoT Dashboards with Next.js',
+    slug: 'nextjs-for-iot-dashboards',
+    description: 'How to create responsive, real-time dashboards for monitoring IoT devices using Next.js, WebSockets, and Chart.js.',
+    date: '',
+    category: 'Web Dev',
   },
 ]
 
@@ -42,7 +44,7 @@ function generateRSSFeed(): string {
       <link>${SITE_URL}/blog/${post.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
       <description><![CDATA[${post.description}]]></description>
-      <pubDate>${new Date(post.date).toUTCString()}</pubDate>
+      ${post.date ? `<pubDate>${new Date(post.date).toUTCString()}</pubDate>` : ''}
       <category>${post.category}</category>
     </item>`
     )

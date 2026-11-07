@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { uploadAdminFile } from '@/lib/admin-upload'
 import { 
   Plus, Edit2, Trash2, Save, X, Briefcase, MapPin, 
   Calendar, Upload, Check, Building
@@ -185,12 +186,8 @@ function ExperienceModal({
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'experience')
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
-      const data = await res.json()
+      const data = await uploadAdminFile(file, 'experience')
       if (data.success) {
         setForm({ ...form, logo: data.url })
       } else {

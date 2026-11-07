@@ -17,6 +17,7 @@ import { useProjects, Project } from '@/lib/projects'
 import { useProfile, Profile } from '@/lib/profile'
 import Link from 'next/link'
 import { normalizeWhatsAppNumber } from '@/lib/whatsapp'
+import { uploadAdminFile } from '@/lib/admin-upload'
 import Image from 'next/image'
 import ExperienceEditor from '@/components/admin/ExperienceEditor'
 import TestimonialEditor from '@/components/admin/TestimonialEditor'
@@ -1128,17 +1129,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     if (!file) return
 
     setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'profile')
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include', // Ensure cookies are sent
-      })
-      const data = await res.json()
+      const data = await uploadAdminFile(file, 'profile')
       if (data.success) {
         const updated = { ...formData, image: data.url }
         setFormData(updated)
@@ -1164,16 +1157,7 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
       if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl)
       setCoverPreviewUrl(normalized.previewUrl)
 
-      const form = new FormData()
-      form.append('file', normalized.file)
-      form.append('type', 'cover')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
-      const data = await res.json()
+      const data = await uploadAdminFile(normalized.file, 'cover')
       if (data.success) {
         const updated = { ...formData, coverImage: data.url }
         setFormData(updated)
@@ -1197,17 +1181,9 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
     if (!file) return
 
     setUploadingCV(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'cv')
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include', // Ensure cookies are sent
-      })
-      const data = await res.json()
+      const data = await uploadAdminFile(file, 'cv')
       if (data.success) {
         const updated = { ...formData, cv: data.url }
         setFormData(updated)
@@ -1593,18 +1569,9 @@ function ProjectModal({ project, isNew, onSave, onClose }: ProjectModalProps) {
     if (!file) return
 
     setUploading(true)
-    const form = new FormData()
-    form.append('file', file)
-    form.append('type', 'project')
-    form.append('projectId', formData.id)
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: form,
-        credentials: 'include',
-      })
-      const data = await res.json()
+      const data = await uploadAdminFile(file, 'project', formData.id)
       if (data.success) {
         setFormData({ ...formData, image: data.url })
       } else {

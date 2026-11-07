@@ -1,7 +1,7 @@
 // JSON-LD Schema markup for better SEO
 // Import and use in layout.tsx
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuelinambao.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuel-inambao-eight.vercel.app'
 
 export function generatePersonSchema() {
   return {

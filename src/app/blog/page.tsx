@@ -10,14 +10,15 @@ export const metadata: Metadata = {
   },
 }
 
-// Sample blog posts - in production, fetch from CMS or database
+// Keep titles and reading times in sync with src/app/blog/[slug]/page.tsx.
+// Leave coverImage empty unless the file exists in /public; BlogList shows a fallback.
 const blogPosts = [
   {
     id: '1',
     slug: 'getting-started-with-esp32',
     title: 'Getting Started with ESP32 for IoT Projects',
     excerpt: 'A comprehensive guide to setting up your first ESP32 project, from hardware selection to your first sensor reading.',
-    coverImage: '/images/blog/esp32-guide.jpg',
+    coverImage: '',
     category: 'IoT',
     author: 'Emmanuel Inambao',
     publishedAt: '',
@@ -27,33 +28,33 @@ const blogPosts = [
   {
     id: '2',
     slug: 'smart-irrigation-system',
-    title: 'Building a Smart Irrigation System for African Farms',
+    title: 'Planning a Smart Irrigation Prototype for Field Conditions',
     excerpt: 'A design note on planning an offline-capable irrigation prototype using sensing, control logic and field-friendly connectivity.',
-    coverImage: '/images/blog/irrigation.jpg',
-    category: 'Projects',
+    coverImage: '',
+    category: 'Engineering Notes',
     author: 'Emmanuel Inambao',
     publishedAt: '',
-    readingTime: '12 min read',
-    tags: ['Agriculture', 'IoT', 'Automation', 'Case Study'],
+    readingTime: '8 min read',
+    tags: ['Agriculture', 'IoT', 'Automation', 'Prototype Planning'],
   },
   {
     id: '3',
     slug: 'pcb-design-best-practices',
-    title: 'PCB Design Best Practices for Embedded Systems',
+    title: 'PCB Design Review Checklist for Embedded Systems',
     excerpt: 'A practical checklist of grounding, trace routing, component placement and design-review considerations for embedded boards.',
-    coverImage: '/images/blog/pcb-design.jpg',
+    coverImage: '',
     category: 'Hardware',
     author: 'Emmanuel Inambao',
     publishedAt: '',
-    readingTime: '10 min read',
-    tags: ['PCB', 'Hardware', 'Best Practices', 'Design'],
+    readingTime: '8 min read',
+    tags: ['PCB', 'Hardware', 'Design Review'],
   },
   {
     id: '4',
     slug: 'nextjs-for-iot-dashboards',
     title: 'Building Real-Time IoT Dashboards with Next.js',
     excerpt: 'How to create responsive, real-time dashboards for monitoring IoT devices using Next.js, WebSockets, and Chart.js.',
-    coverImage: '/images/blog/dashboard.jpg',
+    coverImage: '',
     category: 'Web Dev',
     author: 'Emmanuel Inambao',
     publishedAt: '',

@@ -14,11 +14,15 @@ const typeColors = {
 export default function DownloadableResources() {
   const [filter, setFilter] = useState<'all' | 'pdf' | 'template' | 'guide' | 'checklist'>('all')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
-  const { resources } = useResources()
+  const { resources: allResources } = useResources()
+  // Only list resources with a real file; placeholder "#coming-soon" items stay hidden.
+  const resources = allResources.filter(r => r.fileUrl && !r.fileUrl.startsWith('#'))
 
-  const filteredResources = filter === 'all' 
-    ? resources 
+  const filteredResources = filter === 'all'
+    ? resources
     : resources.filter(r => r.type === filter)
+
+  if (resources.length === 0) return null
 
   const handleDownload = async (resource: Resource) => {
     if (resource.fileUrl === '#coming-soon' || !resource.fileUrl || resource.fileUrl.startsWith('#')) {

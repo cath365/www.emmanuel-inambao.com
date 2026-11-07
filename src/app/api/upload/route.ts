@@ -41,6 +41,7 @@ function configureCloudinary(): boolean {
   return true
 }
 import { isAuthenticated } from '@/lib/auth-helpers'
+import { uploadDestination } from '@/lib/upload-destination'
 
 // Simple rate limiting for uploads
 const uploadAttempts = new Map<string, { count: number; resetTime: number }>()
@@ -238,44 +239,7 @@ export async function POST(request: NextRequest) {
     const base64 = buffer.toString('base64')
     const dataURI = `data:${file.type};base64,${base64}`
 
-    // Determine folder and public_id for Cloudinary
-    let folder = 'portfolio/uploads'
-    let publicId = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_').replace(/\.[^/.]+$/, '')}`
-
-    if (type === 'profile') {
-      folder = 'portfolio/profile'
-      publicId = 'profile-picture'
-    } else if (type === 'cover') {
-      folder = 'portfolio/profile'
-      publicId = 'cover-banner'
-    } else if (type === 'cv') {
-      folder = 'portfolio/cv'
-      publicId = `cv-${Date.now()}`
-    } else if (type === 'project' && projectId) {
-      folder = 'portfolio/projects'
-      publicId = `project-${projectId}-${Date.now()}`
-    } else if (type === 'video' || type === 'testimonial-video') {
-      folder = 'portfolio/videos'
-      publicId = `video-${Date.now()}`
-    } else if (type === 'audio') {
-      folder = 'portfolio/audio'
-      publicId = `audio-${Date.now()}`
-    } else if (type === 'resource') {
-      folder = 'portfolio/resources'
-      publicId = `resource-${Date.now()}`
-    } else if (type === 'testimonial') {
-      folder = 'portfolio/testimonials'
-      publicId = `testimonial-${Date.now()}`
-    } else if (type === 'certification') {
-      folder = 'portfolio/certifications'
-      publicId = `certification-${Date.now()}`
-    } else if (type === 'experience') {
-      folder = 'portfolio/experience'
-      publicId = `experience-${Date.now()}`
-    } else if (type === 'service') {
-      folder = 'portfolio/services'
-      publicId = `service-${Date.now()}`
-    }
+    const { folder, publicId } = uploadDestination(type, file.name, projectId)
 
     // Determine resource type based on file
     const isPDF = file.type === 'application/pdf'
@@ -305,7 +269,8 @@ export async function POST(request: NextRequest) {
     // Only apply image transformations for images
     if (resourceType === 'image') {
       uploadOptions.transformation = [
-        { width: 1200, height: 1200, crop: 'limit' },
+        // 2000px keeps the 1400px-wide banner sharp; smaller images are untouched.
+        { width: 2000, height: 2000, crop: 'limit' },
         { quality: 'auto:good' },
         { fetch_format: 'auto' },
       ]

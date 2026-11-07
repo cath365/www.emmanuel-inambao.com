@@ -89,10 +89,12 @@ export default function BlogList({ posts }: BlogListProps) {
           <div className="p-6">
             {/* Meta */}
             <div className="flex items-center gap-4 text-sm text-dark-400 light:text-slate-500 mb-3">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                {formatDate(post.publishedAt)}
-              </span>
+              {post.publishedAt && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  {formatDate(post.publishedAt)}
+                </span>
+              )}
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
                 {post.readingTime}

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { uploadAdminFile } from '@/lib/admin-upload'
 import { 
   Plus, Edit2, Trash2, Save, X, Upload, Image as ImageIcon, 
   Video, Star, ExternalLink, Check, AlertCircle, Play
@@ -58,23 +59,10 @@ export default function GalleryEditor() {
 
     setUploading(true)
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', isVideo ? 'video' : 'image')
-
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
+      const data = await uploadAdminFile(file, isVideo ? 'video' : 'image')
+      if (!data.success) throw new Error(data.error || 'Upload failed')
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Upload failed')
-      }
-
-      const data = await response.json()
-      
       setEditingItem({
         ...editingItem,
         url: data.url,

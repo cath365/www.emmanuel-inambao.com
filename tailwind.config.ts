@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import plugin from 'tailwindcss/plugin'
 
 const config: Config = {
   darkMode: 'class',
@@ -88,7 +89,12 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // ThemeToggle sets `html.light`; this makes the `light:` classes used across the site apply.
+    plugin(({ addVariant }) => {
+      addVariant('light', '.light &')
+    }),
+  ],
 }
 
 export default config

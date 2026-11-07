@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { uploadAdminFile } from '@/lib/admin-upload'
 import { 
   Plus, Edit2, Trash2, Save, X, Award, Calendar, 
   ExternalLink, Upload
@@ -173,12 +174,8 @@ function CertificationModal({
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('type', 'certification')
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData, credentials: 'include' })
-      const data = await res.json()
+      const data = await uploadAdminFile(file, 'certification')
       if (data.success) setForm({ ...form, image: data.url })
       else alert(data.error || 'Upload failed')
     } catch (err) { console.error('Upload error:', err); alert('Upload failed') }

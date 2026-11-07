@@ -51,7 +51,7 @@ export default function Gallery() {
     <section
       id="gallery"
       ref={ref}
-      className="py-20 lg:py-32 bg-dark-900/50"
+      className="py-20 lg:py-32 bg-dark-900/50 light:bg-[#F1EEE7]"
       aria-labelledby="gallery-heading"
     >
       <div className="section-container">
