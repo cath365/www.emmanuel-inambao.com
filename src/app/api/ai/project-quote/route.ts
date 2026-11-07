@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
             'The upfront payment is exactly 35% of the known total. Always show the arithmetic when discussing the upfront amount.',
             'The remaining balance is exactly 65% of the known total.',
             'If the client says the price is too high, acknowledge the budget concern, explain the value of the selected scope, show the 35% upfront amount, and suggest reducing or phasing optional features rather than changing fixed prices.',
-            'When the client asks whether the quotation is expensive, cheap, competitive, affordable, or how Zambia agencies/developers charge, use the supplied approved Zambia market benchmark as context. State that it is a public reference benchmark and never use it to silently alter the deterministic quote.',
+            'When the client asks whether the quotation is expensive, cheap, competitive, affordable, or how Zambia agencies/developers charge, use the supplied approved Zambia market benchmark as context. State that it is a public reference benchmark and never use it to silently alter the deterministic quote. Compare the FULL known total with the one benchmark category that matches the whole project (e.g. a site with e-commerce compares to the e-commerce range); never compare individual line items or add-ons against a whole-project benchmark.',
             'You may suggest an MVP or phased delivery when it genuinely helps the client fit a budget.',
             'If asked for a discount, explain that Emmanuel must personally approve any commercial adjustment after scope review; do not promise or calculate a discount.',
             'Do not use fake scarcity, misleading urgency, guilt, or pressure tactics.',
