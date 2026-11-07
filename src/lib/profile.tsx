@@ -90,20 +90,21 @@ function saveToServer(data: Profile) {
   void persistPortfolioData('profile', data).catch(error => console.error('Failed to save profile:', error))
 }
 
-export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<Profile>(defaultProfile)
+function profileFromData(data: unknown): Profile {
+  return data && typeof data === 'object' && !('error' in data)
+    ? normalizeProfileData(data as Partial<Profile>)
+    : defaultProfile
+}
+
+// initialData comes from the server render (undefined when the server could not read storage).
+export function ProfileProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [profile, setProfile] = useState<Profile>(() => profileFromData(initialData))
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/portfolio-data?key=profile', { cache: 'no-store' })
       .then(r => r.json())
-      .then(data => {
-        if (data && !data.error) {
-          setProfile(normalizeProfileData(data))
-        } else {
-          setProfile(defaultProfile)
-        }
-      })
+      .then(data => setProfile(profileFromData(data)))
       .catch(() => {
         setProfile(defaultProfile)
       })

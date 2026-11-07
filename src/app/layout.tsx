@@ -5,6 +5,7 @@ import './globals.css'
 import Providers from '@/components/Providers'
 import VisitorTracker from '@/components/ui/VisitorTracker'
 import { generatePersonSchema, generateWebsiteSchema } from '@/lib/schema'
+import { getInitialPortfolio } from '@/lib/portfolio-server'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://emmanuel-inambao-eight.vercel.app'
 
@@ -90,7 +91,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const initialPortfolio = await getInitialPortfolio()
+
   return (
     <html lang="en" className="scroll-smooth dark overflow-x-hidden" suppressHydrationWarning>
       <head>
@@ -100,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(generateWebsiteSchema()) }} />
       </head>
       <body className="bg-[#F7F5EF] font-sans text-[#293442] dark:bg-dark-950 dark:text-dark-100">
-        <Providers>
+        <Providers initialPortfolio={initialPortfolio}>
           {children}
           <VisitorTracker />
         </Providers>

@@ -84,20 +84,19 @@ function saveToServer(data: GalleryItem[]) {
   void persistPortfolioData('gallery', data).catch(error => console.error('Failed to save gallery:', error))
 }
 
-export function GalleryProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<GalleryItem[]>(defaultItems)
+function galleryFromData(data: unknown): GalleryItem[] {
+  return Array.isArray(data) && data.length > 0 ? data : defaultItems
+}
+
+// initialData comes from the server render (undefined when the server could not read storage).
+export function GalleryProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [items, setItems] = useState<GalleryItem[]>(() => galleryFromData(initialData))
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     fetch('/api/portfolio-data?key=gallery', { cache: 'no-store' })
       .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setItems(data)
-        } else {
-          setItems(defaultItems)
-        }
-      })
+      .then(data => setItems(galleryFromData(data)))
       .catch(() => {
         setItems(defaultItems)
       })

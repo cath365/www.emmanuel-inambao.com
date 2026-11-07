@@ -102,8 +102,9 @@ function saveToServer(data: Service[]) {
   void persistPortfolioData('services', data).catch(error => console.error('Failed to save services:', error))
 }
 
-export function ServiceProvider({ children }: { children: ReactNode }) {
-  const [services, setServices] = useState<Service[]>([])
+// initialData comes from the server render (undefined when the server could not read storage).
+export function ServiceProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [services, setServices] = useState<Service[]>(() => normalizeServiceData(initialData))
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {

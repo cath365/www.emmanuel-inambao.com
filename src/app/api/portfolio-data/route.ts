@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
+import { revalidateTag } from 'next/cache'
 import { readPublicJson, storageError, storageToken } from '@/lib/blob-json'
+import { PORTFOLIO_CACHE_TAG } from '@/lib/portfolio-server'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid key' }, { status: 400 })
     }
     await writeSection(key, data)
+    revalidateTag(PORTFOLIO_CACHE_TAG)
     return NextResponse.json(
       { success: true, key, publishedAt: new Date().toISOString() },
       {

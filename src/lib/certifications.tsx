@@ -45,23 +45,21 @@ function saveToServer(data: Certification[]) {
   void persistPortfolioData('certifications', data).catch(error => console.error('Failed to save certifications:', error))
 }
 
-export function CertificationProvider({ children }: { children: ReactNode }) {
-  const [certifications, setCertifications] = useState<Certification[]>([])
+function certificationsFromData(data: unknown): Certification[] {
+  if (!Array.isArray(data) || data.length === 0) return defaultCertifications
+  const verifiedOrCustom = data.filter((item: Certification) => !legacyUnsupportedCertificationIds.has(item.id))
+  return verifiedOrCustom.length > 0 ? verifiedOrCustom : defaultCertifications
+}
+
+// initialData comes from the server render (undefined when the server could not read storage).
+export function CertificationProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [certifications, setCertifications] = useState<Certification[]>(() => certificationsFromData(initialData))
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     fetch('/api/portfolio-data?key=certifications', { cache: 'no-store' })
       .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const verifiedOrCustom = data.filter(
-            (item: Certification) => !legacyUnsupportedCertificationIds.has(item.id)
-          )
-          setCertifications(verifiedOrCustom.length > 0 ? verifiedOrCustom : defaultCertifications)
-        } else {
-          setCertifications(defaultCertifications)
-        }
-      })
+      .then(data => setCertifications(certificationsFromData(data)))
       .catch(() => {
         setCertifications(defaultCertifications)
       })

@@ -145,8 +145,9 @@ function saveToServer(data: SkillCategory[]) {
   void persistPortfolioData('skills', data).catch(error => console.error('Failed to save skills:', error))
 }
 
-export function SkillsProvider({ children }: { children: ReactNode }) {
-  const [skillCategories, setSkillCategoriesState] = useState<SkillCategory[]>(defaultSkillCategories)
+// initialData comes from the server render (undefined when the server could not read storage).
+export function SkillsProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [skillCategories, setSkillCategoriesState] = useState<SkillCategory[]>(() => normalizeSkillData(initialData))
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {

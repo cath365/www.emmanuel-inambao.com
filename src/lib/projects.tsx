@@ -20,20 +20,19 @@ function saveToServer(data: Project[]) {
   void persistPortfolioData('projects', data).catch(error => console.error('Failed to save projects:', error))
 }
 
-export function ProjectsProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(defaultProjects)
+function projectsFromData(data: unknown): Project[] {
+  return Array.isArray(data) && data.length > 0 ? mergeWithCurrentCatalog(data) : defaultProjects
+}
+
+// initialData comes from the server render (undefined when the server could not read storage).
+export function ProjectsProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [projects, setProjects] = useState<Project[]>(() => projectsFromData(initialData))
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
     fetch('/api/portfolio-data?key=projects', { cache: 'no-store' })
       .then(response => response.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setProjects(mergeWithCurrentCatalog(data))
-        } else {
-          setProjects(defaultProjects)
-        }
-      })
+      .then(data => setProjects(projectsFromData(data)))
       .catch(() => {
         setProjects(defaultProjects)
       })

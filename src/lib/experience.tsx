@@ -120,8 +120,9 @@ function saveToServer(data: Experience[]) {
   void persistPortfolioData('experiences', data).catch(error => console.error('Failed to save experiences:', error))
 }
 
-export function ExperienceProvider({ children }: { children: ReactNode }) {
-  const [experiences, setExperiences] = useState<Experience[]>([])
+// initialData comes from the server render (undefined when the server could not read storage).
+export function ExperienceProvider({ children, initialData }: { children: ReactNode; initialData?: unknown }) {
+  const [experiences, setExperiences] = useState<Experience[]>(() => mergeExperienceData(initialData))
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
