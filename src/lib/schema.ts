@@ -22,7 +22,7 @@ export function generatePersonSchema() {
     // Tells search engines these profiles belong to the same person.
     sameAs: [
       'https://github.com/cath365',
-      'https://linkedin.com/in/emmanuelinambao',
+      'https://www.linkedin.com/in/emmanuelinambaob',
       'https://www.tiktok.com/@denuel29',
       'https://www.youtube.com/@InamTechOfficial',
     ],

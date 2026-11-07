@@ -66,7 +66,7 @@ export default function Contact() {
     {
       icon: Linkedin,
       label: 'LinkedIn',
-      href: profile.socialLinks.linkedin || 'https://linkedin.com/in/emmanuelinambao',
+      href: profile.socialLinks.linkedin || 'https://www.linkedin.com/in/emmanuelinambaob',
       username: profile.name,
     },
     {

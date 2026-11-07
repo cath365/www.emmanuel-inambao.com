@@ -40,7 +40,7 @@ export default function Footer() {
                 <Github className="w-5 h-5" aria-hidden="true" />
               </a>
               <a
-                href="https://linkedin.com/in/emmanuelinambao"
+                href="https://www.linkedin.com/in/emmanuelinambaob"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 text-[#667384] dark:text-dark-400 hover:text-[#10243E] dark:hover:text-white hover:bg-white/55 dark:hover:bg-dark-800 rounded-sm transition-all duration-200"

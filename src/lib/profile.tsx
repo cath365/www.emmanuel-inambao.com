@@ -40,7 +40,7 @@ const defaultProfile: Profile = {
   status: 'Available for Engineering Projects',
   socialLinks: {
     github: 'https://github.com/cath365',
-    linkedin: 'https://linkedin.com/in/emmanuelinambao',
+    linkedin: 'https://www.linkedin.com/in/emmanuelinambaob',
     twitter: '',
     tiktok: 'https://www.tiktok.com/@denuel29',
     youtube: 'https://www.youtube.com/@InamTechOfficial',
@@ -91,6 +91,10 @@ function normalizeProfileData(data: Partial<Profile> | null | undefined): Profil
   // The old default pointed at a file that was never committed to /public.
   if (String(data?.image || '').trim() === '/images/profile/profile.jpg') {
     merged.image = ''
+  }
+  // The old default LinkedIn URL was missing the trailing "b" and pointed at someone else's profile.
+  if (/linkedin\.com\/in\/emmanuelinambao\/?$/.test(String(merged.socialLinks.linkedin || '').trim())) {
+    merged.socialLinks.linkedin = defaultProfile.socialLinks.linkedin
   }
 
   return merged
