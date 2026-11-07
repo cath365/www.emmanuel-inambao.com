@@ -19,6 +19,8 @@ export interface Profile {
     github?: string
     linkedin?: string
     twitter?: string
+    tiktok?: string
+    youtube?: string
     website?: string
   }
 }
@@ -40,6 +42,8 @@ const defaultProfile: Profile = {
     github: 'https://github.com/cath365',
     linkedin: 'https://linkedin.com/in/emmanuelinambao',
     twitter: '',
+    tiktok: 'https://www.tiktok.com/@denuel29',
+    youtube: 'https://www.youtube.com/@InamTechOfficial',
     website: 'https://emmanuel-inambao-eight.vercel.app',
   },
 }
@@ -55,7 +59,13 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined)
 const STORAGE_KEY = 'portfolio_profile'
 
 function normalizeProfileData(data: Partial<Profile> | null | undefined): Profile {
-  const merged = { ...defaultProfile, ...(data || {}) }
+  // socialLinks is merged per key so links added to the defaults (e.g. TikTok, YouTube)
+  // appear even when the saved profile predates them.
+  const merged = {
+    ...defaultProfile,
+    ...(data || {}),
+    socialLinks: { ...defaultProfile.socialLinks, ...(data?.socialLinks || {}) },
+  }
   const legacyTitles = new Set([
     'Embedded Systems | IoT & Robotics',
     'Electronic Engineer | IoT & Robotics Developer',

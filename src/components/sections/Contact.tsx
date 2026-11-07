@@ -15,9 +15,16 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  Youtube,
 } from 'lucide-react'
 import { useLanguage } from '@/lib/i18n'
 import { useProfile } from '@/lib/profile'
+import TikTokIcon from '@/components/ui/TikTokIcon'
+
+// "https://www.tiktok.com/@denuel29" -> "@denuel29"
+function handleFromUrl(url?: string) {
+  return url?.match(/@[\w.-]+/)?.[0] || ''
+}
 
 export default function Contact() {
   const ref = useRef(null)
@@ -62,7 +69,19 @@ export default function Contact() {
       href: profile.socialLinks.linkedin || 'https://linkedin.com/in/emmanuelinambao',
       username: profile.name,
     },
-  ]
+    {
+      icon: TikTokIcon,
+      label: 'TikTok',
+      href: profile.socialLinks.tiktok || '',
+      username: handleFromUrl(profile.socialLinks.tiktok),
+    },
+    {
+      icon: Youtube,
+      label: 'YouTube',
+      href: profile.socialLinks.youtube || '',
+      username: handleFromUrl(profile.socialLinks.youtube),
+    },
+  ].filter(link => link.href)
   
   // Form state
   const [formData, setFormData] = useState({

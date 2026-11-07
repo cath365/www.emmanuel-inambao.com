@@ -19,9 +19,12 @@ export function generatePersonSchema() {
       addressLocality: 'Lusaka',
       addressCountry: 'Zambia',
     },
+    // Tells search engines these profiles belong to the same person.
     sameAs: [
       'https://github.com/cath365',
       'https://linkedin.com/in/emmanuelinambao',
+      'https://www.tiktok.com/@denuel29',
+      'https://www.youtube.com/@InamTechOfficial',
     ],
     knowsAbout: [
       'Embedded Systems',

@@ -1538,6 +1538,26 @@ function ProfileEditor({ profile, onSave }: ProfileEditorProps) {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">TikTok</label>
+              <input
+                type="url"
+                value={formData.socialLinks.tiktok || ''}
+                onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, tiktok: e.target.value } })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="https://www.tiktok.com/@username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-300 mb-2">YouTube</label>
+              <input
+                type="url"
+                value={formData.socialLinks.youtube || ''}
+                onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, youtube: e.target.value } })}
+                className="w-full px-4 py-3 bg-dark-900 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:border-primary-500 transition-colors"
+                placeholder="https://www.youtube.com/@channel"
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-dark-300 mb-2">Website</label>
               <input
                 type="url"
