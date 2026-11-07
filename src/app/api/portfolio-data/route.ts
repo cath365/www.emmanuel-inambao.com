@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
-import { readPublicJson, storageError } from '@/lib/blob-json'
+import { readPublicJson, storageError, storageToken } from '@/lib/blob-json'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -18,12 +18,7 @@ async function readSection(key: string) {
 }
 
 async function writeSection(key: string, data: unknown) {
-  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
-  if (!token) {
-    throw new Error(
-      'Portfolio publishing is not configured. Add BLOB_READ_WRITE_TOKEN to the Production environment in Vercel, then redeploy.'
-    )
-  }
+  const token = storageToken('public')
 
   const payload = JSON.stringify(data)
   const blob = await put(blobPath(key), payload, {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { list } from '@vercel/blob'
+import { publicBlobToken } from '@/lib/blob-json'
 import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
 import { createGroqCompletion } from '@/lib/groq'
@@ -26,7 +27,7 @@ function blobPath(key: string) {
 
 async function readPortfolioSection(key: string) {
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    const token = publicBlobToken()
     if (!token) return null
 
     const { blobs } = await list({ prefix: blobPath(key), token })

@@ -1,15 +1,23 @@
 import 'server-only'
 import { get, list, put, BlobPreconditionFailedError } from '@vercel/blob'
 
+// Connecting the public store with the "PUBLIC_BLOB" prefix creates PUBLIC_BLOB_READ_WRITE_TOKEN;
+// it wins over BLOB_READ_WRITE_TOKEN so a stale manually-pasted token can't shadow it.
+export function publicBlobToken() {
+  return process.env.PUBLIC_BLOB_READ_WRITE_TOKEN?.trim() || process.env.BLOB_READ_WRITE_TOKEN?.trim() || undefined
+}
+
 export function storageToken(access: 'public' | 'private') {
-  const key = access === 'private' ? 'PRIVATE_BLOB_READ_WRITE_TOKEN' : 'BLOB_READ_WRITE_TOKEN'
-  const token = process.env[key]?.trim()
-  if (!token) throw new Error(`Set ${key} from the ${access} Blob store in Vercel Production, then redeploy.`)
+  const token = access === 'private' ? process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim() : publicBlobToken()
+  if (!token) {
+    const key = access === 'private' ? 'PRIVATE_BLOB_READ_WRITE_TOKEN' : 'PUBLIC_BLOB_READ_WRITE_TOKEN'
+    throw new Error(`Set ${key} from the ${access} Blob store in Vercel Production, then redeploy.`)
+  }
   return token
 }
 
 export function storageError(access: 'public' | 'private') {
-  const key = access === 'private' ? 'PRIVATE_BLOB_READ_WRITE_TOKEN' : 'BLOB_READ_WRITE_TOKEN'
+  const key = access === 'private' ? 'PRIVATE_BLOB_READ_WRITE_TOKEN' : 'PUBLIC_BLOB_READ_WRITE_TOKEN'
   return `${access === 'public' ? 'Portfolio publishing' : 'Private submission storage'} is unavailable. Check that ${key} belongs to the ${access} Blob store, reconnect it to Production, then redeploy.`
 }
 

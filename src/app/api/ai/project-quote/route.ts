@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { list } from '@vercel/blob'
+import { publicBlobToken } from '@/lib/blob-json'
 import { createGroqCompletion } from '@/lib/groq'
 import { marketRangeSummary, resolveMarketPricing } from '@/lib/market-pricing'
 import {
@@ -23,7 +24,7 @@ function sanitizeQuestion(value: unknown) {
 
 async function readMarketPricing() {
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    const token = publicBlobToken()
     if (!token) return resolveMarketPricing(null)
 
     const { blobs } = await list({

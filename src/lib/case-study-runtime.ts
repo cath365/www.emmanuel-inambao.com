@@ -1,13 +1,14 @@
 import 'server-only'
 
 import { list } from '@vercel/blob'
+import { publicBlobToken } from '@/lib/blob-json'
 import { caseStudies as staticCaseStudies, type CaseStudy } from '@/lib/case-studies'
 
 const DYNAMIC_CASE_STUDIES_PATH = 'data/portfolio/caseStudies.json'
 
 async function readDynamicCaseStudies(): Promise<CaseStudy[]> {
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim()
+    const token = publicBlobToken()
     if (!token) return []
 
     const { blobs } = await list({
