@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put, list } from '@vercel/blob'
+import { put } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
+import { readPrivateJson } from '@/lib/blob-json'
 
 function getPrivateBlobToken() {
   const token = process.env.PRIVATE_BLOB_READ_WRITE_TOKEN?.trim()
@@ -30,16 +31,14 @@ function blobPath(day: string) {
   return `data/analytics/${day}.json`
 }
 
+// Each stored visit is a billed "advanced operation" (Hobby includes 2,000/month across all
+// writes), so the per-day log is capped; Vercel Web Analytics keeps the full traffic counts.
+const MAX_STORED_VISITS_PER_DAY = 40
+
+// get() by pathname is a cheap read; list() would be a billed advanced operation.
 async function readDay(day: string): Promise<Visit[]> {
   try {
-    const { blobs } = await list({ prefix: blobPath(day), token: getPrivateBlobToken() })
-    if (blobs.length === 0) return []
-    const res = await fetch(blobs[0].url, {
-      headers: { Authorization: `Bearer ${getPrivateBlobToken()}` },
-      cache: 'no-store',
-    })
-    if (!res.ok) return []
-    return await res.json()
+    return await readPrivateJson<Visit[]>(blobPath(day), [])
   } catch {
     return []
   }
@@ -170,6 +169,7 @@ export async function POST(request: NextRequest) {
         Date.now() - new Date(v.timestamp).getTime() < 5 * 60 * 1000
     )
     if (recent) return NextResponse.json({ ok: true })
+    if (existing.length >= MAX_STORED_VISITS_PER_DAY) return NextResponse.json({ ok: true })
 
     await writeDay(day, [visit, ...existing])
 

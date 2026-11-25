@@ -9,21 +9,22 @@ import Testimonials from '@/components/sections/Testimonials'
 import Education from '@/components/sections/Education'
 import Gallery from '@/components/sections/Gallery'
 import Contact from '@/components/sections/Contact'
-import Newsletter from '@/components/sections/Newsletter'
 import DownloadableResources from '@/components/sections/DownloadableResources'
 import GitHubContributions from '@/components/sections/GitHubContributions'
 import ClientLogos from '@/components/sections/ClientLogos'
 import HowIWork from '@/components/sections/HowIWork'
 import FAQ from '@/components/sections/FAQ'
-import OpenSource from '@/components/sections/OpenSource'
 import SectionViewTracker from '@/components/ui/SectionViewTracker'
 
+// Proof of work (projects, then photos of real builds) comes first because most visitors skim.
+// OpenSource and Newsletter are left off until there are public repos / a newsletter to show.
 export default function Home() {
   return (
     <>
       <SectionViewTracker />
       <Hero />
       <Projects />
+      <Gallery />
       <About />
       <ClientLogos />
       <Experience />
@@ -33,12 +34,9 @@ export default function Home() {
       <Services />
       <GitHubContributions username="cath365" />
       <Certifications />
-      <OpenSource />
       <Testimonials />
-      <Gallery />
       <DownloadableResources />
       <FAQ />
-      <Newsletter />
       <Contact />
     </>
   )

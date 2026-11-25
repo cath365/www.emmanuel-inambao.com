@@ -1,36 +1,11 @@
 import 'server-only'
 
-import { list } from '@vercel/blob'
-import { publicBlobToken } from '@/lib/blob-json'
+import { getPortfolioSection } from '@/lib/portfolio-server'
 import { caseStudies as staticCaseStudies, type CaseStudy } from '@/lib/case-studies'
-
-const DYNAMIC_CASE_STUDIES_PATH = 'data/portfolio/caseStudies.json'
 
 async function readDynamicCaseStudies(): Promise<CaseStudy[]> {
   try {
-    const token = publicBlobToken()
-    if (!token) return []
-
-    const { blobs } = await list({
-      prefix: DYNAMIC_CASE_STUDIES_PATH,
-      token,
-    })
-
-    if (blobs.length === 0) return []
-
-    const url = new URL(blobs[0].url)
-    url.searchParams.set('v', String(Date.now()))
-
-    const response = await fetch(url, {
-      cache: 'no-store',
-    })
-
-    if (!response.ok) {
-      console.error('Unable to read published case studies:', response.status)
-      return []
-    }
-
-    const payload = await response.json()
+    const payload = await getPortfolioSection('caseStudies')
     return Array.isArray(payload) ? payload : []
   } catch (error) {
     console.error('Unable to load dynamic case studies:', error)

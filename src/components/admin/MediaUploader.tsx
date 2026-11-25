@@ -7,6 +7,7 @@ import {
   Copy, Check, ExternalLink, Play
 } from 'lucide-react'
 import { uploadAdminFile } from '@/lib/admin-upload'
+import { useGallery } from '@/lib/gallery'
 
 interface UploadedFile {
   id: string
@@ -21,8 +22,15 @@ interface Props {
   onNotify: (type: 'success' | 'error', message: string) => void
 }
 
+// "IMG_2041-final.jpg" -> "IMG 2041 final"; editable later in the Gallery tab.
+function titleFromFileName(name: string) {
+  return name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim() || 'Untitled'
+}
+
 export default function MediaUploader({ onNotify }: Props) {
+  const { addItem } = useGallery()
   const [uploads, setUploads] = useState<UploadedFile[]>([])
+  const [addToGallery, setAddToGallery] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -40,18 +48,7 @@ export default function MediaUploader({ onNotify }: Props) {
     return 'document'
   }
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploading(true)
-    setUploadProgress(0)
-
-    // Simulate progress for better UX
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => Math.min(prev + 10, 90))
-    }, 200)
-
+  const uploadOne = async (file: File) => {
     // Determine upload type based on file
     let uploadType = 'image'
     if (file.type.startsWith('video/')) {
@@ -62,29 +59,61 @@ export default function MediaUploader({ onNotify }: Props) {
       uploadType = 'resource'
     }
 
+    const data = await uploadAdminFile(file, uploadType)
+    if (!data.success) throw new Error(`${file.name}: ${data.error}`)
+
+    const type = getFileType(file.type)
+    setUploads(prev => [{
+      id: `${Date.now()}-${file.name}`,
+      name: file.name,
+      url: data.url,
+      type,
+      size: formatFileSize(file.size),
+      uploadedAt: new Date()
+    }, ...prev])
+
+    // Media uploads are otherwise just hosted files; this is what makes them appear on the homepage.
+    if (addToGallery && (type === 'image' || type === 'video')) {
+      addItem({ title: titleFromFileName(file.name), description: '', url: data.url, type, category: 'other', featured: false })
+      return true
+    }
+    return false
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    setUploading(true)
+    setUploadProgress(0)
+
+    // Simulate progress for better UX
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => Math.min(prev + 10, 90))
+    }, 200)
+
+    let uploaded = 0
+    let published = 0
+    const errors: string[] = []
     try {
-      const data = await uploadAdminFile(file, uploadType)
-
-      clearInterval(progressInterval)
-      setUploadProgress(100)
-
-      if (data.success) {
-        const newUpload: UploadedFile = {
-          id: Date.now().toString(),
-          name: file.name,
-          url: data.url,
-          type: getFileType(file.type),
-          size: formatFileSize(file.size),
-          uploadedAt: new Date()
+      // One at a time keeps each request small and the gallery order predictable.
+      for (const file of files) {
+        try {
+          if (await uploadOne(file)) published++
+          uploaded++
+        } catch (err) {
+          console.error('Upload error:', err)
+          errors.push(err instanceof Error ? err.message : file.name)
         }
-        setUploads(prev => [newUpload, ...prev])
-        onNotify('success', 'File uploaded successfully!')
-      } else {
-        onNotify('error', data.error || 'Upload failed')
       }
-    } catch (err) {
-      console.error('Upload error:', err)
-      onNotify('error', 'Upload failed. Please try again.')
+
+      setUploadProgress(100)
+      if (uploaded > 0) {
+        onNotify('success', published > 0
+          ? `${uploaded} file${uploaded === 1 ? '' : 's'} uploaded — ${published} added to the homepage Gallery. Edit titles in the Gallery tab.`
+          : `${uploaded} file${uploaded === 1 ? '' : 's'} uploaded.`)
+      }
+      if (errors.length > 0) onNotify('error', `Upload failed for ${errors.join('; ')}`)
     } finally {
       clearInterval(progressInterval)
       setUploading(false)
@@ -115,6 +144,16 @@ export default function MediaUploader({ onNotify }: Props) {
           <p className="text-dark-400 mt-1">Upload images, videos, and documents</p>
         </div>
       </div>
+
+      <label className="mb-4 flex items-center gap-3 text-sm text-dark-300 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={addToGallery}
+          onChange={e => setAddToGallery(e.target.checked)}
+          className="h-4 w-4 accent-primary-500"
+        />
+        Show uploaded photos and videos on the homepage Gallery
+      </label>
 
       {/* Upload Zone */}
       <div className="mb-8">
@@ -158,7 +197,7 @@ export default function MediaUploader({ onNotify }: Props) {
                 Images (JPG, PNG, WebP, GIF) • Videos (MP4, WebM, MOV) • Documents (PDF, DOC)
               </p>
               <p className="text-dark-500 text-xs mt-2">
-                Max size: 5MB for images, 100MB for videos, 10MB for documents
+                You can select several files at once · large photos are resized automatically · videos up to 100MB
               </p>
             </>
           )}
@@ -167,6 +206,7 @@ export default function MediaUploader({ onNotify }: Props) {
           ref={fileRef}
           type="file"
           accept="image/*,video/*,application/pdf,.doc,.docx"
+          multiple
           onChange={handleFileSelect}
           className="hidden"
         />

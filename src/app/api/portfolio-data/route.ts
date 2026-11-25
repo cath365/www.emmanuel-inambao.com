@@ -3,8 +3,8 @@ import { put } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
 
 import { revalidateTag } from 'next/cache'
-import { readPublicJson, storageError, storageToken } from '@/lib/blob-json'
-import { PORTFOLIO_CACHE_TAG } from '@/lib/portfolio-server'
+import { storageError, storageToken } from '@/lib/blob-json'
+import { PORTFOLIO_CACHE_TAG, getPortfolioSection } from '@/lib/portfolio-server'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -13,10 +13,6 @@ const ALLOWED_KEYS = ['profile', 'projects', 'testimonials', 'certifications', '
 
 function blobPath(key: string) {
   return `data/portfolio/${key}.json`
-}
-
-async function readSection(key: string) {
-  return readPublicJson<unknown>(blobPath(key))
 }
 
 async function writeSection(key: string, data: unknown) {
@@ -51,7 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(null)
   }
   let data
-  try { data = await readSection(key) }
+  try { data = await getPortfolioSection(key) }
   catch (error) {
     console.error('Portfolio data read failed:', error)
     if (await isAuthenticated()) return NextResponse.json({ error: storageError('public') }, { status: 503 })

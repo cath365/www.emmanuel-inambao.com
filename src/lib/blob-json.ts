@@ -1,5 +1,5 @@
 import 'server-only'
-import { get, list, put, BlobPreconditionFailedError } from '@vercel/blob'
+import { get, put, BlobPreconditionFailedError } from '@vercel/blob'
 
 // Store-connection tokens win over BLOB_READ_WRITE_TOKEN so a stale manually-pasted token
 // can't shadow them. Production's public store is currently connected with the "BLOD" prefix.
@@ -24,14 +24,26 @@ export function storageError(access: 'public' | 'private') {
   return `${access === 'public' ? 'Portfolio publishing' : 'Private submission storage'} is unavailable. Check that ${key} belongs to the ${access} Blob store, reconnect it to Production, then redeploy.`
 }
 
+// Read-write tokens look like vercel_blob_rw_<storeId>_<secret>; public blobs are served from
+// https://<storeId>.public.blob.vercel-storage.com/<pathname>.
+function publicStoreId() {
+  const fromToken = publicBlobToken()?.split('_')[3]
+  const id = (fromToken || process.env.PUBLIC_BLOB_STORE_ID || process.env.BLOD_STORE_ID || '')
+    .trim().replace(/^store_/, '').toLowerCase()
+  if (!id) throw new Error(storageError('public'))
+  return id
+}
+
+// Reads the blob by its fixed URL instead of list(): list() is a billed "advanced operation"
+// (2,000/month on Hobby) and calling it on every read suspended the store. Callers should go
+// through the cached readers in portfolio-server.ts rather than calling this per request.
 export async function readPublicJson<T>(path: string): Promise<T | null> {
-  const { blobs } = await list({ prefix: path, token: storageToken('public') })
-  const blob = blobs.find(item => item.pathname === path)
-  if (!blob) return null
-  const url = new URL(blob.url)
+  const url = new URL(`https://${publicStoreId()}.public.blob.vercel-storage.com/${path}`)
+  // Bypasses the CDN copy so a read right after a save sees the new data.
   url.searchParams.set('v', String(Date.now()))
-  const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(10000) })
-  if (!response.ok) throw new Error(storageError('public'))
+  const response = await fetch(url, { next: { revalidate: 86400 }, signal: AbortSignal.timeout(10000) })
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`${storageError('public')} (HTTP ${response.status})`)
   return response.json()
 }
 

@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server'
-import { list } from '@vercel/blob'
 import { isAuthenticated } from '@/lib/auth-helpers'
-import { storageToken, storageError } from '@/lib/blob-json'
+import { readPrivateJson, readPublicJson, storageError } from '@/lib/blob-json'
 import { emailConfiguration } from '@/lib/notifications'
 import { cloudinaryConfig } from '@/lib/cloudinary-config'
 
 export const dynamic = 'force-dynamic'
 export async function GET() {
   if (!(await isAuthenticated())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Cheap single-file reads (not list(), a billed advanced operation) prove each store is reachable.
+  const probes = {
+    public: () => readPublicJson('data/portfolio/profile.json'),
+    private: () => readPrivateJson('data/leads.json', []),
+  }
   const checks = await Promise.all((['public', 'private'] as const).map(async access => {
     try {
-      await list({ token: storageToken(access), limit: 1 })
-      return { name: `${access} Blob`, ok: true, detail: 'Token accepted for reads. Store access mode and writes still need a save check.' }
+      await probes[access]()
+      return { name: `${access} Blob`, ok: true, detail: 'Store reachable for reads. Writes still need a save check.' }
     } catch { return { name: `${access} Blob`, ok: false, detail: storageError(access) } }
   }))
   const email = emailConfiguration()

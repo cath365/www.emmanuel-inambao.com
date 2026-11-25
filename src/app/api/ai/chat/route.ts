@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { list } from '@vercel/blob'
-import { publicBlobToken } from '@/lib/blob-json'
+import { getPortfolioSection } from '@/lib/portfolio-server'
 import { defaultProjects, mergeWithCurrentCatalog } from '@/lib/project-catalog'
 import { caseStudies as staticCaseStudies } from '@/lib/case-studies'
 import { createGroqCompletion } from '@/lib/groq'
@@ -21,24 +20,9 @@ const RATE_LIMIT = 20
 
 const requestBuckets = new Map<string, { count: number; resetAt: number }>()
 
-function blobPath(key: string) {
-  return `data/portfolio/${key}.json`
-}
-
 async function readPortfolioSection(key: string) {
   try {
-    const token = publicBlobToken()
-    if (!token) return null
-
-    const { blobs } = await list({ prefix: blobPath(key), token })
-    if (blobs.length === 0) return null
-
-    const url = new URL(blobs[0].url)
-    url.searchParams.set('v', String(Date.now()))
-    const response = await fetch(url, { cache: 'no-store' })
-
-    if (!response.ok) return null
-    return await response.json()
+    return await getPortfolioSection(key)
   } catch {
     return null
   }

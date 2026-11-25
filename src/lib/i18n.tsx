@@ -32,7 +32,7 @@ const translations: Translations = {
   
   // Hero Section
   'hero.greeting': { en: "Hi, I'm", fr: 'Bonjour, je suis', pt: 'Olá, eu sou', es: 'Hola, soy', de: 'Hallo, ich bin', ar: 'مرحباً، أنا', zh: '你好，我是' },
-  'hero.subtitle': { en: 'Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager', fr: 'Ingénieur Électronique | Développeur IoT & Robotique', pt: 'Engenheiro Eletrônico | Desenvolvedor IoT & Robótica', es: 'Ingeniero Electrónico | Desarrollador IoT & Robótica', de: 'Elektroingenieur | IoT & Robotik-Entwickler', ar: 'مهندس إلكترونيات | مطور إنترنت الأشياء والروبوتات', zh: '电子工程师 | 物联网与机器人开发者' },
+  'hero.subtitle': { en: 'Robotics & IoT Engineer | Full-Stack Systems Developer | Technical Project Manager', fr: 'Ingénieur Robotique & IoT | Développeur de systèmes Full-Stack | Chef de projet technique', pt: 'Engenheiro de Robótica e IoT | Desenvolvedor de Sistemas Full-Stack | Gestor de Projetos Técnicos', es: 'Ingeniero de Robótica e IoT | Desarrollador de Sistemas Full-Stack | Gestor de Proyectos Técnicos', de: 'Robotik- & IoT-Ingenieur | Full-Stack-Systementwickler | Technischer Projektmanager', ar: 'مهندس روبوتات وإنترنت الأشياء | مطور أنظمة متكاملة | مدير مشاريع تقنية', zh: '机器人与物联网工程师 | 全栈系统开发者 | 技术项目经理' },
   'hero.cta.projects': { en: 'View Projects', fr: 'Voir les projets', pt: 'Ver Projetos', es: 'Ver Proyectos', de: 'Projekte ansehen', ar: 'عرض المشاريع', zh: '查看项目' },
   'hero.cta.contact': { en: 'Contact Me', fr: 'Me contacter', pt: 'Entre em Contato', es: 'Contáctame', de: 'Kontaktieren', ar: 'تواصل معي', zh: '联系我' },
   'hero.cta.cv': { en: 'Download CV', fr: 'Télécharger CV', pt: 'Baixar CV', es: 'Descargar CV', de: 'Lebenslauf herunterladen', ar: 'تحميل السيرة الذاتية', zh: '下载简历' },

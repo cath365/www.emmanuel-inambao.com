@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { list } from '@vercel/blob'
-import { publicBlobToken } from '@/lib/blob-json'
+import { getPortfolioSection } from '@/lib/portfolio-server'
 import { createGroqCompletion } from '@/lib/groq'
 import { marketRangeSummary, resolveMarketPricing } from '@/lib/market-pricing'
 import {
@@ -24,21 +23,7 @@ function sanitizeQuestion(value: unknown) {
 
 async function readMarketPricing() {
   try {
-    const token = publicBlobToken()
-    if (!token) return resolveMarketPricing(null)
-
-    const { blobs } = await list({
-      prefix: 'data/portfolio/marketPricing.json',
-      token,
-    })
-    if (blobs.length === 0) return resolveMarketPricing(null)
-
-    const url = new URL(blobs[0].url)
-    url.searchParams.set('v', String(Date.now()))
-    const response = await fetch(url, { cache: 'no-store' })
-    if (!response.ok) return resolveMarketPricing(null)
-
-    return resolveMarketPricing(await response.json())
+    return resolveMarketPricing(await getPortfolioSection('marketPricing'))
   } catch {
     return resolveMarketPricing(null)
   }

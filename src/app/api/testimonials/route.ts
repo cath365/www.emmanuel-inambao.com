@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAuthenticated } from '@/lib/auth-helpers'
-import { readPrivateJson, readPublicJson, updatePrivateJson, storageError } from '@/lib/blob-json'
+import { revalidateTag, unstable_cache } from 'next/cache'
+import { readPrivateJson, updatePrivateJson, storageError } from '@/lib/blob-json'
+import { PORTFOLIO_CACHE_TAG, getPortfolioSection } from '@/lib/portfolio-server'
 import { submissionResponse } from '@/lib/notifications'
 import { testimonialMediaUrl } from '@/lib/cloudinary-config'
 import { rateLimit, getClientIP } from '@/lib/rate-limit'
@@ -10,13 +12,12 @@ export const dynamic = 'force-dynamic'
 const PATH = 'data/testimonial-submissions.json'
 type StoredTestimonial = Testimonial & { email?: string; deleted?: boolean }
 
+const TESTIMONIALS_CACHE_TAG = 'testimonials'
+
+// Throws on any storage failure so a failed read is never cached as an empty list.
 async function allTestimonials(admin: boolean) {
-  let legacy: Testimonial[] = []
-  let submitted: StoredTestimonial[] = []
-  try { legacy = await readPublicJson<Testimonial[]>('data/portfolio/testimonials.json') || [] }
-  catch (error) { if (admin) throw error; console.error('Published testimonials unavailable') }
-  try { submitted = await readPrivateJson<StoredTestimonial[]>(PATH, []) }
-  catch (error) { if (admin) throw error; console.error('Submitted testimonials unavailable') }
+  const legacy = (await getPortfolioSection('testimonials') as Testimonial[] | null) || []
+  const submitted = await readPrivateJson<StoredTestimonial[]>(PATH, [])
   const merged = new Map<string, StoredTestimonial>()
   for (const entry of legacy) merged.set(entry.id, { ...entry, status: entry.status || 'approved' })
   for (const entry of submitted) merged.set(entry.id, entry)
@@ -24,10 +25,23 @@ async function allTestimonials(admin: boolean) {
     .map(({ email, deleted, ...entry }) => entry)
 }
 
+// Every page view asks for testimonials; caching the approved list avoids a private-storage
+// read per visitor. Approving, editing or deleting revalidates it.
+const approvedTestimonials = unstable_cache(
+  () => allTestimonials(false),
+  ['approved-testimonials'],
+  { tags: [TESTIMONIALS_CACHE_TAG, PORTFOLIO_CACHE_TAG], revalidate: 86400 }
+)
+
 export async function GET() {
+  const admin = await isAuthenticated()
   try {
-    return NextResponse.json(await allTestimonials(await isAuthenticated()), { headers: { 'Cache-Control': 'no-store' } })
-  } catch { return NextResponse.json({ error: storageError('private') }, { status: 503 }) }
+    return NextResponse.json(admin ? await allTestimonials(true) : await approvedTestimonials(), { headers: { 'Cache-Control': 'no-store' } })
+  } catch (error) {
+    console.error('Testimonials unavailable:', error)
+    if (!admin) return NextResponse.json([], { headers: { 'Cache-Control': 'no-store' } })
+    return NextResponse.json({ error: storageError('private') }, { status: 503 })
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -75,6 +89,7 @@ export async function PATCH(request: NextRequest) {
       const updated = { ...entry, email: previous?.email, deleted: false }
       return [updated, ...entries.filter(item => item.id !== entry.id)]
     })
+    revalidateTag(TESTIMONIALS_CACHE_TAG)
     return NextResponse.json({ success: true })
   } catch { return NextResponse.json({ error: storageError('private') }, { status: 503 }) }
 }
@@ -88,6 +103,7 @@ export async function DELETE(request: NextRequest) {
     const existing = entries.find(item => item.id === data.id)
     if (!existing) return NextResponse.json({ error: 'Testimonial not found.' }, { status: 404 })
     await updatePrivateJson<StoredTestimonial[]>(PATH, [], current => [{ ...existing, deleted: true }, ...current.filter(item => item.id !== data.id)])
+    revalidateTag(TESTIMONIALS_CACHE_TAG)
     return NextResponse.json({ success: true })
   } catch { return NextResponse.json({ error: storageError('private') }, { status: 503 }) }
 }

@@ -10,6 +10,11 @@ export default function VisitorTracker() {
     // Don't track admin pages
     if (pathname.startsWith('/admin')) return
 
+    // Record one visit per browser session (its landing page). Each recorded visit costs a
+    // billed storage write; page-by-page traffic is covered by Vercel Web Analytics.
+    if (sessionStorage.getItem('_vtracked')) return
+    sessionStorage.setItem('_vtracked', '1')
+
     // Get or create session ID
     let sessionId = sessionStorage.getItem('_vsid')
     if (!sessionId) {
